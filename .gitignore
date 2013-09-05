@@ -1,0 +1,16 @@
+*~
+project/boot
+project/build/target
+project/plugins/project
+project/plugins/target
+lib_managed
+target
+.idea
+*.iml
+
+# Ignore OS generated files
+.DS_Store*
+ehthumbs.db
+Icon?
+Thumbs.db
+
