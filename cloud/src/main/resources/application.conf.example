@@ -1,0 +1,17 @@
+// Example config file - edit to your taste.
+
+feedback {
+  tutor = "TUTOR@hud.ac.uk"
+  subject = "Assessment Feedback for MODULE"
+}
+
+mail {
+  host = "mail.hud.ac.uk"
+  user = "USER"
+  password = "PASSWORD"
+}
+
+web {
+  host = "compeng.hud.ac.uk"
+  user = "USER"
+}

@@ -1,0 +1,9 @@
+Feedback for your assessment submission is located at the following link:
+
+  https://${in.headers.get('webhost')}/${in.headers.get('webuser')}/${in.headers.get('sha256')}
+
+If you have any queries regarding this feedback, then please either directly contact your module tutor or reply to this email.
+
+All the best,
+
+  The automated assessment marker.
