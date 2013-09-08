@@ -50,6 +50,11 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
   val webhost   = config.getString("web.host")
   val webuser   = config.getString("web.user")
 
+  val submission = "Dummy Submission"
+  val submission_hash = sha256(submission)
+  val feedback = "<feedback><item id='1'><comment>Dummy Feedback</comment></item></feedback>"
+  val feedback_hash = sha256(feedback)
+
   Class.forName(sqldriver)
   ConnectionPool.singleton(sqlurl, sqluser, sqlpw)
   implicit val session = AutoSession
@@ -84,9 +89,6 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
         weaveByToString("WireTap[direct:msg_store]").replace.to("mock:wiretap")
       }
     })
-    val submission = "Dummy Submission"
-    val feedback = "<feedback><item id='1'><comment>Dummy Feedback</comment></item></feedback>"
-    val hash = sha256(feedback)
 
     val mock_mail = getMockEndpoint("mock:mail_endpoint")
     mock_mail.expectedMessageCount(1)
@@ -94,7 +96,7 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
     mock_mail.expectedHeaderReceived("clientId", "1")
     mock_mail.expectedHeaderReceived("durableSubscriptionName", "submission")
     mock_mail.expectedHeaderReceived("replyTo", "student@hud.ac.uk")
-    mock_mail.expectedHeaderReceived("sha256", hash)
+    mock_mail.expectedHeaderReceived("sha256", feedback_hash)
 
     val mock_web = getMockEndpoint("mock:web_endpoint")
     mock_web.expectedMessageCount(1)
@@ -102,7 +104,7 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
     mock_web.expectedHeaderReceived("clientId", "1")
     mock_web.expectedHeaderReceived("durableSubscriptionName", "submission")
     mock_web.expectedHeaderReceived("replyTo", "student@hud.ac.uk")
-    mock_web.expectedHeaderReceived("sha256", hash)
+    mock_web.expectedHeaderReceived("sha256", feedback_hash)
 
     val mock_tap = getMockEndpoint("mock:wiretap")
     mock_tap.expectedMessageCount(2)
@@ -110,7 +112,7 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
     mock_tap.message(0).header("table").isEqualTo("submission")
     mock_tap.message(1).body.contains(feedback)
     mock_tap.message(1).header("table").isEqualTo("feedback")
-    mock_tap.message(1).header("sha256").isEqualTo(hash)
+    mock_tap.message(1).header("sha256").isEqualTo(feedback_hash)
 
     template().sendBodyAndHeaders("direct:submission", submission, Map("replyTo" -> mailTo, "clientId" -> "1", "durableSubscriptionName" -> "submission"))
 
@@ -123,14 +125,12 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
         weaveByToString("To[smtp:%s]".format(mailhost)).replace.to("log:DEBUG-smtp?showAll=true", "mock:smtp")
       }
     })
-    val feedback = "Dummy Feedback"
-    val hash = sha256(feedback)
 
     val mock_mail = getMockEndpoint("mock:smtp")
     mock_mail.expectedMessageCount(1)
-    mock_mail.message(0).body.contains("https://%s/%s/%s".format(webhost, webuser, hash))
+    mock_mail.message(0).body.contains("https://%s/%s/%s".format(webhost, webuser, feedback_hash))
     mock_mail.expectedHeaderReceived("replyTo", mailTo)
-    mock_mail.expectedHeaderReceived("sha256", hash)
+    mock_mail.expectedHeaderReceived("sha256", feedback_hash)
     mock_mail.expectedHeaderReceived("webuser", webuser)
     mock_mail.expectedHeaderReceived("webhost", webhost)
     mock_mail.expectedHeaderReceived("username", mailuser)
@@ -139,7 +139,7 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
     mock_mail.expectedHeaderReceived("to", mailTo)
     mock_mail.expectedHeaderReceived("subject", subject)
 
-    template().sendBodyAndHeaders("direct:mail_endpoint", feedback, Map("replyTo" -> mailTo, "sha256" -> hash))
+    template().sendBodyAndHeaders("direct:mail_endpoint", feedback, Map("replyTo" -> mailTo, "sha256" -> feedback_hash))
 
     assertMockEndpointsSatisfied
   }
@@ -150,30 +150,23 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
         weaveByToString("To[sftp:%s@%s/www/]".format(webuser, webhost)).replace.to("mock:sftp")
       }
     })
-    val feedback = <feedback><item id="42"><comment>Dummy Feedback</comment></item></feedback>
-    val html_feedback = <li>Dummy Feedback</li>
-    val hash = sha256(feedback.toString)
+    val html_feedback = "<li>Dummy Feedback</li>"
 
     val mock_web = getMockEndpoint("mock:sftp")
     mock_web.expectedMessageCount(1)
-    mock_web.message(0).body.contains(html_feedback.toString)
+    mock_web.message(0).body.contains(html_feedback)
     mock_web.expectedHeaderReceived("replyTo", mailTo)
-    mock_web.expectedHeaderReceived("sha256", hash)
+    mock_web.expectedHeaderReceived("sha256", feedback_hash)
     mock_web.expectedHeaderReceived("student", mailTo)
     mock_web.expectedHeaderReceived("title", subject)
-    mock_web.expectedHeaderReceived("CamelFileName", hash)
+    mock_web.expectedHeaderReceived("CamelFileName", feedback_hash)
 
-    template().sendBodyAndHeaders("direct:web_endpoint", feedback.toString, Map("replyTo" -> mailTo, "sha256" -> hash))
+    template().sendBodyAndHeaders("direct:web_endpoint", feedback, Map("replyTo" -> mailTo, "sha256" -> feedback_hash))
 
     assertMockEndpointsSatisfied 
   }
 
   test("Check message store route") {
-    val submission = "Dummy Submission"
-    val submission_hash = sha256(submission)
-    val feedback = "Dummy Feedback"
-    val feedback_hash = sha256(feedback)
-
     DB autoCommit { implicit session =>
       template().sendBodyAndHeaders("direct:msg_store", submission, Map("table" -> "submission", "clientId" -> "1", "replyTo" -> mailTo, "sha256" -> submission_hash))
 
