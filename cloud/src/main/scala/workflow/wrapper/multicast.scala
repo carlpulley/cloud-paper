@@ -16,6 +16,8 @@ class ListAggregationStrategy extends AbstractListAggregationStrategy[String] {
   }
 }
 
+// TODO: want to extend control bus to allow dynamically adding/removing child workflows
+
 class Multicast(name: String, children: List[Workflow], timeout: Duration = 3 seconds) extends Workflow {
   def generateFeedback = { (exchange: Exchange) =>
     // TODO: use Scala's HTML/XML processing?

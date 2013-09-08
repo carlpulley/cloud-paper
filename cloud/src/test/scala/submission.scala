@@ -36,7 +36,7 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
   val db = Database.forURL("jdbc:sqlite::memory:", driver = "org.sqlite.JDBC")
   implicit val session: Session = db.createSession
 
-  val builder = new wrapper.Submission(db, new Logging("TEST", showAll=true))(session).route
+  val builder = new wrapper.Submission(db, new SimpleFeedback("SubmissionTest"))(session).route
 
   val config: Config = ConfigFactory.load("application.conf")
 
@@ -55,6 +55,7 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
     }
     setUp
     context.setTracing(true)
+    // FIXME: is this needed?
     //val connectionFactory = new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false")
     //context.addComponent("jms", JmsComponent.jmsComponentAutoAcknowledge(connectionFactory))
   }
