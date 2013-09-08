@@ -5,35 +5,45 @@ package workflow
 package wrapper
 
 import cloud.lib.Helpers
-import cloud.lib.Workflow
-import com.github.tototoshi.slick.JodaSupport._
+import cloud.lib.RouterWorkflow
+import cloud.lib.SQLTable
 import com.typesafe.config._
-import java.sql.Timestamp
+import java.sql.Connection
 import org.apache.camel.Exchange
 import org.apache.camel.scala.dsl.builder.RouteBuilder
-import org.joda.time.DateTime
-import scala.slick.driver.SQLiteDriver.simple._
-import scala.slick.session.Session
+import scalikejdbc.DB
+import scalikejdbc.DBSession
+import scalikejdbc.SQLInterpolation._
 
-object SubmissionTable extends Table[(Int, Int, String, String, DateTime)]("SUBMISSION") {
-  def id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
-  def client_id = column[Int]("CLIENT_ID", O.NotNull)
-  def student = column[String]("STUDENT", O.NotNull)
-  def message = column[String]("MESSAGE")
-  def created_at = column[DateTime]("CREATED_AT", O.NotNull)
-  def * = id ~ client_id ~ student ~ message ~ created_at
+object SubmissionTable extends SQLTable {
+  val name = sqls"submission"
+
+  val columns = Map(
+    "id" -> "INTEGER PRIMARY KEY", 
+    "client_id" -> "INTEGER NOT NULL", 
+    "student" -> "TEXT NOT NULL", 
+    "message" -> "TEXT NOT NULL", 
+    "created_at" -> "TEXT NOT NULL"
+  )
+
+  val constraints = Seq()
 }
 
-object FeedbackTable extends Table[(Int, Int, String, String, DateTime)]("FEEDBACK") {
-  def id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
-  def client_id = column[Int]("CLIENT_ID", O.NotNull)
-  def sha256 = column[String]("SHA256", O.NotNull)
-  def message = column[String]("MESSAGE")
-  def created_at = column[DateTime]("CREATED_AT", O.NotNull)
-  def * = id ~ client_id ~ sha256 ~ message ~ created_at
+object FeedbackTable extends SQLTable {
+  val name = sqls"feedback"
+
+  val columns = Map(
+    "id" -> "INTEGER PRIMARY KEY", 
+    "client_id" -> "INTEGER NOT NULL", 
+    "sha256" -> "TEXT NOT NULL", 
+    "message" -> "TEXT NOT NULL", 
+    "created_at" -> "TEXT NOT NULL"
+  )
+
+  val constraints = Seq()
 }
 
-class Submission(db: Database, workflow: Workflow)(implicit val session: Session) extends Workflow with Helpers {
+class Submission(workflow: RouterWorkflow)(implicit session: DBSession) extends RouterWorkflow with Helpers {
   private[this] val config: Config = ConfigFactory.load("application.conf")
 
   private[this] val mailFrom = config.getString("feedback.tutor")
@@ -44,28 +54,28 @@ class Submission(db: Database, workflow: Workflow)(implicit val session: Session
   private[this] val webhost  = config.getString("web.host")
   private[this] val webuser  = config.getString("web.user")
 
+  val rootUri = "direct:submission"
+
   def addSHA256Header = { (exchange: Exchange) =>
-    val hash = sha256(exchange.getIn.getBody.asInstanceOf[String])
+    val hash = sha256(exchange.getIn.getBody(classOf[String]))
     exchange.getIn.setHeader("sha256", hash)
   }
 
-  def insertSubmission: Exchange => Unit = { (exchange: Exchange) =>
-    db withSession {
-      val client_id = exchange.getIn.getHeader("clientId").asInstanceOf[String].toInt
-      val replyTo = exchange.getIn.getHeader("replyTo").asInstanceOf[String]
-      val body = exchange.getIn.getBody.asInstanceOf[String]
-      val created_at = new DateTime
-      (SubmissionTable.client_id ~ SubmissionTable.student ~ SubmissionTable.message ~ SubmissionTable.created_at).insert((client_id, replyTo, body, created_at))
+  def submissionSQL: Exchange => Unit = { (exchange: Exchange) =>
+    val client_id = exchange.getIn.getHeader("clientId", classOf[String]).toInt
+    val replyTo = exchange.getIn.getHeader("replyTo", classOf[String])
+    val body = exchange.getIn.getBody(classOf[String])
+    DB autoCommit { implicit session =>
+      sql"INSERT INTO ${SubmissionTable.name}(client_id, student, message, created_at) VALUES (${client_id}, ${replyTo}, ${body}, CURRENT_TIMESTAMP)".update.apply()
     }
   }
 
-  def insertFeedback: Exchange => Unit = { (exchange: Exchange) =>
-    db withSession {
-      val client_id = exchange.getIn.getHeader("clientId").asInstanceOf[String].toInt
-      val sha256 = exchange.getIn.getHeader("sha256").asInstanceOf[String]
-      val body = exchange.getIn.getBody.asInstanceOf[String]
-      val created_at = new DateTime
-      (FeedbackTable.client_id ~ FeedbackTable.sha256 ~ FeedbackTable.message ~ FeedbackTable.created_at).insert((client_id, sha256, body, created_at))
+  def feedbackSQL: Exchange => Unit = { (exchange: Exchange) =>
+    val client_id = exchange.getIn.getHeader("clientId", classOf[String]).toInt
+    val sha256 = exchange.getIn.getHeader("sha256", classOf[String])
+    val body = exchange.getIn.getBody(classOf[String])
+    DB autoCommit { implicit session =>
+      sql"INSERT INTO ${FeedbackTable.name}(client_id, sha256, message, created_at) VALUES (${client_id}, ${sha256}, ${body}, CURRENT_TIMESTAMP)".update.apply()
     }
   }
 
@@ -75,12 +85,12 @@ class Submission(db: Database, workflow: Workflow)(implicit val session: Session
   //   1. we assume that incoming messages already have a replyTo header (the student's email address)
   //   2. for durable jms mailboxes, we assume that a unique clientId header (this will be used as a submissionId) and
   //      a durableSubscriptionName header have been set
-  def route = new RouteBuilder {
+  def routes = Seq(new RouteBuilder {
     // Route 0
-    "direct:submission" ==> {
+    rootUri ==> {
       setHeader("table", "submission")
       wireTap("direct:msg_store")
-      workflow.route
+      to(workflow.rootUri)
       process(addSHA256Header)
       setHeader("table", "feedback")
       wireTap("direct:msg_store")
@@ -91,10 +101,10 @@ class Submission(db: Database, workflow: Workflow)(implicit val session: Session
     "direct:msg_store" ==> {
       choice {
         when (_.in("table") == "submission") {
-          process(insertSubmission)
+          process(submissionSQL)
         }
         when (_.in("table") == "feedback") {
-          process(insertFeedback)
+          process(feedbackSQL)
         }
       }
     }
@@ -119,13 +129,13 @@ class Submission(db: Database, workflow: Workflow)(implicit val session: Session
     //   1. we assume that SSH certificates have been setup to allow passwordless login to $webuser@$webhost
     //   2. we also assume that Apache (or similar) can serve pages from ~$webuser/www/$crypto_link via the 
     //      URL https://$webhost/$webuser/$crypto_link
-    //   3. here the message body contains the $crypto_link file contents (which are assumed to be text/HTML)
+    //   3. here the message body contains the $crypto_link file contents which are transformed from XML to HTML
     "direct:web_endpoint" ==> {
         setHeader("student", header("replyTo"))
         setHeader("title", subject)
-        to("velocity:feedback-file.vm")
+        to("xslt:feedback-file.xsl")
         setHeader("CamelFileName", header("sha256"))
         to("sftp:%s@%s/www/".format(webuser, webhost))
     }
-  }
+  }) ++ workflow.routes
 }

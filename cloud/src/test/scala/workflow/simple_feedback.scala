@@ -2,19 +2,21 @@ package cloud
 
 package workflow
 
-import cloud.lib.Workflow
+import cloud.lib.RouterWorkflow
 import org.apache.camel.Exchange
 import org.apache.camel.scala.dsl.builder.RouteBuilder
 
-class SimpleFeedback(label: String) extends Workflow {
+object SimpleFeedback extends RouterWorkflow {
   def simpleFeedback = { (exchange: Exchange) =>
-    val newBody = exchange.getIn.getBody.asInstanceOf[String].replaceAll("Submission", "Feedback")
-    exchange.getIn.setBody(newBody)
+    val newBody = exchange.getIn.getBody(classOf[String]).replaceAll("Submission", "Feedback")
+    exchange.getIn.setBody(s"<feedback><item id='1'><comment>$newBody</comment></item></feedback>")
   }
 
-  def route = new RouteBuilder {
-    "direct:%s".format(label) ==> {
-      transform(simpleFeedback)
+  val rootUri = "direct:simple_feedback"
+
+  def routes = Seq(new RouteBuilder {
+    rootUri ==> {
+      process(simpleFeedback)
     }
-  }
+  })
 }

@@ -22,17 +22,16 @@ object V {
   val SCALA = "2.10.2"
   val SCALACHECK = "1.10.1"
   val SCALATEST = "2.0.M6"
+  val SCALIKEJDBC = "[1.6,)"
   val SLF4J = "1.7.5"
-  val SLICK = "1.0.1"
 }
 
 trait Dependencies {
   val Miscellaneous = Seq(
     "com.typesafe" % "config" % V.CONFIG,
+    "com.github.seratch" %% "scalikejdbc" % V.SCALIKEJDBC,
+    "com.github.seratch" %% "scalikejdbc-interpolation" % V.SCALIKEJDBC,
     "org.xerial" % "sqlite-jdbc" % "3.7.15-M1",
-    "com.typesafe.slick" % "slick_2.10" % V.SLICK,
-    "com.github.tototoshi" %% "slick-joda-mapper" % "0.3.0",
-    "joda-time" % "joda-time" % "2.3",
     "org.apache.directory.studio" % "org.apache.commons.io" % V.APACHE
   )
 
@@ -48,7 +47,8 @@ trait Dependencies {
 
   val Akka = Seq(
     "com.typesafe.akka" %% "akka-kernel" % V.AKKA,
-    "com.typesafe.akka" %% "akka-actor" % V.AKKA
+    "com.typesafe.akka" %% "akka-actor" % V.AKKA,
+    "com.typesafe.akka" %% "akka-testkit" % V.AKKA % "test"
   )
   
   val ApacheCamel = Seq(

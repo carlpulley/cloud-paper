@@ -1,5 +1,12 @@
 // Example config file - edit to your taste.
 
+sql {
+  driver = "JDBCDRIVER"
+  url = "JDBCSTRING"
+  user = "USER"
+  password = "PASSWORD"
+}
+
 feedback {
   tutor = "TUTOR@hud.ac.uk"
   subject = "Assessment Feedback for MODULE"
