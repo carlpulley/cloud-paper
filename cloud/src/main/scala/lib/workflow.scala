@@ -1,14 +1,15 @@
 package cloud.lib
 
 import akka.actor.Actor
+import akka.camel.Consumer
 import org.apache.camel.scala.dsl.builder.RouteBuilder
 
-trait Workflow
+trait Workflow {
+  def endpointUri: String
+}
 
-trait ActorWorkflow extends Actor with Workflow
+trait ActorWorkflow extends Consumer with Workflow
 
 trait RouterWorkflow extends Workflow {
-  val rootUri: String
-
   def routes: Seq[RouteBuilder]
 }

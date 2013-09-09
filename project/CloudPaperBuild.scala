@@ -18,6 +18,8 @@ object V {
   val APACHE = "2.1"
   val CAMEL = "2.11.1"
   val CONFIG = "1.0.2"
+  val JCLOUDS = "1.6.1-incubating"
+  val LIFT = "2.5.1"
   val LOG4J = "1.2.17"
   val SCALA = "2.10.2"
   val SCALACHECK = "1.10.1"
@@ -32,7 +34,8 @@ trait Dependencies {
     "com.github.seratch" %% "scalikejdbc" % V.SCALIKEJDBC,
     "com.github.seratch" %% "scalikejdbc-interpolation" % V.SCALIKEJDBC,
     "org.xerial" % "sqlite-jdbc" % "3.7.15-M1",
-    "org.apache.directory.studio" % "org.apache.commons.io" % V.APACHE
+    "org.apache.directory.studio" % "org.apache.commons.io" % V.APACHE,
+    "net.liftweb" %% "lift-json" % V.LIFT
   )
 
   val Testing = Seq(
@@ -58,13 +61,25 @@ trait Dependencies {
     "org.apache.camel" % "camel-spring" % V.CAMEL,
     "org.apache.camel" % "camel-jms" % V.CAMEL,
     "org.apache.camel" % "camel-velocity" % V.CAMEL,
+    "org.apache.camel" % "camel-quartz" % V.CAMEL,
     "org.apache.camel" % "camel-scala" % V.CAMEL,
+    "org.apache.camel" % "camel-jclouds" % V.CAMEL,
     "org.apache.camel" % "camel-test" % V.CAMEL % "test",
     "org.apache.activemq" % "activemq-core" % V.ACTIVEMQ,
     "org.apache.activemq" % "activemq-camel" % V.ACTIVEMQ,
     "com.typesafe.akka" %% "akka-camel" % V.AKKA
   )
   
+  val JClouds = Seq(
+    "org.apache.jclouds.provider" % "aws-ec2" % V.JCLOUDS,
+    "org.apache.jclouds.provider" % "rackspace-cloudservers-uk" % V.JCLOUDS,
+    "org.apache.jclouds.api" % "chef" % V.JCLOUDS,
+    "org.apache.jclouds.api" % "openstack-nova" % V.JCLOUDS,
+    "org.apache.jclouds.driver" % "jclouds-sshj" % V.JCLOUDS,
+    "com.google.code.findbugs" % "jsr305" % "1.3.9",
+    "org.eclipse.jetty.orbit" % "javax.servlet" % "3.0.0.v201112011016" artifacts (Artifact("javax.servlet", "jar", "jar"))
+  )
+
   val DefaultDependencies = Miscellaneous ++ Testing ++ Logging
 }
 
@@ -98,7 +113,7 @@ object CloudPaperBuild extends Build with Resolvers with Dependencies {
       scalacOptions += "-language:experimental.macros",
       libraryDependencies <+= scalaVersion { v => compilerPlugin("org.scala-lang.plugins" % "continuations" % V.SCALA) },
       scalacOptions += "-P:continuations:enable",
-      libraryDependencies ++= Akka ++ ApacheCamel
+      libraryDependencies ++= Akka ++ ApacheCamel ++ JClouds
     )
   )
 }

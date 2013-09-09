@@ -2,7 +2,7 @@ package cloud
 
 package workflow
 
-package wrapper
+package routers
 
 import cloud.lib.Helpers
 import cloud.lib.RouterWorkflow
@@ -53,7 +53,7 @@ class Submission(workflow: RouterWorkflow) extends RouterWorkflow with Helpers {
   private[this] val webhost  = config.getString("web.host")
   private[this] val webuser  = config.getString("web.user")
 
-  val rootUri = "direct:submission"
+  def endpointUri = "direct:submission"
 
   def addSHA256Header = { (exchange: Exchange) =>
     val hash = sha256(exchange.getIn.getBody(classOf[String]))
@@ -86,10 +86,10 @@ class Submission(workflow: RouterWorkflow) extends RouterWorkflow with Helpers {
   //      a durableSubscriptionName header have been set
   def routes = Seq(new RouteBuilder {
     // Route 0
-    rootUri ==> {
+    endpointUri ==> {
       setHeader("table", "submission")
       wireTap("direct:msg_store")
-      to(workflow.rootUri)
+      to(workflow.endpointUri)
       process(addSHA256Header)
       setHeader("table", "feedback")
       wireTap("direct:msg_store")

@@ -12,10 +12,10 @@ object SimpleFeedback extends RouterWorkflow {
     s"<feedback><item id='1'><comment>$newBody</comment></item></feedback>"
   }
 
-  val rootUri = "direct:simple_feedback"
+  def endpointUri = "direct:simple_feedback"
 
   def routes = Seq(new RouteBuilder {
-    rootUri ==> {
+    endpointUri ==> {
       transform(simpleFeedback)
     }
   })

@@ -5,8 +5,8 @@ package test
 import akka.actor.Props
 import akka.testkit.TestActorRef
 import cloud.lib.Helpers
-import cloud.workflow.wrapper.SubmissionTable
-import cloud.workflow.wrapper.FeedbackTable
+import cloud.workflow.routers.SubmissionTable
+import cloud.workflow.routers.FeedbackTable
 import com.typesafe.config._
 import java.security.MessageDigest
 import java.sql.DriverManager
@@ -57,7 +57,7 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
   Class.forName(sqldriver)
   ConnectionPool.singleton(sqlurl, sqluser, sqlpw)
 
-  val builders = new wrapper.Submission(SimpleFeedback).routes
+  val builders = new routers.Submission(SimpleFeedback).routes
 
   before {
     setUp

@@ -2,7 +2,7 @@ package cloud
 
 package workflow
 
-package wrapper
+package routers
 
 import cloud.workflow.actors.ControlEvent
 import cloud.lib.RouterWorkflow
@@ -24,7 +24,7 @@ class ListAggregationStrategy extends AbstractListAggregationStrategy[String] {
 // TODO: want to extend control bus to allow dynamically adding/removing child workflows
 
 class Multicast(name: String, children: List[RouterWorkflow], timeout: Duration = 3 seconds) extends RouterWorkflow {
-  val rootUri = "direct:%s".format(name)
+  def endpointUri = "direct:%s".format(name)
 
   def generateFeedback = { (exchange: Exchange) =>
     // TODO: use Scala's HTML/XML processing?
@@ -33,7 +33,7 @@ class Multicast(name: String, children: List[RouterWorkflow], timeout: Duration 
   }
 
   def routes = Seq(new RouteBuilder {
-    rootUri ==> {
+    endpointUri ==> {
       // FIXME: need to content enrich message using control buses message store
       errorHandler(deadLetterChannel("jms:queue:error"))
       aggregate(header("clientId"), new ListAggregationStrategy()).completionTimeout(timeout.toMillis)
@@ -42,7 +42,7 @@ class Multicast(name: String, children: List[RouterWorkflow], timeout: Duration 
   
     for(child <- children) {
       s"jms:topic:$name" ==> {
-        to(child.rootUri)
+        to(child.endpointUri)
       }
     }
   }) ++ children.flatMap(_.routes)
