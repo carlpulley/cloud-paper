@@ -41,7 +41,7 @@ trait Dependencies {
   )
     
   val Logging = Seq(
-    "org.slf4j" % "slf4j-simple" % V.SLF4J,
+    "org.slf4j" % "slf4j-log4j12" % V.SLF4J,
     "log4j" % "log4j" % V.LOG4J
   )
 

@@ -19,7 +19,6 @@ import org.apache.camel.test.junit4.CamelTestSupport
 import org.scalatest.BeforeAndAfter
 import org.scalatest.FunSuiteLike
 import scala.collection.JavaConversions._
-import scalikejdbc.AutoSession
 import scalikejdbc.ConnectionPool
 import scalikejdbc.DB
 import scalikejdbc.SQLInterpolation._
@@ -57,17 +56,14 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
 
   Class.forName(sqldriver)
   ConnectionPool.singleton(sqlurl, sqluser, sqlpw)
-  implicit val session = AutoSession
 
   val builders = new wrapper.Submission(SimpleFeedback).routes
 
   before {
     setUp
     context.setTracing(true)
-    DB autoCommit { implicit session =>
-      SubmissionTable.create
-      FeedbackTable.create
-    }
+    SubmissionTable.create
+    FeedbackTable.create
     // FIXME: is this needed?
     //val connectionFactory = new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false")
     //context.addComponent("jms", JmsComponent.jmsComponentAutoAcknowledge(connectionFactory))
@@ -75,10 +71,8 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
 
   after {
     tearDown
-    DB autoCommit { implicit session =>
-      SubmissionTable.drop
-      FeedbackTable.drop
-    }
+    SubmissionTable.drop
+    FeedbackTable.drop
   }
 
   test("Check submission route") {
@@ -122,7 +116,7 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
   test("Check mail route") {
     context.getRouteDefinitions.get(2).adviceWith(context, new AdviceWithRouteBuilder {
       def configure = {
-        weaveByToString("To[smtp:%s]".format(mailhost)).replace.to("log:DEBUG-smtp?showAll=true", "mock:smtp")
+        weaveByToString("To[smtp:%s]".format(mailhost)).replace.to("mock:smtp")
       }
     })
 

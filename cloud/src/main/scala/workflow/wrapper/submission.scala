@@ -12,7 +12,6 @@ import java.sql.Connection
 import org.apache.camel.Exchange
 import org.apache.camel.scala.dsl.builder.RouteBuilder
 import scalikejdbc.DB
-import scalikejdbc.DBSession
 import scalikejdbc.SQLInterpolation._
 
 object SubmissionTable extends SQLTable {
@@ -43,7 +42,7 @@ object FeedbackTable extends SQLTable {
   val constraints = Seq()
 }
 
-class Submission(workflow: RouterWorkflow)(implicit session: DBSession) extends RouterWorkflow with Helpers {
+class Submission(workflow: RouterWorkflow) extends RouterWorkflow with Helpers {
   private[this] val config: Config = ConfigFactory.load("application.conf")
 
   private[this] val mailFrom = config.getString("feedback.tutor")
