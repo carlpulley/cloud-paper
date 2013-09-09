@@ -30,6 +30,7 @@ abstract class Ubuntu(version: String) extends image.Ubuntu(version) with Config
     .build()
 }
 
+// WARNING: Windows is currently to be considered experimental!
 abstract class Windows(version: String) extends image.Windows(version) with Config {
   override lazy val admin = LoginCredentials.builder()
     .user("Administrator")

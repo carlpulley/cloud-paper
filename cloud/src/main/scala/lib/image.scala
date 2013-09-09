@@ -1,7 +1,5 @@
 package cloud.lib
 
-import akka.actor.Actor
-import akka.actor.Actor.Receive
 import com.google.common.collect.ImmutableSet
 import com.typesafe.config._
 import java.io.File
@@ -32,8 +30,8 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.language.implicitConversions
 
-trait Image extends Actor {
-  protected[this] def group: String = {
+trait Image {
+  def group: String = {
     this.getClass.getPackage.getName.split('.').last.toLowerCase().replaceAll("_", "-").toCharArray.filter("abcdefghijklmnopqrstuvwxyz0123456789-" contains _).mkString
   }
   protected[this] val config: Config = ConfigFactory.load("cloud.conf")
@@ -87,15 +85,7 @@ trait Image extends Actor {
     client.runScriptOnNode(node.getId(), bootstrap_node, overrideLoginCredentials(admin))
   }
 
-  override def preStart() = {
-    bootstrap()
-
-    // Node now completed bootstrapping, so change actor state and notify channel subscribers
-    context.become(active)
-    context.system.eventStream.publish(Started(self))
-  }
-
-  override def postStop() = {
+  def shutdown() = {
     val chef_service = chef_context.getChefService()
     val ipaddr = node.getPrivateAddresses().head
     val nodename = s"$group-$ipaddr"
@@ -111,42 +101,5 @@ trait Image extends Actor {
       chef_api.deleteDatabagItem(bootstrap_databag, group)
     }
     client.destroyNode(node.getId())
-  }
-
-  def receive = waiting
-
-  def waiting: Receive = Actor.emptyBehavior
-
-  def active: Receive = {
-    case Update(override_attributes: Map[String, JObject]) => {
-      context.become(waiting)
-      context.system.eventStream.publish(Updating(self))
-  
-      chef_attributes ++= (chef_attributes ++ override_attributes).keys.map(k => 
-        if (chef_attributes.isDefinedAt(k) && override_attributes.isDefinedAt(k)) {
-          (k -> (chef_attributes(k) merge override_attributes(k)))
-        } else {
-          (k -> override_attributes(k))
-        }
-      )
-      bootstrap()
-  
-      context.become(active)
-      context.system.eventStream.publish(Updated(self))
-      sender ! Completed
-    }
-    case GetFiles(files: Set[String], base_dir: String) => {
-      val ssh = client_context.utils.sshForNode.apply(NodeMetadataBuilder.fromNodeMetadata(node).credentials(admin).build())
-  
-      ssh.connect()
-      for(filename <- files) {
-        val file = new File(s"$base_dir/$filename")
-        file.getParentFile().mkdirs()
-        ssh.get(filename).writeTo(new FileOutputStream(file))
-      }
-      ssh.disconnect()
-
-      sender ! Completed
-    }
   }
 }

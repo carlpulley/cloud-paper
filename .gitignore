@@ -7,6 +7,7 @@ lib_managed
 target
 .idea
 *.iml
+cloud.conf
 
 # Ignore OS generated files
 .DS_Store*
