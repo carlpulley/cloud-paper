@@ -75,7 +75,7 @@ trait Image {
 
   protected[this] var ports = mutable.Set[Int]()
 
-  def bootstrap() {
+  def bootstrap(): NodeMetadata = {
     val template = template_builder.options(template_builder.build.getOptions.inboundPorts(ports.toArray : _*)).build()
     val chef_attrs: Map[String, JObject] = chef_attributes.toMap
     chef_context.getChefService().updateBootstrapConfigForGroup(chef_runlist.build(), new JsonBall(compact(render(chef_attrs))), group)
@@ -83,6 +83,7 @@ trait Image {
     val bootstrap_node = new StatementList(bootstrap_builder.add(chef_bootstrap).build())
     node = client.createNodesInGroup(group, 1, template).head
     client.runScriptOnNode(node.getId(), bootstrap_node, overrideLoginCredentials(admin))
+    node
   }
 
   def shutdown() = {
