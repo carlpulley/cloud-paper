@@ -8,30 +8,11 @@ import cloud.lib.Helpers
 import cloud.workflow.routers.SubmissionTable
 import cloud.workflow.routers.FeedbackTable
 import com.typesafe.config._
-import java.security.MessageDigest
-import java.sql.DriverManager
-import org.apache.activemq.ActiveMQConnectionFactory
 import org.apache.camel.builder.AdviceWithRouteBuilder
-import org.apache.camel.component.jms.JmsComponent
-import org.apache.camel.scala.dsl.builder.RouteBuilder
-import org.apache.camel.scala.dsl.builder.RouteBuilderSupport
-import org.apache.camel.test.junit4.CamelTestSupport
-import org.scalatest.BeforeAndAfter
-import org.scalatest.FunSuiteLike
 import scala.collection.JavaConversions._
 import scalikejdbc.ConnectionPool
 import scalikejdbc.DB
 import scalikejdbc.SQLInterpolation._
-
-trait ScalaTestSupport extends CamelTestSupport with RouteBuilderSupport with FunSuiteLike with BeforeAndAfter {
-  val builders: Seq[RouteBuilder]
-
-  override protected def createRouteBuilders = builders.map(scalaToJavaBuilder _).toArray
-
-  override protected def getMockEndpoint(uri: String) = super.getMockEndpoint(uri)
-
-  override protected def assertMockEndpointsSatisfied() = super.assertMockEndpointsSatisfied()
-}
 
 class SubmissionTests extends ScalaTestSupport with Helpers {
   val config: Config = ConfigFactory.load("application.conf")
@@ -60,15 +41,13 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
   Class.forName(sqldriver)
   ConnectionPool.singleton(sqlurl, sqluser, sqlpw)
 
-  val builders = new routers.Submission(SimpleFeedback).routes
+  val builders = new routers.Submission(new SimpleFeedback(1)).routes
 
   before {
     setUp
     context.setTracing(true)
     SubmissionTable.create
     FeedbackTable.create
-    val connectionFactory = new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false")
-    context.addComponent("jms", JmsComponent.jmsComponentAutoAcknowledge(connectionFactory))
   }
 
   after {
@@ -89,16 +68,12 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
     val mock_mail = getMockEndpoint("mock:mail_endpoint")
     mock_mail.expectedMessageCount(1)
     mock_mail.expectedBodiesReceived(feedback)
-    mock_mail.expectedHeaderReceived("clientId", "1")
-    mock_mail.expectedHeaderReceived("durableSubscriptionName", "submission")
     mock_mail.expectedHeaderReceived("replyTo", "student@hud.ac.uk")
     mock_mail.expectedHeaderReceived("sha256", feedback_hash)
 
     val mock_web = getMockEndpoint("mock:web_endpoint")
     mock_web.expectedMessageCount(1)
     mock_web.expectedBodiesReceived(feedback)
-    mock_web.expectedHeaderReceived("clientId", "1")
-    mock_web.expectedHeaderReceived("durableSubscriptionName", "submission")
     mock_web.expectedHeaderReceived("replyTo", "student@hud.ac.uk")
     mock_web.expectedHeaderReceived("sha256", feedback_hash)
 
@@ -110,7 +85,7 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
     mock_tap.message(1).header("table").isEqualTo("feedback")
     mock_tap.message(1).header("sha256").isEqualTo(feedback_hash)
 
-    template().sendBodyAndHeaders("direct:submission", submission, Map("replyTo" -> mailTo, "clientId" -> "1", "durableSubscriptionName" -> "submission"))
+    template().sendBodyAndHeaders("direct:submission", submission, Map("replyTo" -> mailTo))
 
     assertMockEndpointsSatisfied
   }
@@ -164,27 +139,28 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
 
   test("Check message store route") {
     DB autoCommit { implicit session =>
-      template().sendBodyAndHeaders("direct:msg_store", submission, Map("table" -> "submission", "clientId" -> "1", "replyTo" -> mailTo, "sha256" -> submission_hash))
+      template().sendBodyAndHeaders("direct:msg_store", submission, Map("table" -> "submission", "replyTo" -> mailTo, "breadcrumbId" -> "testing-1"))
 
       val submission_count1 = sql"SELECT COUNT(*) FROM ${SubmissionTable.name}".map(_.int(1)).single.apply().get
       val feedback_count1 = sql"SELECT COUNT(*) FROM ${FeedbackTable.name}".map(_.int(1)).single.apply().get
-      val (submission_client_id, submission_student, submission_message) = sql"SELECT client_id, student, message FROM ${SubmissionTable.name}".map(rs => (rs.int("client_id"), rs.string("student"), rs.string("message"))).single.apply().get
+      val (submission_id, submission_student, submission_message, submission_message_id) = sql"SELECT id, student, message, message_id FROM ${SubmissionTable.name}".map(rs => (rs.int("id"), rs.string("student"), rs.string("message"), rs.string("message_id"))).single.apply().get
 
       assert(submission_count1 == 1)
       assert(feedback_count1 == 0)
-      assert(submission_client_id == 1)
+      assert(submission_id == 1)
       assert(submission_student == mailTo)
       assert(submission_message == submission)
+      assert(submission_message_id == "testing-1")
   
-      template().sendBodyAndHeaders("direct:msg_store", feedback, Map("table" -> "feedback", "clientId" -> "1", "replyTo" -> mailTo, "sha256" ->   feedback_hash))
+      template().sendBodyAndHeaders("direct:msg_store", feedback, Map("table" -> "feedback", "replyTo" -> mailTo, "sha256" ->   feedback_hash, "breadcrumbId" -> "testing-1"))
 
       val submission_count2 = sql"SELECT COUNT(*) FROM ${SubmissionTable.name}".map(_.int(1)).single.apply().get
       val feedback_count2 = sql"SELECT COUNT(*) FROM ${FeedbackTable.name}".map(_.int(1)).single.apply().get
-      val (feedback_client_id, feedback_sha256, feedback_message) = sql"SELECT client_id, sha256, message FROM ${FeedbackTable.name}".map(rs => (rs.int("client_id"), rs.string("sha256"), rs.string("message"))).single.apply().get
-  
+      val (feedback_submission_id, feedback_sha256, feedback_message) = sql"SELECT submission_id, sha256, message FROM ${FeedbackTable.name}".map(rs => (rs.int("submission_id"), rs.string("sha256"), rs.string("message"))).single.apply().get
+
       assert(submission_count2 == 1)
       assert(feedback_count2 == 1)
-      assert(feedback_client_id == 1)
+      assert(feedback_submission_id == 1)
       assert(feedback_sha256 == feedback_hash)
       assert(feedback_message == feedback)
     }

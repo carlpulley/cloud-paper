@@ -10,7 +10,7 @@ import cloud.lib.RouterWorkflow
 import cloud.lib.Workflow
 import cloud.workflow.actors.AddHandlers
 import cloud.workflow.actors.ControlEvent
-import scala.concurrent.duration._
+import scala.concurrent.duration.Duration
 import org.apache.camel.CamelContext
 import org.apache.camel.Exchange
 import org.apache.camel.processor.aggregate.AbstractListAggregationStrategy
@@ -25,7 +25,7 @@ case class RemoveWorkflow(routeId: String) extends ControlEvent
 
 class ListAggregationStrategy extends AbstractListAggregationStrategy[String] {
   def getValue(exchange: Exchange): String = {
-    exchange.getIn.getHeader("clientId").asInstanceOf[String]
+    exchange.getIn.getHeader("submissionId").asInstanceOf[String]
   }
 }
 
@@ -49,9 +49,10 @@ class Multicast(name: String, workflows: RouterWorkflow*)(implicit val timeout: 
   def enrichSubmission = { (exchange: Exchange) =>
     val student = exchange.getIn.getHeader("replyTo", classOf[String])
     val last5 = DB autoCommit { implicit session =>
-      sql"""SELECT f.message
+      sql"""
+        SELECT f.message
           FROM ${SubmissionTable.name} AS s 
-          INNER JOIN ${FeedbackTable.name} AS f ON s.client_id = f.client_id
+          INNER JOIN ${FeedbackTable.name} AS f ON s.submission_id = f.submission_id
         WHERE s.student=$student LIMIT 5 ORDER BY DATETIME(s.created_at) DESC
       """.map(_.string("message")).list.apply()
     }
@@ -69,9 +70,9 @@ class Multicast(name: String, workflows: RouterWorkflow*)(implicit val timeout: 
   val routes = Seq(new RouteBuilder {
     endpointUri ==> {
       transform(enrichSubmission)
-      to("jms:queue:$name")
-      errorHandler(deadLetterChannel("jms:queue:error"))
-      aggregate(header("clientId"), new ListAggregationStrategy()).completionTimeout(timeout.toMillis)
+      to(s"jms:topic:$name")
+      errorHandler(deadLetterChannel("jms:topic:error"))
+      aggregate(header("submissionId"), new ListAggregationStrategy()).completionTimeout(timeout.toMillis)
       transform(mergeAggregatedFeedback)
     }
   })

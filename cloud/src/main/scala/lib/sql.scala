@@ -9,12 +9,13 @@ trait SQLTable {
   
   val columns: Map[String, String]
 
-  val constraints: Seq[String]
+  val constraints: Seq[SQLSyntax]
 
   def create {
     DB autoCommit { implicit session =>
       val column_defs = columns.toList.map(p => p._1 + " " + p._2).mkString(", ")
-      val query = s"CREATE TABLE ${name.value}(${column_defs})"
+      val constraint_defs = if (constraints.isEmpty) "" else ", " + constraints.map(_.value).mkString(", ")
+      val query = s"CREATE TABLE ${name.value}(${column_defs}${constraint_defs})"
   
       SQL(query).execute.apply()
     }

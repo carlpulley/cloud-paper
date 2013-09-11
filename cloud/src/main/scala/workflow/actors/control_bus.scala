@@ -7,19 +7,13 @@ package actors
 import akka.actor.Actor
 import akka.actor.ActorRef
 import akka.actor.Actor.Receive
-import akka.actor.ActorSystem
 import akka.actor.PoisonPill
 import akka.actor.Props
 import akka.camel.Ack
 import akka.camel.CamelMessage
-import cloud.lib.ActorWorkflow
 import cloud.lib.Image
 import org.jclouds.compute.domain.NodeMetadata
-
-// TODO: add control events to:
-//   1. query provider for currently running VMs
-//   2. attaching VMInstance actors to orphaned VMs
-// FIXME: how do we determine if a VM is orphaned or not?
+import scala.concurrent.Future
 
 trait ControlEvent
 
@@ -30,6 +24,8 @@ case class VMStarted(node: NodeMetadata) extends ControlEvent
 case class AddHandlers(events: PartialFunction[ControlEvent, Unit]) extends ControlEvent
 
 class VMInstance(image: Image) extends Actor {
+  import context.dispatcher
+
   override def postStop() = {
     image.shutdown()
   }
@@ -37,11 +33,14 @@ class VMInstance(image: Image) extends Actor {
   def booting: Receive = {
     case BuildVM(caller) => {
       context.become(waiting)
-      // TODO: run following in a future!?
-      // FIXME: how do we know that VM is up and running?
-      val node = image.bootstrap()
-      caller ! VMStarted(node)
-      context.become(running)
+      val nodeF = Future {
+        image.bootstrap()
+      }
+      // FIXME: when bootstrap returns, is the VM really up and running?
+      nodeF map { node =>
+        caller ! VMStarted(node)
+        context.become(running)
+      }
     }
   }
 
@@ -52,10 +51,8 @@ class VMInstance(image: Image) extends Actor {
   def receive = booting
 }
 
-class ControlBus extends ActorWorkflow {
-  def endpointUri = "direct:control_bus"
-
-  // We intentionally do not receive/handle CamelMessage messages within this actor!
+class ControlBus extends Actor {
+  // We intentionally do not wish this class to be an ActorWorkflow!
 
   var handlers: PartialFunction[ControlEvent, Unit] = Map.empty
 

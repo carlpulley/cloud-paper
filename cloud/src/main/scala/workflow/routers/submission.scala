@@ -18,14 +18,16 @@ object SubmissionTable extends SQLTable {
   val name = sqls"submission"
 
   val columns = Map(
-    "id" -> "INTEGER PRIMARY KEY", 
-    "client_id" -> "INTEGER NOT NULL", 
+    "id" -> "INTEGER PRIMARY KEY",
+    "message_id" -> "TEXT NOT NULL",
     "student" -> "TEXT NOT NULL", 
     "message" -> "TEXT NOT NULL", 
     "created_at" -> "TEXT NOT NULL"
   )
 
-  val constraints = Seq()
+  val constraints = Seq(
+    sqls"UNIQUE (message_id)"
+  )
 }
 
 object FeedbackTable extends SQLTable {
@@ -33,13 +35,15 @@ object FeedbackTable extends SQLTable {
 
   val columns = Map(
     "id" -> "INTEGER PRIMARY KEY", 
-    "client_id" -> "INTEGER NOT NULL", 
+    "submission_id" -> "INTEGER NOT NULL", 
     "sha256" -> "TEXT NOT NULL", 
     "message" -> "TEXT NOT NULL", 
     "created_at" -> "TEXT NOT NULL"
   )
 
-  val constraints = Seq()
+  val constraints = Seq(
+    sqls"FOREIGN KEY (submission_id) REFERENCES ${SubmissionTable.name}(id)"
+  )
 }
 
 class Submission(workflow: RouterWorkflow) extends RouterWorkflow with Helpers {
@@ -61,20 +65,25 @@ class Submission(workflow: RouterWorkflow) extends RouterWorkflow with Helpers {
   }
 
   def submissionSQL: Exchange => Unit = { (exchange: Exchange) =>
-    val client_id = exchange.getIn.getHeader("clientId", classOf[String]).toInt
+    val message_id = exchange.getIn.getHeader("breadcrumbId", classOf[String])
     val replyTo = exchange.getIn.getHeader("replyTo", classOf[String])
     val body = exchange.getIn.getBody(classOf[String])
     DB autoCommit { implicit session =>
-      sql"INSERT INTO ${SubmissionTable.name}(client_id, student, message, created_at) VALUES (${client_id}, ${replyTo}, ${body}, DATETIME('now'))".update.apply()
+      sql"INSERT INTO ${SubmissionTable.name}(student, message_id, message, created_at) VALUES (${replyTo}, ${message_id}, ${body}, DATETIME('now'))".update.apply()
     }
   }
 
   def feedbackSQL: Exchange => Unit = { (exchange: Exchange) =>
-    val client_id = exchange.getIn.getHeader("clientId", classOf[String]).toInt
+    val message_id = exchange.getIn.getHeader("breadcrumbId", classOf[String])
     val sha256 = exchange.getIn.getHeader("sha256", classOf[String])
     val body = exchange.getIn.getBody(classOf[String])
     DB autoCommit { implicit session =>
-      sql"INSERT INTO ${FeedbackTable.name}(client_id, sha256, message, created_at) VALUES (${client_id}, ${sha256}, ${body}, DATETIME('now'))".update.apply()
+      sql"""
+        INSERT INTO ${FeedbackTable.name}(submission_id, sha256, message, created_at) 
+          SELECT id, ${sha256}, ${body}, DATETIME('now')
+          FROM ${SubmissionTable.name}
+          WHERE message_id = ${message_id}
+      """.update.apply()
     }
   }
 
@@ -82,8 +91,6 @@ class Submission(workflow: RouterWorkflow) extends RouterWorkflow with Helpers {
   //
   // NOTES:
   //   1. we assume that incoming messages already have a replyTo header (the student's email address)
-  //   2. for durable jms mailboxes, we assume that a unique clientId header (this will be used as a submissionId) and
-  //      a durableSubscriptionName header have been set
   def routes = Seq(new RouteBuilder {
     // Route 0
     endpointUri ==> {
