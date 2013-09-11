@@ -22,3 +22,7 @@ web {
   host = "compeng.hud.ac.uk"
   user = "USER"
 }
+
+log {
+  level = "INFO"
+}

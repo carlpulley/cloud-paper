@@ -65,7 +65,7 @@ class Submission(workflow: RouterWorkflow) extends RouterWorkflow with Helpers {
     val replyTo = exchange.getIn.getHeader("replyTo", classOf[String])
     val body = exchange.getIn.getBody(classOf[String])
     DB autoCommit { implicit session =>
-      sql"INSERT INTO ${SubmissionTable.name}(client_id, student, message, created_at) VALUES (${client_id}, ${replyTo}, ${body}, CURRENT_TIMESTAMP)".update.apply()
+      sql"INSERT INTO ${SubmissionTable.name}(client_id, student, message, created_at) VALUES (${client_id}, ${replyTo}, ${body}, DATETIME('now'))".update.apply()
     }
   }
 
@@ -74,7 +74,7 @@ class Submission(workflow: RouterWorkflow) extends RouterWorkflow with Helpers {
     val sha256 = exchange.getIn.getHeader("sha256", classOf[String])
     val body = exchange.getIn.getBody(classOf[String])
     DB autoCommit { implicit session =>
-      sql"INSERT INTO ${FeedbackTable.name}(client_id, sha256, message, created_at) VALUES (${client_id}, ${sha256}, ${body}, CURRENT_TIMESTAMP)".update.apply()
+      sql"INSERT INTO ${FeedbackTable.name}(client_id, sha256, message, created_at) VALUES (${client_id}, ${sha256}, ${body}, DATETIME('now'))".update.apply()
     }
   }
 

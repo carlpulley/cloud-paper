@@ -4,18 +4,24 @@ package workflow
 
 package routers
 
-import cloud.workflow.actors.ControlEvent
+import akka.actor.ActorRef
+import akka.camel.CamelMessage
 import cloud.lib.RouterWorkflow
 import cloud.lib.Workflow
+import cloud.workflow.actors.AddHandlers
+import cloud.workflow.actors.ControlEvent
 import scala.concurrent.duration._
+import org.apache.camel.CamelContext
 import org.apache.camel.Exchange
 import org.apache.camel.processor.aggregate.AbstractListAggregationStrategy
+import org.apache.camel.model.RouteDefinition
 import org.apache.camel.scala.dsl.builder.RouteBuilder
+import scala.xml.XML
 import scalikejdbc.DB
 import scalikejdbc.SQLInterpolation._
 
 case class AddWorkflow(workflow: Workflow) extends ControlEvent
-case class RemoveWorkflow(workflow: Workflow) extends ControlEvent
+case class RemoveWorkflow(routeId: String) extends ControlEvent
 
 class ListAggregationStrategy extends AbstractListAggregationStrategy[String] {
   def getValue(exchange: Exchange): String = {
@@ -23,10 +29,22 @@ class ListAggregationStrategy extends AbstractListAggregationStrategy[String] {
   }
 }
 
-// TODO: want to extend control bus to allow dynamically adding/removing child workflows
-
-class Multicast(name: String, children: Seq[RouterWorkflow], timeout: Duration = 3 seconds) extends RouterWorkflow {
+class Multicast(name: String, workflows: RouterWorkflow*)(implicit val timeout: Duration, implicit val controller: ActorRef, implicit val camel_context: CamelContext) extends RouterWorkflow {
   def endpointUri = "direct:%s".format(name)
+
+  controller ! AddHandlers {
+    case AddWorkflow(child) => {
+      camel_context.addRouteDefinition(new RouteDefinition {
+        from(s"jms:topic:$name").to(child.endpointUri)
+      })
+    }
+
+    case RemoveWorkflow(routeId) => {
+      camel_context.removeRoute(routeId)
+    }
+  }
+
+  workflows.foreach(w => controller ! AddWorkflow(w))
 
   def enrichSubmission = { (exchange: Exchange) =>
     val student = exchange.getIn.getHeader("replyTo", classOf[String])
@@ -41,18 +59,20 @@ class Multicast(name: String, children: Seq[RouterWorkflow], timeout: Duration =
     (exchange.getIn.getBody, last5)
   }
 
-  def routes = Seq(new RouteBuilder {
+  def mergeAggregatedFeedback = { (exchange: Exchange) =>
+    val feedback_items = exchange.getIn.getBody(classOf[List[String]]).map(XML.loadString)
+    val feedback = <feedback></feedback>.copy(child = feedback_items.flatMap(_.child))
+
+    feedback.toString
+  }
+
+  val routes = Seq(new RouteBuilder {
     endpointUri ==> {
       transform(enrichSubmission)
-      to(children.map(_.endpointUri): _*)
+      to("jms:queue:$name")
       errorHandler(deadLetterChannel("jms:queue:error"))
       aggregate(header("clientId"), new ListAggregationStrategy()).completionTimeout(timeout.toMillis)
+      transform(mergeAggregatedFeedback)
     }
-  
-    for(child <- children) {
-      s"jms:topic:$name" ==> {
-        to(child.endpointUri)
-      }
-    }
-  }) ++ children.flatMap(_.routes)
+  })
 }

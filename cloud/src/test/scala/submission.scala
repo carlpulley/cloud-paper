@@ -48,11 +48,14 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
   val mailpw    = config.getString("mail.password")
   val webhost   = config.getString("web.host")
   val webuser   = config.getString("web.user")
+  val loglevel  = config.getString("log.level")
 
   val submission = "Dummy Submission"
   val submission_hash = sha256(submission)
   val feedback = "<feedback><item id='1'><comment>Dummy Feedback</comment></item></feedback>"
   val feedback_hash = sha256(feedback)
+
+  setLogLevel(loglevel)
 
   Class.forName(sqldriver)
   ConnectionPool.singleton(sqlurl, sqluser, sqlpw)
@@ -64,9 +67,8 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
     context.setTracing(true)
     SubmissionTable.create
     FeedbackTable.create
-    // FIXME: is this needed?
-    //val connectionFactory = new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false")
-    //context.addComponent("jms", JmsComponent.jmsComponentAutoAcknowledge(connectionFactory))
+    val connectionFactory = new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false")
+    context.addComponent("jms", JmsComponent.jmsComponentAutoAcknowledge(connectionFactory))
   }
 
   after {
@@ -178,7 +180,7 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
 
       val submission_count2 = sql"SELECT COUNT(*) FROM ${SubmissionTable.name}".map(_.int(1)).single.apply().get
       val feedback_count2 = sql"SELECT COUNT(*) FROM ${FeedbackTable.name}".map(_.int(1)).single.apply().get
-      val (feedback_client_id, feedback_sha256, feedback_message) = sql"SELECT client_id, sha256, message FROM ${FeedbackTable.name}".map(rs => (rs.int("client_id"), rs.string("student"), rs.string("message"))).single.apply().get
+      val (feedback_client_id, feedback_sha256, feedback_message) = sql"SELECT client_id, sha256, message FROM ${FeedbackTable.name}".map(rs => (rs.int("client_id"), rs.string("sha256"), rs.string("message"))).single.apply().get
   
       assert(submission_count2 == 1)
       assert(feedback_count2 == 1)
