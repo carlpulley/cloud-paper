@@ -2,7 +2,7 @@ package cloud
 
 package workflow
 
-package routers
+package endpoints
 
 import cloud.lib.EndpointWorkflow
 import cloud.lib.Helpers
@@ -47,7 +47,7 @@ object FeedbackTable extends SQLTable {
   )
 }
 
-class Submission(workflow: RouterWorkflow, endpoints: EndpointWorkflow*) extends RouterWorkflow with Helpers {
+class Submission(workflow: RouterWorkflow, endpoints: EndpointWorkflow*) extends EndpointWorkflow with Helpers {
   private[this] val config: Config = ConfigFactory.load("application.conf")
 
   private[this] val mailFrom = config.getString("feedback.tutor")
@@ -58,7 +58,7 @@ class Submission(workflow: RouterWorkflow, endpoints: EndpointWorkflow*) extends
   private[this] val webhost  = config.getString("web.host")
   private[this] val webuser  = config.getString("web.user")
 
-  def endpointUri = "direct:submission"
+  def entryUri = "jms:queue:submission"
 
   def addSHA256Header = { (exchange: Exchange) =>
     val hash = sha256(exchange.getIn.getBody(classOf[String]))
@@ -88,29 +88,31 @@ class Submission(workflow: RouterWorkflow, endpoints: EndpointWorkflow*) extends
     }
   }
 
-  // Submission workflow
-  //
-  // NOTES:
-  //   1. we assume that incoming messages already have a replyTo header (the student's email address)
   def routes = Seq(new RouteBuilder {
-    // Route 0
-    endpointUri ==> {
-      setHeader("table", "submission")
-      wireTap("direct:msg_store")
-      to(workflow.endpointUri)
-      process(addSHA256Header)
-      setHeader("table", "feedback")
-      wireTap("direct:msg_store")
-      to(endpoints.map(_.endpointUri): _*)
+    entryUri ==> {
+      errorHandler(deadLetterChannel("jms:queue:error"))
+
+      // Only process messages that have a replyTo header (i.e. the student's email address)
+      when(_.getIn.getHeader("replyTo") != null) {
+        setHeader("table", SubmissionTable.name.value)
+        wireTap("direct:msg_store")
+        to(workflow.entryUri)
+      }
     }
 
-    // Route 1: Message store
+    workflow.exitUri ==> {
+      process(addSHA256Header)
+      setHeader("table", FeedbackTable.name.value)
+      wireTap("direct:msg_store")
+      to(endpoints.map(_.entryUri): _*)
+    }
+
     "direct:msg_store" ==> {
       choice {
-        when (_.in("table") == "submission") {
+        when (_.in("table") == SubmissionTable.name.value) {
           process(submissionSQL)
         }
-        when (_.in("table") == "feedback") {
+        when (_.in("table") == FeedbackTable.name.value) {
           process(feedbackSQL)
         }
       }

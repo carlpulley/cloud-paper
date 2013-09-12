@@ -52,8 +52,6 @@ class VMInstance(image: Image) extends Actor {
 }
 
 class ControlBus extends Actor {
-  // We intentionally do not wish this class to be an ActorWorkflow!
-
   var handlers: PartialFunction[ControlEvent, Unit] = Map.empty
 
   def receive = {

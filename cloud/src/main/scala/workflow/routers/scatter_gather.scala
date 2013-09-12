@@ -6,10 +6,13 @@ package routers
 
 import akka.actor.ActorRef
 import akka.camel.CamelMessage
+import cloud.lib.EndpointWorkflow
 import cloud.lib.RouterWorkflow
 import cloud.lib.Workflow
 import cloud.workflow.actors.AddHandlers
 import cloud.workflow.actors.ControlEvent
+import cloud.workflow.endpoints.FeedbackTable
+import cloud.workflow.endpoints.SubmissionTable
 import scala.concurrent.duration.Duration
 import org.apache.camel.CamelContext
 import org.apache.camel.model.ModelCamelContext
@@ -18,7 +21,6 @@ import org.apache.camel.processor.aggregate.AggregationStrategy
 import org.apache.camel.model.RouteDefinition
 import org.apache.camel.scala.dsl.builder.RouteBuilder
 import scala.collection.JavaConversions._
-import scala.util.matching.Regex
 import scala.xml.XML
 import scalikejdbc.DB
 import scalikejdbc.SQLInterpolation._
@@ -42,13 +44,15 @@ class FeedbackAggregationStrategy extends AggregationStrategy {
 }
 
 class ScatterGather(name: String, workflows: RouterWorkflow*)(implicit val timeout: Duration, implicit val controller: ActorRef, implicit val camel_context: CamelContext) extends RouterWorkflow {
-  def endpointUri = "direct:%s".format(name)
+  def entryUri = s"direct:${name}-entry"
+
+  def exitUri = s"direct:${name}-exit"
 
   controller ! AddHandlers {
     // TODO: need to ensure child.routes exit/join to aggregator route (i.e. jms:queue:aggregate.$name)
     case AddWorkflow(child: RouterWorkflow) => {
       camel_context.addRoutes(new RouteBuilder {
-        from(s"jms:topic:$name").to(child.endpointUri)
+        from(s"jms:topic:$name").to(child.entryUri)
       })
 
       for(route <- child.routes) {
@@ -60,15 +64,15 @@ class ScatterGather(name: String, workflows: RouterWorkflow*)(implicit val timeo
         //})
       }
     }
-    case AddWorkflow(child) => {
+    case AddWorkflow(child: EndpointWorkflow) => {
       camel_context.addRoutes(new RouteBuilder {
-        from(s"jms:topic:$name").to(child.endpointUri)
+        from(s"jms:topic:$name").to(child.entryUri)
       })
     }
 
     // FIXME: also need to remove any of the child.routes workflows that may have been added!
     case RemoveWorkflow(uri) => {
-      val matches = camel_context.asInstanceOf[ModelCamelContext].getRouteDefinitions().filter(rd => new Regex(s"From[jms:topic:$name] -> To[$uri]").findFirstIn(rd.toString).isDefined)
+      val matches = camel_context.asInstanceOf[ModelCamelContext].getRouteDefinitions().filter(rd => rd.toString.contains(s"From[jms:topic:$name] -> To[$uri]"))
       for(route <- matches) {
         camel_context.asInstanceOf[ModelCamelContext].removeRouteDefinition(route)
       }
@@ -92,14 +96,14 @@ class ScatterGather(name: String, workflows: RouterWorkflow*)(implicit val timeo
   }
 
   val routes = Seq(new RouteBuilder {
-    endpointUri ==> {
+    entryUri ==> {
       transform(enrichSubmission)
       to(s"jms:topic:$name")
     }
 
     s"jms:queue:aggregate.$name" ==> {
-      errorHandler(deadLetterChannel("jms:topic:error"))
-      aggregate(header("breadcrumbId"), new FeedbackAggregationStrategy()).completionTimeout(timeout.toMillis).to("mock:dummy")
+      errorHandler(deadLetterChannel("jms:queue:error"))
+      aggregate(header("breadcrumbId"), new FeedbackAggregationStrategy()).completionTimeout(timeout.toMillis).to(exitUri)
     }
   })
 }

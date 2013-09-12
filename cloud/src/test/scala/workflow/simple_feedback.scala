@@ -22,11 +22,14 @@ class SimpleFeedback(id: Int, typ: Symbol = 'flat) extends RouterWorkflow {
     }
   }
 
-  def endpointUri = s"direct:simple_feedback$id"
+  def entryUri = s"direct:simple-feedback${id}-entry"
+
+  def exitUri = s"direct:simple-feedback${id}-exit"
 
   def routes = Seq(new RouteBuilder {
-    endpointUri ==> {
+    entryUri ==> {
       transform(simpleFeedback)
+      to(exitUri)
     }
   })
 }

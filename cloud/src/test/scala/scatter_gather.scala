@@ -8,8 +8,8 @@ import akka.camel.CamelExtension
 import akka.testkit.TestActorRef
 import cloud.lib.Helpers
 import cloud.workflow.actors.ControlBus
-import cloud.workflow.routers.SubmissionTable
-import cloud.workflow.routers.FeedbackTable
+import cloud.workflow.endpoints.SubmissionTable
+import cloud.workflow.endpoints.FeedbackTable
 import com.typesafe.config._
 import org.apache.activemq.ActiveMQConnectionFactory
 import org.apache.camel.CamelContext

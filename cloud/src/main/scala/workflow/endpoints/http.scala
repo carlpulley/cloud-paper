@@ -15,7 +15,7 @@ class HTTP extends EndpointWorkflow {
   private[this] val webhost  = config.getString("web.host")
   private[this] val webuser  = config.getString("web.user")
 
-  def endpointUri = "direct:web_endpoint"
+  def entryUri = "direct:web_endpoint"
 
   def routes = Seq(new RouteBuilder {
     // NOTES:
@@ -23,7 +23,7 @@ class HTTP extends EndpointWorkflow {
     //   2. we also assume that Apache (or similar) can serve pages from ~$webuser/www/$crypto_link via the 
     //      URL https://$webhost/$webuser/$crypto_link
     //   3. here the message body contains the $crypto_link file contents which are transformed from XML to HTML
-    endpointUri ==> {
+    entryUri ==> {
         setHeader("student", header("replyTo"))
         setHeader("title", subject)
         to("xslt:feedback-file.xsl")

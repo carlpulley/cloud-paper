@@ -19,10 +19,10 @@ class SMTP extends EndpointWorkflow {
   private[this] val webhost  = config.getString("web.host")
   private[this] val webuser  = config.getString("web.user")
 
-  def endpointUri = "direct:mail_endpoint"
+  def entryUri = "direct:mail_endpoint"
 
   def routes = Seq(new RouteBuilder {
-    endpointUri ==> {
+    entryUri ==> {
         // Here we send a template email containing a URL link to the actual assessment feedback
         setHeader("webuser", webuser)
         setHeader("webhost", webhost)

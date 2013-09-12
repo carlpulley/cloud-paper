@@ -13,7 +13,6 @@ import scala.util.matching.Regex
 
 class CamelContextWrapper(context: CamelContext) {
   def getRouteDefinitions(pattern: String): List[RouteDefinition]  = {
-    println("** DEBUG **", context.getRouteDefinitions.toList.map(_.toString))
     context.getRouteDefinitions.toList.filter(rd => rd.toString contains(pattern))
   }
 }
