@@ -4,6 +4,7 @@ package workflow
 
 package routers
 
+import cloud.lib.EndpointWorkflow
 import cloud.lib.Helpers
 import cloud.lib.RouterWorkflow
 import cloud.lib.SQLTable
@@ -46,7 +47,7 @@ object FeedbackTable extends SQLTable {
   )
 }
 
-class Submission(workflow: RouterWorkflow) extends RouterWorkflow with Helpers {
+class Submission(workflow: RouterWorkflow, endpoints: EndpointWorkflow*) extends RouterWorkflow with Helpers {
   private[this] val config: Config = ConfigFactory.load("application.conf")
 
   private[this] val mailFrom = config.getString("feedback.tutor")
@@ -100,7 +101,7 @@ class Submission(workflow: RouterWorkflow) extends RouterWorkflow with Helpers {
       process(addSHA256Header)
       setHeader("table", "feedback")
       wireTap("direct:msg_store")
-      to("direct:mail_endpoint", "direct:web_endpoint")
+      to(endpoints.map(_.endpointUri): _*)
     }
 
     // Route 1: Message store
@@ -114,34 +115,5 @@ class Submission(workflow: RouterWorkflow) extends RouterWorkflow with Helpers {
         }
       }
     }
-
-    // Route 2: Email https link        
-    "direct:mail_endpoint" ==> {
-        // Here we send a template email containing a URL link to the actual assessment feedback
-        setHeader("webuser", webuser)
-        setHeader("webhost", webhost)
-        to("velocity:feedback-email.vm")
-        setHeader("username", mailuser)
-        setHeader("password", mailpw)
-        setHeader("from", mailFrom)
-        setHeader("to", header("replyTo"))
-        setHeader("subject", subject)
-        to("smtp:%s".format(mailhost))
-    }
-
-    // Route 3: Web server interface
-    //
-    // NOTES:
-    //   1. we assume that SSH certificates have been setup to allow passwordless login to $webuser@$webhost
-    //   2. we also assume that Apache (or similar) can serve pages from ~$webuser/www/$crypto_link via the 
-    //      URL https://$webhost/$webuser/$crypto_link
-    //   3. here the message body contains the $crypto_link file contents which are transformed from XML to HTML
-    "direct:web_endpoint" ==> {
-        setHeader("student", header("replyTo"))
-        setHeader("title", subject)
-        to("xslt:feedback-file.xsl")
-        setHeader("CamelFileName", header("sha256"))
-        to("sftp:%s@%s/www/".format(webuser, webhost))
-    }
-  }) ++ workflow.routes
+  }) ++ workflow.routes ++ endpoints.flatMap(_.routes)
 }

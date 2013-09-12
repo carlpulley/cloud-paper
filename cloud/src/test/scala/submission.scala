@@ -5,8 +5,10 @@ package test
 import akka.actor.Props
 import akka.testkit.TestActorRef
 import cloud.lib.Helpers
-import cloud.workflow.routers.SubmissionTable
+import cloud.workflow.endpoints.HTTP
+import cloud.workflow.endpoints.SMTP
 import cloud.workflow.routers.FeedbackTable
+import cloud.workflow.routers.SubmissionTable
 import com.typesafe.config._
 import org.apache.camel.builder.AdviceWithRouteBuilder
 import scala.collection.JavaConversions._
@@ -41,7 +43,7 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
   Class.forName(sqldriver)
   ConnectionPool.singleton(sqlurl, sqluser, sqlpw)
 
-  val builders = new routers.Submission(new SimpleFeedback(1)).routes
+  val builders = new routers.Submission(new SimpleFeedback(1), new SMTP(), new HTTP()).routes
 
   before {
     setUp
@@ -57,7 +59,7 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
   }
 
   test("Check submission route") {
-    context.getRouteDefinitions.get(0).adviceWith(context, new AdviceWithRouteBuilder {
+    context.getRouteDefinitions("From[direct:submission]").head.adviceWith(context, new AdviceWithRouteBuilder {
       def configure = {
         weaveByToString("To[direct:mail_endpoint]").replace.to("mock:mail_endpoint")
         weaveByToString("To[direct:web_endpoint]").replace.to("mock:web_endpoint")
@@ -91,7 +93,7 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
   }
 
   test("Check mail route") {
-    context.getRouteDefinitions.get(2).adviceWith(context, new AdviceWithRouteBuilder {
+    context.getRouteDefinitions("From[direct:mail_endpoint]").head.adviceWith(context, new AdviceWithRouteBuilder {
       def configure = {
         weaveByToString("To[smtp:%s]".format(mailhost)).replace.to("mock:smtp")
       }
@@ -116,7 +118,7 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
   }
 
   test("Check web route") {
-    context.getRouteDefinitions.get(3).adviceWith(context, new AdviceWithRouteBuilder {
+    context.getRouteDefinitions("From[direct:web_endpoint]").head.adviceWith(context, new AdviceWithRouteBuilder {
       def configure = {
         weaveByToString("To[sftp:%s@%s/www/]".format(webuser, webhost)).replace.to("mock:sftp")
       }
@@ -139,7 +141,7 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
 
   test("Check message store route") {
     DB autoCommit { implicit session =>
-      template().sendBodyAndHeaders("direct:msg_store", submission, Map("table" -> "submission", "replyTo" -> mailTo, "breadcrumbId" -> "testing-1"))
+      template().sendBodyAndHeaders("direct:msg_store", submission, Map("table" -> "submission", "replyTo" -> mailTo, "breadcrumbId" -> "submission-testing-1"))
 
       val submission_count1 = sql"SELECT COUNT(*) FROM ${SubmissionTable.name}".map(_.int(1)).single.apply().get
       val feedback_count1 = sql"SELECT COUNT(*) FROM ${FeedbackTable.name}".map(_.int(1)).single.apply().get
@@ -150,9 +152,9 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
       assert(submission_id == 1)
       assert(submission_student == mailTo)
       assert(submission_message == submission)
-      assert(submission_message_id == "testing-1")
+      assert(submission_message_id == "submission-testing-1")
   
-      template().sendBodyAndHeaders("direct:msg_store", feedback, Map("table" -> "feedback", "replyTo" -> mailTo, "sha256" ->   feedback_hash, "breadcrumbId" -> "testing-1"))
+      template().sendBodyAndHeaders("direct:msg_store", feedback, Map("table" -> "feedback", "replyTo" -> mailTo, "sha256" ->   feedback_hash, "breadcrumbId" -> "submission-testing-1"))
 
       val submission_count2 = sql"SELECT COUNT(*) FROM ${SubmissionTable.name}".map(_.int(1)).single.apply().get
       val feedback_count2 = sql"SELECT COUNT(*) FROM ${FeedbackTable.name}".map(_.int(1)).single.apply().get

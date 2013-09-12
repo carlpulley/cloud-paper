@@ -14,3 +14,5 @@ trait ActorWorkflow extends Consumer with Workflow
 trait RouterWorkflow extends Workflow {
   def routes: Seq[RouteBuilder]
 }
+
+trait EndpointWorkflow extends RouterWorkflow
