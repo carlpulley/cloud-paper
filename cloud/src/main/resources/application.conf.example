@@ -23,6 +23,17 @@ web {
   user = "USER"
 }
 
+twitter {
+  consumer {
+    key = "The consumer key"
+    secret = "The consumer secret"
+  }
+  access {
+    token = "The access token"
+    secret = "The access token secret"
+  }
+}
+
 log {
   level = "INFO"
 }

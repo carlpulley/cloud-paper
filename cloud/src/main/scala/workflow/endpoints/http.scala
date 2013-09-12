@@ -28,7 +28,7 @@ class HTTP extends EndpointWorkflow {
         setHeader("title", subject)
         to("xslt:feedback-file.xsl")
         setHeader("CamelFileName", header("sha256"))
-        to("sftp:%s@%s/www/".format(webuser, webhost))
+        to(s"sftp:$webuser@$webhost/www/")
         stop
     }
   })

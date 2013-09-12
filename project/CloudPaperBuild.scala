@@ -57,6 +57,9 @@ trait Dependencies {
   val ApacheCamel = Seq(
     "org.apache.camel" % "camel-core" % V.CAMEL,
     "org.apache.camel" % "camel-mail" % V.CAMEL,
+    "org.apache.camel" % "camel-twitter" % V.CAMEL,
+    "org.apache.camel" % "camel-fop" % V.CAMEL,
+    "org.apache.camel" % "camel-printer" % V.CAMEL,
     "org.apache.camel" % "camel-ftp" % V.CAMEL,
     "org.apache.camel" % "camel-spring" % V.CAMEL,
     "org.apache.camel" % "camel-jms" % V.CAMEL,

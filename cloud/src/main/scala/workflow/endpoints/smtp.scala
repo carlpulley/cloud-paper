@@ -32,7 +32,7 @@ class SMTP extends EndpointWorkflow {
         setHeader("from", mailFrom)
         setHeader("to", header("replyTo"))
         setHeader("subject", subject)
-        to("smtp:%s".format(mailhost))
+        to(s"smtp:$mailhost")
         stop
     }
   })

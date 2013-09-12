@@ -58,7 +58,7 @@ class ScatterGatherTests extends ScalaTestSupport with Helpers {
     camel.context
   }
 
-  implicit val timeout: Duration = 3 seconds
+  implicit val timeout: Duration = 3.seconds
   implicit val controller: ActorRef = TestActorRef[ControlBus]
   implicit var camel_context: CamelContext = createCamelContext()
 
