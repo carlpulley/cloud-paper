@@ -71,6 +71,7 @@ class VMInstance(image: Image) extends Actor {
   def receive = booting
 }
 
+// FIXME: get plugins working!
 class ControlBus(group: String, plugins: EventDrivenWorkflow*) extends Actor {
   var handlers: PartialFunction[ControlEvent, Unit] = Map.empty //plugins.foldLeft(Map.empty)((hs, h) => hs orElse h.handlers)
 

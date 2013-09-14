@@ -24,6 +24,10 @@ import scalikejdbc.GlobalSettings
 import scalikejdbc.LoggingSQLAndTimeSettings
 
 trait Helpers {
+  private[this] val rand = new Random(new java.security.SecureRandom())
+
+  def getUniqueName(group: String) = sha256(group+(new Date().getTime.toString)+rand.alphanumeric.take(64).mkString)
+
   def getConfig(group: String = "") = ConfigFactory.load("$group/application.conf").withFallback(ConfigFactory.load("application.conf"))
 
   def sha256(data: String) = MessageDigest.getInstance("SHA-256").digest(data.getBytes).map("%02X".format(_)).mkString

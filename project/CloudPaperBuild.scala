@@ -78,6 +78,7 @@ trait Dependencies {
     "org.apache.camel" % "camel-fop" % V.CAMEL,
     "org.apache.camel" % "camel-printer" % V.CAMEL,
     "org.apache.camel" % "camel-ftp" % V.CAMEL,
+    "org.apache.camel" % "camel-ssh" % V.CAMEL,
     "org.apache.camel" % "camel-spring" % V.CAMEL,
     "org.apache.camel" % "camel-jms" % V.CAMEL,
     "org.apache.camel" % "camel-velocity" % V.CAMEL,

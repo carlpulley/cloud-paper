@@ -14,31 +14,33 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-package cloud.workflow.controller.plugins
+package cloud
 
-import cloud.lib.EventDrivenWorkflow
-import cloud.workflow.controller.ControlEvent
-import org.apache.camel.scala.dsl.builder.RouteBuilder
+package workflow
 
-class Dropbox(group: String, folder: String) extends EventDrivenWorkflow {
-  val handlers: PartialFunction[ControlEvent, Unit] = Map.empty
+package routers
+
+class Filter(group: String, name: String, pred: CamelMessage => Boolean, workflow: RouterWorkflow) extends RouterWorkflow {
+  entryUri = s"direct:$group-$name-filter-entry"
+  exitUri = s"direct:$group-$name-filter-exit"
 
   def routes = Seq(new RouteBuilder {
-    s"file:$folder/$group" ==> {
+    entryUri ==> {
       errorHandler(deadLetterChannel(error_channel))
 
-      // Only process tar ball files (we rely on file extension to convey type)
-      when(simple("${file:ext} in 'tgz,tar.gz'")) {
-        // We assume that file name is student ID
-        setHeader("replyTo", simple("${file:onlyname.noext}@hud.ac.uk"))
-        to(s"jms:queue:$group-submission")
+      when(pred _.in) {
+        to(workflow.entryUri)
       }
+    }
+
+    workflow.exitUri ==> {
+      to(exitUri)
     }
   })
 }
 
-object Dropbox {
-  def apply(folder: String)(implicit group: String) = {
-    new Dropbox(group, folder)
+object Filter extends Helpers {
+  def apply(pred: CamelMessage => Boolean, workflow: RouterWorkflow)(implicit group: String) = {
+    new Filter(group, getUniqueName(), pred, workflow)
   }
 }

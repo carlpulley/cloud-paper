@@ -45,7 +45,6 @@ class Submission(group: String, controller: ActorRef, workflow: RouterWorkflow, 
   entryUri = s"jms:queue:$group-submission-entry"
 
   val msg_store = s"direct:$group-msg-store"
-  val error_channel = s"jms:queue:$group:error"
 
   def addSHA256Header = { (exchange: Exchange) =>
     val hash = sha256(exchange.in[String])

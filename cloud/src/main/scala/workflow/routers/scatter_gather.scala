@@ -66,7 +66,6 @@ class ScatterGather(group: String, name: String, workflows: RouterWorkflow*)(imp
 
   val pubsub_entry = s"jms:topic:$group-$name"
   val pubsub_exit = s"jms:queue:$group-$name-aggregate"
-  val pubsub_error = s"jms:queue:$group-error"
 
   controller ! AddHandlers {
     case AddWorkflow(child: RouterWorkflow) => {
@@ -104,7 +103,7 @@ class ScatterGather(group: String, name: String, workflows: RouterWorkflow*)(imp
     }
 
     pubsub_exit ==> {
-      errorHandler(deadLetterChannel(pubsub_error))
+      errorHandler(deadLetterChannel(error_channel))
 
       aggregate(header("breadcrumbId"), new FeedbackAggregationStrategy()).completionTimeout(timeout.toMillis).to(exitUri)
     }
@@ -112,11 +111,7 @@ class ScatterGather(group: String, name: String, workflows: RouterWorkflow*)(imp
 }
 
 object ScatterGather extends Helpers {
-  private[this] val rand = new Random(new java.security.SecureRandom())
-
   def apply(workflows: RouterWorkflow*)(implicit group: String, timeout: Duration, controller: ActorRef, camel_context: CamelContext) = {
-    val name = sha256(group+(new Date().getTime.toString)+rand.alphanumeric.take(64).mkString)
-
-    new ScatterGather(group, name, workflows: _*)
+    new ScatterGather(group, getUniqueName(group), workflows: _*)
   }
 }

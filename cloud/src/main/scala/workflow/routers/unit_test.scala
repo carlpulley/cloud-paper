@@ -14,31 +14,36 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-package cloud.workflow.controller.plugins
+package cloud
 
-import cloud.lib.EventDrivenWorkflow
-import cloud.workflow.controller.ControlEvent
-import org.apache.camel.scala.dsl.builder.RouteBuilder
+package workflow
 
-class Dropbox(group: String, folder: String) extends EventDrivenWorkflow {
-  val handlers: PartialFunction[ControlEvent, Unit] = Map.empty
+package routers
+
+import cloud.lib.Helpers
+import cloud.lib.provider.Rackspace
+
+class UnitTest(group: String, name: String, pred: CamelMessage => Boolean, success: Option[String], failure: Option[String]) extends RouterWorkflow {
+  entryUri = s"direct:$group-$name-unit-test-entry"
+  exitUri = s"direct:$group-$name-unit-test-exit"
 
   def routes = Seq(new RouteBuilder {
-    s"file:$folder/$group" ==> {
+    entryUri ==> {
       errorHandler(deadLetterChannel(error_channel))
 
-      // Only process tar ball files (we rely on file extension to convey type)
-      when(simple("${file:ext} in 'tgz,tar.gz'")) {
-        // We assume that file name is student ID
-        setHeader("replyTo", simple("${file:onlyname.noext}@hud.ac.uk"))
-        to(s"jms:queue:$group-submission")
+      when(pred _) {
+        setBody(success)
+      } 
+      otherwise {
+        setBody(failure)
       }
+      to(exitUri)
     }
   })
 }
 
-object Dropbox {
-  def apply(folder: String)(implicit group: String) = {
-    new Dropbox(group, folder)
+object UnitTest extends Helpers {
+  def apply(pred: CamelMessage => Boolean, success: Option[String], failure: Option[String])(implicit group: String) = {
+    new UnitTest(group, getUniqueName(), pred, success, failure)
   }
 }
