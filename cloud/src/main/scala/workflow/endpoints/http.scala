@@ -21,17 +21,18 @@ package workflow
 package endpoints
 
 import cloud.lib.EndpointWorkflow
+import cloud.lib.Helpers
 import com.typesafe.config._
 import org.apache.camel.scala.dsl.builder.RouteBuilder
 
-class HTTP extends EndpointWorkflow {
-  private[this] val config: Config = ConfigFactory.load("application.conf")
+class HTTP(group: String) extends EndpointWorkflow with Helpers {
+  private[this] val config = getConfig(group)
 
   private[this] val subject  = config.getString("feedback.subject")
   private[this] val webhost  = config.getString("web.host")
   private[this] val webuser  = config.getString("web.user")
 
-  def entryUri = "direct:web_endpoint"
+  entryUri = s"direct:$group-http-entry"
 
   def routes = Seq(new RouteBuilder {
     // NOTES:
@@ -42,10 +43,16 @@ class HTTP extends EndpointWorkflow {
     entryUri ==> {
         setHeader("student", header("replyTo"))
         setHeader("title", subject)
-        to("xslt:feedback-file.xsl")
+        to(s"xslt:$group/feedback-file.xsl")
         setHeader("CamelFileName", header("sha256"))
-        to(s"sftp:$webuser@$webhost/www/")
+        to(s"sftp:$webuser@$webhost/www/$group")
         stop
     }
   })
+}
+
+object HTTP {
+  def apply()(implicit group: String) = {
+    new HTTP(group)
+  }
 }

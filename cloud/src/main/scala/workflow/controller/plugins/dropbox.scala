@@ -14,26 +14,31 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-package cloud.lib
+package cloud.workflow.controller.plugins
 
+import cloud.lib.EventDrivenWorkflow
 import cloud.workflow.controller.ControlEvent
 import org.apache.camel.scala.dsl.builder.RouteBuilder
-import org.apache.camel.scala.Preamble
 
-trait Workflow extends Preamble {
-  def routes: Seq[RouteBuilder]
+class Dropbox(group: String, folder: String) extends EventDrivenWorkflow {
+  val handlers: PartialFunction[ControlEvent, Unit] = Map.empty
+
+  def routes = Seq(new RouteBuilder {
+    s"file:$folder/$group" ==> {
+      errorHandler(deadLetterChannel(s"jms:queue:$group-error"))
+
+      // Only process tar ball files (we rely on file extension to convey type)
+      when(simple("${file:ext} in 'tgz,tar.gz'")) {
+        // We assume that file name is student ID
+        setHeader("replyTo", simple("${file:onlyname.noext}@hud.ac.uk"))
+        to(s"jms:queue:$group-submission")
+      }
+    }
+  })
 }
 
-trait EventDrivenWorkflow extends Workflow {
-  def handlers: PartialFunction[ControlEvent, Unit]
-}
-
-trait RouterWorkflow extends Workflow {
-  var entryUri: String = null
-
-  var exitUri: String = null
-}
-
-trait EndpointWorkflow extends Workflow {
-  var entryUri: String = null
+object Dropbox {
+  def apply(folder: String)(implicit group: String) = {
+    new Dropbox(group, folder)
+  }
 }

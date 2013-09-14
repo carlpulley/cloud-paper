@@ -18,25 +18,28 @@ package cloud
 
 package workflow
 
-package actors
+package controller
 
 import akka.actor.Actor
 import akka.actor.ActorRef
 import akka.actor.Actor.Receive
+import akka.actor.ActorSystem
 import akka.actor.PoisonPill
 import akka.actor.Props
 import akka.camel.Ack
 import akka.camel.CamelMessage
+import cloud.lib.EventDrivenWorkflow
 import cloud.lib.Image
 import org.jclouds.compute.domain.NodeMetadata
 import scala.concurrent.Future
 
 trait ControlEvent
-
+// Cloud compute instance interactions
 case class StartVM(image: Image) extends ControlEvent
 case class BuildVM(caller: ActorRef) extends ControlEvent
 case class StopVM(vm: ActorRef) extends ControlEvent
 case class VMStarted(node: NodeMetadata) extends ControlEvent
+// Dynamic control event interactions
 case class AddHandlers(events: PartialFunction[ControlEvent, Unit]) extends ControlEvent
 
 class VMInstance(image: Image) extends Actor {
@@ -62,13 +65,16 @@ class VMInstance(image: Image) extends Actor {
 
   def waiting: Receive = Actor.emptyBehavior
 
+  // FIXME: should we add in any extra behaviour here?
   def running: Receive = Actor.emptyBehavior
 
   def receive = booting
 }
 
-class ControlBus extends Actor {
-  var handlers: PartialFunction[ControlEvent, Unit] = Map.empty
+class ControlBus(group: String, plugins: EventDrivenWorkflow*) extends Actor {
+  var handlers: PartialFunction[ControlEvent, Unit] = Map.empty //plugins.foldLeft(Map.empty)((hs, h) => hs orElse h.handlers)
+
+  //plugins.foreach(_.routes.foreach(camel_context.addRoutes(_)))
 
   def receive = {
     case StartVM(image) => {
@@ -89,5 +95,11 @@ class ControlBus extends Actor {
     case msg: ControlEvent => {
       handlers(msg)
     }
+  }
+}
+
+object ControlBus {
+  def apply(plugins: EventDrivenWorkflow*)(implicit group: String, system: ActorSystem) = {
+    system.actorOf(Props(new ControlBus(group, plugins: _*)), "control-bus")
   }
 }

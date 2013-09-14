@@ -21,11 +21,12 @@ package workflow
 package endpoints
 
 import cloud.lib.EndpointWorkflow
+import cloud.lib.Helpers
 import com.typesafe.config._
 import org.apache.camel.scala.dsl.builder.RouteBuilder
 
-class SMTP extends EndpointWorkflow {
-  private[this] val config: Config = ConfigFactory.load("application.conf")
+class SMTP(group: String) extends EndpointWorkflow with Helpers {
+  private[this] val config = getConfig(group)
 
   private[this] val mailFrom = config.getString("feedback.tutor")
   private[this] val subject  = config.getString("feedback.subject")
@@ -35,14 +36,15 @@ class SMTP extends EndpointWorkflow {
   private[this] val webhost  = config.getString("web.host")
   private[this] val webuser  = config.getString("web.user")
 
-  def entryUri = "direct:mail_endpoint"
+  entryUri = s"direct:$group-smtp-entry"
 
   def routes = Seq(new RouteBuilder {
     entryUri ==> {
         // Here we send a template email containing a URL link to the actual assessment feedback
         setHeader("webuser", webuser)
         setHeader("webhost", webhost)
-        to("velocity:feedback-email.vm")
+        setHeader("group", group)
+        to(s"velocity:$group/feedback-email.vm")
         setHeader("username", mailuser)
         setHeader("password", mailpw)
         setHeader("from", mailFrom)
@@ -52,4 +54,10 @@ class SMTP extends EndpointWorkflow {
         stop
     }
   })
+}
+
+object SMTP {
+  def apply()(implicit group: String) = {
+    new SMTP(group)
+  }
 }

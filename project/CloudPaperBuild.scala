@@ -34,6 +34,7 @@ object V {
   val APACHE = "2.1"
   val CAMEL = "2.11.1"
   val CONFIG = "1.0.2"
+  val GUICE = "4.0.0-beta"
   val JCLOUDS = "1.6.1-incubating"
   val LIFT = "2.5.1"
   val LOG4J = "1.2.17"

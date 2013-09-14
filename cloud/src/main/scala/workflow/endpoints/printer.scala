@@ -21,24 +21,34 @@ package workflow
 package endpoints
 
 import cloud.lib.EndpointWorkflow
+import cloud.lib.Helpers
 import com.typesafe.config._
 import org.apache.camel.scala.dsl.builder.RouteBuilder
 
-class Printer extends EndpointWorkflow {
-  private[this] val config: Config = ConfigFactory.load("application.conf")
+class Printer(group: String) extends EndpointWorkflow with Helpers {
+  private[this] val config = getConfig(group)
 
-  private[this] val subject  = config.getString("feedback.subject")
+  private[this] val subject    = config.getString("feedback.subject")
+  private[this] val lpraddr    = if (config.hasPath("lpr.address")) config.getString("lpr.address") else "localhost"
+  private[this] val lprpath    = if (config.hasPath("lpr.path")) config.getString("lpr.path") else "default"
+  private[this] val lproptions = if (config.hasPath("lpr.options")) config.getString("lpr.options") else "sides=two-sided"
 
-  def entryUri = "direct:printer_endpoint"
+  entryUri = s"direct:$group-printer-entry"
 
   def routes = Seq(new RouteBuilder {
     entryUri ==> {
         setHeader("student", header("replyTo"))
         setHeader("title", subject)
-        to("xslt:feedback-printer.xsl")
+        to(s"xslt:$group/feedback-printer.xsl")
         to("fop:application/pdf")
-        to("lpr:localhost/default?sides=two-sided")
+        to(s"lpr:$lpraddr/$lprpath?$lproptions")
         stop
     }
   })
+}
+
+object Printer {
+  def apply()(implicit group: String) = {
+    new Printer(group)
+  }
 }

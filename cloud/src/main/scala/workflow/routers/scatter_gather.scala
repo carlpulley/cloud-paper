@@ -22,73 +22,64 @@ package routers
 
 import akka.actor.ActorRef
 import akka.camel.CamelMessage
-import cloud.lib.EndpointWorkflow
+import cloud.lib.Helpers
 import cloud.lib.RouterWorkflow
-import cloud.lib.Workflow
-import cloud.workflow.actors.AddHandlers
-import cloud.workflow.actors.ControlEvent
-import cloud.workflow.endpoints.FeedbackTable
-import cloud.workflow.endpoints.SubmissionTable
-import scala.concurrent.duration.Duration
+import cloud.workflow.controller.AddHandlers
+import cloud.workflow.controller.ControlEvent
+import cloud.workflow.controller.FeedbackTable
+import cloud.workflow.controller.SubmissionTable
+import java.util.Date
 import org.apache.camel.CamelContext
 import org.apache.camel.model.ModelCamelContext
 import org.apache.camel.Exchange
 import org.apache.camel.processor.aggregate.AggregationStrategy
 import org.apache.camel.model.RouteDefinition
 import org.apache.camel.scala.dsl.builder.RouteBuilder
+import org.apache.camel.scala.Preamble
 import scala.collection.JavaConversions._
+import scala.concurrent.duration.Duration
+import scala.util.Random
 import scala.xml.XML
 import scalikejdbc.DB
 import scalikejdbc.SQLInterpolation._
 
-case class AddWorkflow(workflow: Workflow) extends ControlEvent
+case class AddWorkflow(workflow: RouterWorkflow) extends ControlEvent
 case class RemoveWorkflow(uri: String) extends ControlEvent
 
-class FeedbackAggregationStrategy extends AggregationStrategy {
+class FeedbackAggregationStrategy extends AggregationStrategy with Preamble {
   def aggregate(merged_exchange: Exchange, new_exchange: Exchange): Exchange = {
     if (merged_exchange == null) {
       new_exchange
     } else {
-      val old_feedback = XML.loadString(merged_exchange.getIn.getBody(classOf[String]))
-      val new_feedback = XML.loadString(new_exchange.getIn.getBody(classOf[String]))
+      val old_feedback = XML.loadString(merged_exchange.in[String])
+      val new_feedback = XML.loadString(new_exchange.in[String])
       val merged_feedback = old_feedback.copy(child = old_feedback.child ++ new_feedback.child)
-      merged_exchange.getIn.setBody(merged_feedback.toString)
+      merged_exchange.in = merged_feedback.toString
 
       merged_exchange
     }
   }
 }
 
-class ScatterGather(name: String, workflows: RouterWorkflow*)(implicit val timeout: Duration, implicit val controller: ActorRef, implicit val camel_context: CamelContext) extends RouterWorkflow {
-  def entryUri = s"direct:${name}-entry"
+class ScatterGather(group: String, name: String, workflows: RouterWorkflow*)(implicit timeout: Duration, controller: ActorRef, camel_context: CamelContext) extends RouterWorkflow {
+  entryUri = s"direct:$group-$name-scatter-gather-entry"
+  exitUri = s"direct:$group-$name-scatter-gather-exit"
 
-  def exitUri = s"direct:${name}-exit"
+  val pubsub_entry = s"jms:topic:$group-$name"
+  val pubsub_exit = s"jms:queue:$group-$name-aggregate"
+  val pubsub_error = s"jms:queue:$group-error"
 
   controller ! AddHandlers {
-    // TODO: need to ensure child.routes exit/join to aggregator route (i.e. jms:queue:aggregate.$name)
     case AddWorkflow(child: RouterWorkflow) => {
-      camel_context.addRoutes(new RouteBuilder {
-        from(s"jms:topic:$name").to(child.entryUri)
-      })
+      child.entryUri = pubsub_entry
+      child.exitUri = pubsub_exit
 
-      for(route <- child.routes) {
-        camel_context.addRoutes(route)
-        //camel_context.addRoutes(new RouteBuilder {
-        //  ? ==> {
-        //    to(s"jms:queue:aggregate.$name")
-        //  }
-        //})
-      }
-    }
-    case AddWorkflow(child: EndpointWorkflow) => {
-      camel_context.addRoutes(new RouteBuilder {
-        from(s"jms:topic:$name").to(child.entryUri)
-      })
+      child.routes.foreach(camel_context.addRoutes(_))
     }
 
     // FIXME: also need to remove any of the child.routes workflows that may have been added!
     case RemoveWorkflow(uri) => {
-      val matches = camel_context.asInstanceOf[ModelCamelContext].getRouteDefinitions().filter(rd => rd.toString.contains(s"From[jms:topic:$name] -> To[$uri]"))
+      val matches = camel_context.asInstanceOf[ModelCamelContext].getRouteDefinitions().filter(rd => rd.toString.contains(s"From[$pubsub_entry] -> To[$uri]"))
       for(route <- matches) {
         camel_context.asInstanceOf[ModelCamelContext].removeRouteDefinition(route)
       }
@@ -98,28 +89,43 @@ class ScatterGather(name: String, workflows: RouterWorkflow*)(implicit val timeo
   workflows.foreach(w => controller ! AddWorkflow(w))
 
   def enrichSubmission = { (exchange: Exchange) =>
-    val student = exchange.getIn.getHeader("replyTo", classOf[String])
+    val student = exchange.in("replyTo")
     val last5 = DB autoCommit { implicit session =>
       sql"""
         SELECT f.message
           FROM ${SubmissionTable.name} AS s 
           INNER JOIN ${FeedbackTable.name} AS f ON s.id = f.submission_id
-        WHERE s.student=$student ORDER BY DATETIME(s.created_at) DESC LIMIT 5
+        WHERE 
+          s.module=${group} 
+          AND s.student=${student} 
+        ORDER BY DATETIME(s.created_at) DESC 
+        LIMIT 5
       """.map(_.string("message")).list.apply()
     }
 
-    (exchange.getIn.getBody, last5)
+    (exchange.in, last5)
   }
 
   val routes = Seq(new RouteBuilder {
     entryUri ==> {
       transform(enrichSubmission)
-      to(s"jms:topic:$name")
+      to(pubsub_entry)
     }
 
-    s"jms:queue:aggregate.$name" ==> {
-      errorHandler(deadLetterChannel("jms:queue:error"))
+    pubsub_exit ==> {
+      errorHandler(deadLetterChannel(pubsub_error))
+
       aggregate(header("breadcrumbId"), new FeedbackAggregationStrategy()).completionTimeout(timeout.toMillis).to(exitUri)
     }
   })
+}
+
+object ScatterGather extends Helpers {
+  private[this] val rand = new Random(new java.security.SecureRandom())
+
+  def apply(workflows: RouterWorkflow*)(implicit group: String, timeout: Duration, controller: ActorRef, camel_context: CamelContext) = {
+    val name = sha256(group+(new Date().getTime.toString)+rand.alphanumeric.take(64).mkString)
+
+    new ScatterGather(group, name, workflows: _*)
+  }
 }

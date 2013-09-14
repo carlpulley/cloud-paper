@@ -23,11 +23,12 @@ import akka.camel.CamelExtension
 import akka.actor.Props
 import akka.testkit.TestActorRef
 import cloud.lib.Helpers
-import cloud.workflow.endpoints.FeedbackTable
+import cloud.workflow.controller.ControlBus
+import cloud.workflow.controller.SubmissionTable
+import cloud.workflow.controller.FeedbackTable
 import cloud.workflow.endpoints.HTTP
 import cloud.workflow.endpoints.SMTP
-import cloud.workflow.endpoints.Submission
-import cloud.workflow.endpoints.SubmissionTable
+import cloud.workflow.Submission
 import com.typesafe.config._
 import org.apache.activemq.ActiveMQConnectionFactory
 import org.apache.camel.builder.AdviceWithRouteBuilder
@@ -65,7 +66,8 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
   Class.forName(sqldriver)
   ConnectionPool.singleton(sqlurl, sqluser, sqlpw)
 
-  implicit val system = ActorSystem("testing")
+  implicit val group = "default"
+  implicit val system = ActorSystem(group)
 
   override def createCamelContext(): CamelContext = {
     val camel = CamelExtension(system)
@@ -77,10 +79,11 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
     camel.context
   }
 
-  val simple_feedback = new SimpleFeedback(1)
-  val smtp_endpoint = new SMTP()
-  val http_endpoint = new HTTP()
-  val submission_endpoint = new Submission(simple_feedback, smtp_endpoint, http_endpoint)
+  val controller = TestActorRef(Props(new ControlBus(group)))
+  val simple_feedback = SimpleFeedback(1)
+  val smtp_endpoint = SMTP()
+  val http_endpoint = HTTP()
+  val submission_endpoint = Submission(controller, simple_feedback, smtp_endpoint, http_endpoint)
 
   val builders = submission_endpoint.routes
 
@@ -100,14 +103,14 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
     val camel_context = context
     camel_context.getRouteDefinitions(s"From[${submission_endpoint.entryUri}]").head.adviceWith(camel_context, new AdviceWithRouteBuilder {
       def configure = {
-        weaveByToString("WireTap[direct:msg_store]").replace.to("mock:wiretap")
+        weaveByToString(s"WireTap[${submission_endpoint.msg_store}]").replace.to("mock:wiretap")
       }
     })
     camel_context.getRouteDefinitions(s"From[${simple_feedback.exitUri}]").head.adviceWith(camel_context, new AdviceWithRouteBuilder {
       def configure = {
         weaveByToString(s"To[${smtp_endpoint.entryUri}]").replace.to("mock:mail_endpoint")
         weaveByToString(s"To[${http_endpoint.entryUri}]").replace.to("mock:web_endpoint")
-        weaveByToString("WireTap[direct:msg_store]").replace.to("mock:wiretap")
+        weaveByToString(s"WireTap[${submission_endpoint.msg_store}]").replace.to("mock:wiretap")
       }
     })
 
@@ -145,7 +148,7 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
 
     val mock_mail = getMockEndpoint("mock:smtp")
     mock_mail.expectedMessageCount(1)
-    mock_mail.message(0).body.contains(s"https://$webhost/$webuser/$feedback_hash")
+    mock_mail.message(0).body.contains(s"https://$webhost/$webuser/$group/$feedback_hash")
     mock_mail.expectedHeaderReceived("replyTo", mailTo)
     mock_mail.expectedHeaderReceived("sha256", feedback_hash)
     mock_mail.expectedHeaderReceived("webuser", webuser)
@@ -164,7 +167,7 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
   test("Check web route") {
     context.getRouteDefinitions(s"From[${http_endpoint.entryUri}]").head.adviceWith(context, new AdviceWithRouteBuilder {
       def configure = {
-        weaveByToString(s"To[sftp:$webuser@$webhost/www/]").replace.to("mock:sftp")
+        weaveByToString(s"To[sftp:$webuser@$webhost/www/$group]").replace.to("mock:sftp")
       }
     })
     val html_feedback = "<li>Dummy Feedback</li>"
@@ -185,7 +188,7 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
 
   test("Check message store route") {
     DB autoCommit { implicit session =>
-      template().sendBodyAndHeaders("direct:msg_store", submission, Map("table" -> SubmissionTable.name.value, "replyTo" -> mailTo, "breadcrumbId" -> "submission-testing-1"))
+      template().sendBodyAndHeaders(submission_endpoint.msg_store, submission, Map("table" -> SubmissionTable.name.value, "replyTo" -> mailTo, "breadcrumbId" -> "submission-testing-1"))
 
       val submission_count1 = sql"SELECT COUNT(*) FROM ${SubmissionTable.name}".map(_.int(1)).single.apply().get
       val feedback_count1 = sql"SELECT COUNT(*) FROM ${FeedbackTable.name}".map(_.int(1)).single.apply().get
@@ -198,7 +201,7 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
       assert(submission_message == submission)
       assert(submission_message_id == "submission-testing-1")
   
-      template().sendBodyAndHeaders("direct:msg_store", feedback, Map("table" -> FeedbackTable.name.value, "replyTo" -> mailTo, "sha256" ->   feedback_hash, "breadcrumbId" -> "submission-testing-1"))
+      template().sendBodyAndHeaders(submission_endpoint.msg_store, feedback, Map("table" -> FeedbackTable.name.value, "replyTo" -> mailTo, "sha256" ->   feedback_hash, "breadcrumbId" -> "submission-testing-1"))
 
       val submission_count2 = sql"SELECT COUNT(*) FROM ${SubmissionTable.name}".map(_.int(1)).single.apply().get
       val feedback_count2 = sql"SELECT COUNT(*) FROM ${FeedbackTable.name}".map(_.int(1)).single.apply().get

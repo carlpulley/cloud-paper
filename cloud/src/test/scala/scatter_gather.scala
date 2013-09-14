@@ -20,14 +20,16 @@ package test
 
 import akka.actor.ActorRef
 import akka.actor.ActorSystem
+import akka.actor.Props
 import akka.camel.CamelExtension
 import akka.testkit.TestActorRef
 import cloud.lib.Helpers
-import cloud.workflow.actors.ControlBus
-import cloud.workflow.endpoints.SubmissionTable
-import cloud.workflow.endpoints.FeedbackTable
+import cloud.workflow.controller.ControlBus
+import cloud.workflow.controller.SubmissionTable
+import cloud.workflow.controller.FeedbackTable
 import com.typesafe.config._
 import org.apache.activemq.ActiveMQConnectionFactory
+import org.apache.camel.builder.AdviceWithRouteBuilder
 import org.apache.camel.CamelContext
 import org.apache.camel.component.jms.JmsComponent
 import scala.collection.JavaConversions._
@@ -54,15 +56,16 @@ class ScatterGatherTests extends ScalaTestSupport with Helpers {
   val loglevel  = config.getString("log.level")
 
   val submission = "Dummy Submission"
-  val feedback1 = "<item id='1'><comment>Dummy Feedback</comment></item>"
-  val feedback2 = "<item id='2'><comment>Dummy Feedback</comment></item>"
+  val feedback1 = "<item id=\"1\"><comment>Dummy Feedback</comment></item>"
+  val feedback2 = "<item id=\"2\"><comment>Dummy Feedback</comment></item>"
 
   setLogLevel(loglevel)
 
   Class.forName(sqldriver)
   ConnectionPool.singleton(sqlurl, sqluser, sqlpw)
 
-  implicit val system = ActorSystem("testing")
+  implicit val group = "default"
+  implicit val system = ActorSystem(group)
 
   override def createCamelContext(): CamelContext = {
     val camel = CamelExtension(system)
@@ -75,10 +78,11 @@ class ScatterGatherTests extends ScalaTestSupport with Helpers {
   }
 
   implicit val timeout: Duration = 3.seconds
-  implicit val controller: ActorRef = TestActorRef[ControlBus]
+  implicit val controller: ActorRef = TestActorRef(Props(new ControlBus(group)))
   implicit var camel_context: CamelContext = createCamelContext()
 
-  val builders = new routers.ScatterGather("example", new SimpleFeedback(1, 'structured), new SimpleFeedback(2, 'structured)).routes
+  val scatter_gather = routers.ScatterGather(SimpleFeedback(1, 'structured), SimpleFeedback(2, 'structured))
+  val builders = scatter_gather.routes
 
   before {
     setUp
@@ -93,28 +97,20 @@ class ScatterGatherTests extends ScalaTestSupport with Helpers {
   }
 
   test("Basic scatter-gather workflow functionality") {
-    val mock_dummy = getMockEndpoint("mock:dummy")
+    context.getRouteDefinitions(s"From[${scatter_gather.pubsub_exit}]").head.adviceWith(context, new AdviceWithRouteBuilder {
+      def configure = {
+        weaveByToString(s"To[${scatter_gather.exitUri}]").replace.to("mock:exit")
+      }
+    })
+    val mock_dummy = getMockEndpoint("mock:exit")
     mock_dummy.expectedMessageCount(1)
     mock_dummy.message(0).body.contains(feedback1)
     mock_dummy.message(0).body.contains(feedback2)
     mock_dummy.expectedHeaderReceived("replyTo", mailTo)
 
-    template().sendBodyAndHeaders("direct:example", submission, Map("replyTo" -> mailTo, "breadcrumbId" -> "scatter-gather-testing-1"))
+    template().sendBodyAndHeaders(scatter_gather.entryUri, submission, Map("replyTo" -> mailTo, "breadcrumbId" -> "scatter-gather-testing-1"))
 
     assertMockEndpointsSatisfied
-
-    DB autoCommit { implicit session =>
-      val submission_count = sql"SELECT COUNT(*) FROM ${SubmissionTable.name}".map(_.int(1)).single.apply().get
-      val feedback_count = sql"SELECT COUNT(*) FROM ${FeedbackTable.name}".map(_.int(1)).single.apply().get
-      val (submission_id, submission_student, submission_message, submission_message_id) = sql"SELECT id, student, message, message_id FROM ${SubmissionTable.name}".map(rs => (rs.int("id"), rs.string("student"), rs.string("message"), rs.string("message_id"))).single.apply().get
-
-      assert(submission_count == 1)
-      assert(feedback_count == 0)
-      assert(submission_id == 1)
-      assert(submission_student == mailTo)
-      assert(submission_message == submission)
-      assert(submission_message_id == "scatter-gather-testing-1")
-    }
   }
 
   // TODO: add in dead letter channel test

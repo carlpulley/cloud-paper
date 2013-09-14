@@ -47,9 +47,8 @@ import scala.collection.mutable
 import scala.language.implicitConversions
 
 trait Image {
-  def group: String = {
-    this.getClass.getPackage.getName.split('.').last.toLowerCase().replaceAll("_", "-").toCharArray.filter("abcdefghijklmnopqrstuvwxyz0123456789-" contains _).mkString
-  }
+  val group: String
+  // N.B. cloud providers are *not* organised by group
   protected[this] val config: Config = ConfigFactory.load("cloud.conf")
 
   private[this] val chef_server = config.getString("chef.url")
