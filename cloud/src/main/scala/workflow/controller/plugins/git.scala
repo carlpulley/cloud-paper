@@ -21,10 +21,10 @@ import cloud.workflow.controller.ControlEvent
 import org.apache.camel.scala.dsl.builder.RouteBuilder
 import scala.tools.nsc.io.File
 
-class Git(group: String, folder: String, cron: String) extends EventDrivenWorkflow {
+class Git(val group: String, folder: String, cron: String) extends EventDrivenWorkflow {
   val handlers: PartialFunction[ControlEvent, Unit] = Map.empty
 
-  def routes = Seq(new RouteBuilder {
+  val routes = Seq(new RouteBuilder {
     // FIXME: for security, we want this to run with *every* message!
     val tarball = File.makeTemp(suffix=".tgz")
 

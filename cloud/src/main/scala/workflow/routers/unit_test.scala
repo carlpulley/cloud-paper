@@ -20,22 +20,28 @@ package workflow
 
 package routers
 
+import akka.camel.CamelMessage
 import cloud.lib.Helpers
-import cloud.lib.provider.Rackspace
+import cloud.lib.RouterWorkflow
+import org.apache.camel.Exchange
+import org.apache.camel.scala.dsl.builder.RouteBuilder
+import scala.collection.JavaConversions._
 
-class UnitTest(group: String, name: String, pred: CamelMessage => Boolean, success: Option[String], failure: Option[String]) extends RouterWorkflow {
+class UnitTest(val group: String, name: String, pred: CamelMessage => Boolean, success: Option[String], failure: String) extends RouterWorkflow {
   entryUri = s"direct:$group-$name-unit-test-entry"
   exitUri = s"direct:$group-$name-unit-test-exit"
 
-  def routes = Seq(new RouteBuilder {
+  val routes = Seq(new RouteBuilder {
     entryUri ==> {
       errorHandler(deadLetterChannel(error_channel))
 
-      when(pred _) {
-        setBody(success)
+      when((ex: Exchange) => pred(new CamelMessage(ex.in, mapAsScalaMap(ex.getIn.getHeaders)))) {
+        when((ex: Exchange) => success.isDefined) {
+          setBody(s"<feedback><item id='$name'><comment>${success.get}</comment></item></feedback>")
+        }
       } 
       otherwise {
-        setBody(failure)
+        setBody(s"<feedback><item id='$name'><comment>$failure</comment></item></feedback>")
       }
       to(exitUri)
     }
@@ -43,7 +49,7 @@ class UnitTest(group: String, name: String, pred: CamelMessage => Boolean, succe
 }
 
 object UnitTest extends Helpers {
-  def apply(pred: CamelMessage => Boolean, success: Option[String], failure: Option[String])(implicit group: String) = {
-    new UnitTest(group, getUniqueName(), pred, success, failure)
+  def apply(pred: CamelMessage => Boolean, success: Option[String], failure: String)(implicit group: String) = {
+    new UnitTest(group, getUniqueName(group), pred, success, failure)
   }
 }

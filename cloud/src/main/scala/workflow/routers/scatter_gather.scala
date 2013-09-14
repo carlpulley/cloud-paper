@@ -28,7 +28,6 @@ import cloud.workflow.controller.AddHandlers
 import cloud.workflow.controller.ControlEvent
 import cloud.workflow.controller.FeedbackTable
 import cloud.workflow.controller.SubmissionTable
-import java.util.Date
 import org.apache.camel.CamelContext
 import org.apache.camel.model.ModelCamelContext
 import org.apache.camel.Exchange
@@ -38,7 +37,6 @@ import org.apache.camel.scala.dsl.builder.RouteBuilder
 import org.apache.camel.scala.Preamble
 import scala.collection.JavaConversions._
 import scala.concurrent.duration.Duration
-import scala.util.Random
 import scala.xml.XML
 import scalikejdbc.DB
 import scalikejdbc.SQLInterpolation._
@@ -60,7 +58,7 @@ class FeedbackAggregationStrategy extends AggregationStrategy with Preamble {
   }
 }
 
-class ScatterGather(group: String, name: String, workflows: RouterWorkflow*)(implicit timeout: Duration, controller: ActorRef, camel_context: CamelContext) extends RouterWorkflow {
+class ScatterGather(val group: String, name: String, workflows: RouterWorkflow*)(implicit timeout: Duration, controller: ActorRef, camel_context: CamelContext) extends RouterWorkflow {
   entryUri = s"direct:$group-$name-scatter-gather-entry"
   exitUri = s"direct:$group-$name-scatter-gather-exit"
 

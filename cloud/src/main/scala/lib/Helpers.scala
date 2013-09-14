@@ -18,10 +18,12 @@ package cloud.lib
 
 import com.typesafe.config._
 import java.security.MessageDigest
+import java.util.Date
 import org.apache.log4j.Level
 import org.apache.log4j.Logger
 import scalikejdbc.GlobalSettings
 import scalikejdbc.LoggingSQLAndTimeSettings
+import scala.util.Random
 
 trait Helpers {
   private[this] val rand = new Random(new java.security.SecureRandom())

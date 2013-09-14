@@ -25,7 +25,7 @@ import cloud.lib.Helpers
 import com.typesafe.config._
 import org.apache.camel.scala.dsl.builder.RouteBuilder
 
-class HTTP(group: String) extends EndpointWorkflow with Helpers {
+class HTTP(val group: String) extends EndpointWorkflow with Helpers {
   private[this] val config = getConfig(group)
 
   private[this] val subject  = config.getString("feedback.subject")
@@ -34,7 +34,7 @@ class HTTP(group: String) extends EndpointWorkflow with Helpers {
 
   entryUri = s"direct:$group-http-entry"
 
-  def routes = Seq(new RouteBuilder {
+  val routes = Seq(new RouteBuilder {
     // NOTES:
     //   1. we assume that SSH certificates have been setup to allow passwordless login to $webuser@$webhost
     //   2. we also assume that Apache (or similar) can serve pages from ~$webuser/www/$crypto_link via the 

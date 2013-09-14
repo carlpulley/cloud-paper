@@ -25,7 +25,7 @@ import org.apache.camel.scala.dsl.builder.RouteBuilder
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 
-class Imap(group: String, folder: String, timeout: Duration) extends EventDrivenWorkflow with Helpers {
+class Imap(val group: String, folder: String, timeout: Duration) extends EventDrivenWorkflow with Helpers {
   private[this] val config = getConfig(group)
 
   private[this] val mailhost = config.getString("mail.host")
@@ -46,7 +46,7 @@ class Imap(group: String, folder: String, timeout: Duration) extends EventDriven
 
   val handlers: PartialFunction[ControlEvent, Unit] = Map.empty
 
-  def routes = Seq(new RouteBuilder {
+  val routes = Seq(new RouteBuilder {
     s"imaps:$mailhost?username=$mailuser&password=$mailpw&folderName=$folder.$group&consumer.delay=${timeout.toMillis}" ==> {
       transform(extractAttachment)
       to("jms:queue:$group-submission")

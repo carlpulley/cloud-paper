@@ -25,7 +25,7 @@ import cloud.lib.Helpers
 import com.typesafe.config._
 import org.apache.camel.scala.dsl.builder.RouteBuilder
 
-class Twitter(group: String) extends EndpointWorkflow with Helpers {
+class Twitter(val group: String) extends EndpointWorkflow with Helpers {
   private[this] val config = getConfig(group)
 
   private[this] val subject           = config.getString("feedback.subject")
@@ -36,7 +36,7 @@ class Twitter(group: String) extends EndpointWorkflow with Helpers {
 
   entryUri = s"direct:$group-twitter-entry"
 
-  def routes = Seq(new RouteBuilder {
+  val routes = Seq(new RouteBuilder {
     entryUri ==> {
         setHeader("student", header("replyTo"))
         setHeader("title", subject)

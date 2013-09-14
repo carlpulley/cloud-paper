@@ -20,10 +20,10 @@ import cloud.lib.EventDrivenWorkflow
 import cloud.workflow.controller.ControlEvent
 import org.apache.camel.scala.dsl.builder.RouteBuilder
 
-class Dropbox(group: String, folder: String) extends EventDrivenWorkflow {
+class Dropbox(val group: String, folder: String) extends EventDrivenWorkflow {
   val handlers: PartialFunction[ControlEvent, Unit] = Map.empty
 
-  def routes = Seq(new RouteBuilder {
+  val routes = Seq(new RouteBuilder {
     s"file:$folder/$group" ==> {
       errorHandler(deadLetterChannel(error_channel))
 

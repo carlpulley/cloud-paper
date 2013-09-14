@@ -21,6 +21,8 @@ import org.apache.camel.scala.dsl.builder.RouteBuilder
 import org.apache.camel.scala.Preamble
 
 trait Workflow extends Preamble {
+  val group: String
+
   val error_channel = s"jms:queue:$group-error"
 
   def routes: Seq[RouteBuilder]

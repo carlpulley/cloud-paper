@@ -14,21 +14,24 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-package cloud
+package cloud.workflow.routers
 
-package workflow
+import akka.camel.CamelMessage
+import cloud.lib.Helpers
+import cloud.lib.RouterWorkflow
+import org.apache.camel.Exchange
+import org.apache.camel.scala.dsl.builder.RouteBuilder
+import scala.collection.JavaConversions._
 
-package routers
-
-class Filter(group: String, name: String, pred: CamelMessage => Boolean, workflow: RouterWorkflow) extends RouterWorkflow {
+class Filter(val group: String, name: String, pred: CamelMessage => Boolean, workflow: RouterWorkflow) extends RouterWorkflow {
   entryUri = s"direct:$group-$name-filter-entry"
   exitUri = s"direct:$group-$name-filter-exit"
 
-  def routes = Seq(new RouteBuilder {
+  val routes = Seq(new RouteBuilder {
     entryUri ==> {
       errorHandler(deadLetterChannel(error_channel))
 
-      when(pred _.in) {
+      when((ex: Exchange) => pred(new CamelMessage(ex.in, mapAsScalaMap(ex.getIn.getHeaders)))) {
         to(workflow.entryUri)
       }
     }
@@ -41,6 +44,6 @@ class Filter(group: String, name: String, pred: CamelMessage => Boolean, workflo
 
 object Filter extends Helpers {
   def apply(pred: CamelMessage => Boolean, workflow: RouterWorkflow)(implicit group: String) = {
-    new Filter(group, getUniqueName(), pred, workflow)
+    new Filter(group, getUniqueName(group), pred, workflow)
   }
 }

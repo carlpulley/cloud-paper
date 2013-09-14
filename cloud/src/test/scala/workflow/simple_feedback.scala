@@ -23,7 +23,7 @@ import org.apache.camel.Exchange
 import org.apache.camel.scala.dsl.builder.RouteBuilder
 import scala.concurrent.duration._
 
-class SimpleFeedback(id: Int, typ: Symbol) extends RouterWorkflow {
+class SimpleFeedback(val group: String, id: Int, typ: Symbol) extends RouterWorkflow {
   entryUri = s"direct:simple-feedback${id}-entry"
   exitUri = s"direct:simple-feedback${id}-exit"
 
@@ -62,7 +62,7 @@ class SimpleFeedback(id: Int, typ: Symbol) extends RouterWorkflow {
 }
 
 object SimpleFeedback {
-  def apply(id: Int, typ: Symbol = 'flat) = {
-    new SimpleFeedback(id, typ)
+  def apply(id: Int, typ: Symbol = 'flat)(implicit group: String) = {
+    new SimpleFeedback(group, id, typ)
   }
 }

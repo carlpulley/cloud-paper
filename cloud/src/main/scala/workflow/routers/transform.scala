@@ -14,21 +14,24 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-package cloud
+package cloud.workflow.routers
 
-package workflow
+import akka.camel.CamelMessage
+import cloud.lib.Helpers
+import cloud.lib.RouterWorkflow
+import org.apache.camel.Exchange
+import org.apache.camel.scala.dsl.builder.RouteBuilder
+import scala.collection.JavaConversions._
 
-package routers
-
-class Transform(group: String, name: String, map: CamelMessage => CamelMessage) extends RouterWorkflow {
+class Transform(val group: String, name: String, map: CamelMessage => CamelMessage) extends RouterWorkflow {
   entryUri = s"direct:$group-$name-transform-entry"
   exitUri = s"direct:$group-$name-transform-exit"
 
-  def routes = Seq(new RouteBuilder {
+  val routes = Seq(new RouteBuilder {
     entryUri ==> {
       errorHandler(deadLetterChannel(error_channel))
 
-      transform((exchange: Exchange) => map exchange.in)
+      transform((ex: Exchange) => map(new CamelMessage(ex.in, mapAsScalaMap(ex.getIn.getHeaders))))
       to(exitUri)
     }
   })
@@ -36,6 +39,6 @@ class Transform(group: String, name: String, map: CamelMessage => CamelMessage) 
 
 object Transform extends Helpers {
   def apply(map: CamelMessage => CamelMessage)(implicit group: String) = {
-    new Filter(group, getUniqueName(), map)
+    new Transform(group, getUniqueName(group), map)
   }
 }

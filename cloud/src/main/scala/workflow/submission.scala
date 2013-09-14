@@ -31,7 +31,7 @@ import org.apache.camel.scala.dsl.builder.RouteBuilder
 import scalikejdbc.DB
 import scalikejdbc.SQLInterpolation._
 
-class Submission(group: String, controller: ActorRef, workflow: RouterWorkflow, endpoints: EndpointWorkflow*) extends EndpointWorkflow with Helpers {
+class Submission(val group: String, controller: ActorRef, workflow: RouterWorkflow, endpoints: EndpointWorkflow*) extends EndpointWorkflow with Helpers {
   private[this] val config = getConfig(group)
 
   private[this] val mailFrom = config.getString("feedback.tutor")
@@ -74,7 +74,7 @@ class Submission(group: String, controller: ActorRef, workflow: RouterWorkflow, 
     }
   }
 
-  def routes = Seq(new RouteBuilder {
+  val routes = Seq(new RouteBuilder {
     entryUri ==> {
       errorHandler(deadLetterChannel(error_channel))
 

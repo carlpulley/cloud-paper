@@ -25,7 +25,7 @@ import cloud.lib.Helpers
 import com.typesafe.config._
 import org.apache.camel.scala.dsl.builder.RouteBuilder
 
-class SMTP(group: String) extends EndpointWorkflow with Helpers {
+class SMTP(val group: String) extends EndpointWorkflow with Helpers {
   private[this] val config = getConfig(group)
 
   private[this] val mailFrom = config.getString("feedback.tutor")
@@ -38,7 +38,7 @@ class SMTP(group: String) extends EndpointWorkflow with Helpers {
 
   entryUri = s"direct:$group-smtp-entry"
 
-  def routes = Seq(new RouteBuilder {
+  val routes = Seq(new RouteBuilder {
     entryUri ==> {
         // Here we send a template email containing a URL link to the actual assessment feedback
         setHeader("webuser", webuser)
