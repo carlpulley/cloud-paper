@@ -44,7 +44,6 @@ import scalikejdbc.DB
 import scalikejdbc.SQLInterpolation._
 
 case class AddWorkflow(workflow: RouterWorkflow) extends ControlEvent
-case class RemoveWorkflow(uri: String) extends ControlEvent
 
 class FeedbackAggregationStrategy extends AggregationStrategy with Preamble {
   def aggregate(merged_exchange: Exchange, new_exchange: Exchange): Exchange = {
@@ -75,14 +74,6 @@ class ScatterGather(group: String, name: String, workflows: RouterWorkflow*)(imp
       child.exitUri = pubsub_exit
 
       child.routes.foreach(camel_context.addRoutes(_))
-    }
-
-    // FIXME: also need to remove any of the child.routes workflows that may have been added!
-    case RemoveWorkflow(uri) => {
-      val matches = camel_context.asInstanceOf[ModelCamelContext].getRouteDefinitions().filter(rd => rd.toString.contains(s"From[$pubsub_entry] -> To[$uri]"))
-      for(route <- matches) {
-        camel_context.asInstanceOf[ModelCamelContext].removeRouteDefinition(route)
-      }
     }
   }
 

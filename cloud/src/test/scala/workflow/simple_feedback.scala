@@ -21,6 +21,7 @@ package test
 import cloud.lib.RouterWorkflow
 import org.apache.camel.Exchange
 import org.apache.camel.scala.dsl.builder.RouteBuilder
+import scala.concurrent.duration._
 
 class SimpleFeedback(id: Int, typ: Symbol) extends RouterWorkflow {
   entryUri = s"direct:simple-feedback${id}-entry"
@@ -35,6 +36,17 @@ class SimpleFeedback(id: Int, typ: Symbol) extends RouterWorkflow {
 
       case 'structured => {
         val (oldBody, _) = exchange.in[(String, List[String])]
+        val newBody = oldBody.replaceAll("Submission", "Feedback")
+        s"<feedback><item id='$id'><comment>$newBody</comment></item></feedback>"
+      }
+
+      case 'structured_delay => {
+        val (oldBody, _) = exchange.in[(String, List[String])]
+        val delay_period = exchange.in("delay").asInstanceOf[String]
+        if (delay_period != null) {
+          // Simulate a blocking delay in processing
+          Thread.sleep(new DurationInt(delay_period.toInt).seconds.toMillis)
+        }
         val newBody = oldBody.replaceAll("Submission", "Feedback")
         s"<feedback><item id='$id'><comment>$newBody</comment></item></feedback>"
       }

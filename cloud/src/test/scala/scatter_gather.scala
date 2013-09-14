@@ -27,11 +27,13 @@ import cloud.lib.Helpers
 import cloud.workflow.controller.ControlBus
 import cloud.workflow.controller.SubmissionTable
 import cloud.workflow.controller.FeedbackTable
+import cloud.workflow.routers.AddWorkflow
 import com.typesafe.config._
 import org.apache.activemq.ActiveMQConnectionFactory
 import org.apache.camel.builder.AdviceWithRouteBuilder
 import org.apache.camel.CamelContext
 import org.apache.camel.component.jms.JmsComponent
+import org.apache.camel.scala.SimplePeriod
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 import scalikejdbc.ConnectionPool
@@ -56,8 +58,7 @@ class ScatterGatherTests extends ScalaTestSupport with Helpers {
   val loglevel  = config.getString("log.level")
 
   val submission = "Dummy Submission"
-  val feedback1 = "<item id=\"1\"><comment>Dummy Feedback</comment></item>"
-  val feedback2 = "<item id=\"2\"><comment>Dummy Feedback</comment></item>"
+  val feedback = "Dummy Feedback"
 
   setLogLevel(loglevel)
 
@@ -81,7 +82,9 @@ class ScatterGatherTests extends ScalaTestSupport with Helpers {
   implicit val controller: ActorRef = TestActorRef(Props(new ControlBus(group)))
   implicit var camel_context: CamelContext = createCamelContext()
 
-  val scatter_gather = routers.ScatterGather(SimpleFeedback(1, 'structured), SimpleFeedback(2, 'structured))
+  val simple_feedback1 = SimpleFeedback(1, 'structured_delay)
+  val simple_feedback2 = SimpleFeedback(2, 'structured)
+  val scatter_gather = routers.ScatterGather(simple_feedback1, simple_feedback2)
   val builders = scatter_gather.routes
 
   before {
@@ -102,18 +105,86 @@ class ScatterGatherTests extends ScalaTestSupport with Helpers {
         weaveByToString(s"To[${scatter_gather.exitUri}]").replace.to("mock:exit")
       }
     })
-    val mock_dummy = getMockEndpoint("mock:exit")
-    mock_dummy.expectedMessageCount(1)
-    mock_dummy.message(0).body.contains(feedback1)
-    mock_dummy.message(0).body.contains(feedback2)
-    mock_dummy.expectedHeaderReceived("replyTo", mailTo)
 
-    template().sendBodyAndHeaders(scatter_gather.entryUri, submission, Map("replyTo" -> mailTo, "breadcrumbId" -> "scatter-gather-testing-1"))
+    val mock_exit = getMockEndpoint("mock:exit")
+    mock_exit.expectedMessageCount(1)
+    mock_exit.message(0).xpath("/feedback/item[@id='1']", classOf[Boolean])
+    mock_exit.message(0).xpath("/feedback/item[@id='2']", classOf[Boolean])
+    mock_exit.message(0).xpath(s"/feedback/item[@id='1']/comment[text()='$feedback']", classOf[Boolean])
+    mock_exit.message(0).xpath(s"/feedback/item[@id='2']/comment[text()='$feedback']", classOf[Boolean])
+    mock_exit.message(0).header("breadcrumbId").isEqualTo("scatter-gather-testing-2")
+    mock_exit.expectedHeaderReceived("replyTo", mailTo)
+
+    template().sendBodyAndHeaders(scatter_gather.entryUri, submission, Map("replyTo" -> mailTo, "breadcrumbId" -> "scatter-gather-testing-2"))
+
+    assertMockEndpointsSatisfied
+  
+    mock_exit.expectedMessageCount(3)
+    mock_exit.message(1).xpath("/feedback/item[@id='2']", classOf[Boolean])
+    mock_exit.message(1).xpath(s"/feedback/item[@id='2']/comment[text()='$feedback']", classOf[Boolean])
+    mock_exit.message(1).header("breadcrumbId").isEqualTo("scatter-gather-testing-3")
+    mock_exit.message(2).xpath("/feedback/item[@id='1']", classOf[Boolean])
+    mock_exit.message(2).xpath(s"/feedback/item[@id='1']/comment[text()='$feedback']", classOf[Boolean])
+    mock_exit.message(2).header("breadcrumbId").isEqualTo("scatter-gather-testing-3")
+    mock_exit.message(2).arrives().between(4, 5).seconds().afterPrevious()
+    mock_exit.expectedHeaderReceived("replyTo", mailTo)
+
+    template().sendBodyAndHeaders(scatter_gather.entryUri, submission, Map("replyTo" -> mailTo, "breadcrumbId" -> "scatter-gather-testing-3", "delay" -> "4"))
 
     assertMockEndpointsSatisfied
   }
 
-  // TODO: add in dead letter channel test
+  test("Add workflow to scatter-gather") {
+    val workflow = SimpleFeedback(3, 'structured)
+    controller ! AddWorkflow(workflow)
 
-  // TODO: add in add/remove workflow tests
+    val mock_exit = getMockEndpoint("mock:exit")
+    mock_exit.expectedMessageCount(1)
+    mock_exit.message(0).xpath("/feedback/item[@id='1']", classOf[Boolean])
+    mock_exit.message(0).xpath("/feedback/item[@id='2']", classOf[Boolean])
+    mock_exit.message(0).xpath("/feedback/item[@id='3']", classOf[Boolean])
+    mock_exit.message(0).xpath(s"/feedback/item[@id='1']/comment[text()='$feedback']", classOf[Boolean])
+    mock_exit.message(0).xpath(s"/feedback/item[@id='2']/comment[text()='$feedback']", classOf[Boolean])
+    mock_exit.message(0).xpath(s"/feedback/item[@id='3']/comment[text()='$feedback']", classOf[Boolean])
+    mock_exit.message(0).header("breadcrumbId").isEqualTo("scatter-gather-testing-6")
+    mock_exit.expectedHeaderReceived("replyTo", mailTo)
+
+    template().sendBodyAndHeaders(scatter_gather.entryUri, submission, Map("replyTo" -> mailTo, "breadcrumbId" -> "scatter-gather-testing-6"))
+
+    assertMockEndpointsSatisfied
+  }
+
+  test("Basic scatter-gather with historical feedback") {
+    DB autoCommit { implicit session =>
+      for(n <- (1 to 3)) {
+        val submission = s"Dummy Submission $n"
+        sql"INSERT INTO ${SubmissionTable.name}(module, student, message_id, message, created_at) VALUES (${group}, ${mailTo}, ${n}, ${submission}, DATETIME('now'))".update.apply()
+
+        val feedback = s"Dummy Feedback History $n"
+        sql"INSERT INTO ${FeedbackTable.name}(submission_id, sha256, message, created_at) VALUES (${n}, 'Dummy SHA256', ${feedback}, DATETIME('now'))".update.apply()
+      }
+    }
+
+    context.getRouteDefinitions(s"From[${scatter_gather.entryUri}]").head.adviceWith(context, new AdviceWithRouteBuilder {
+      def configure = {
+        weaveByToString(s"To[${scatter_gather.pubsub_entry}]").replace.to("mock:pubsub")
+      }
+    })
+
+    val mock_pubsub = getMockEndpoint("mock:pubsub")
+    mock_pubsub.expectedMessageCount(1)
+    mock_pubsub.message(0).header("breadcrumbId").isEqualTo("scatter-gather-testing-5")
+    mock_pubsub.expectedHeaderReceived("replyTo", mailTo)
+
+    template().sendBodyAndHeaders(scatter_gather.entryUri, submission, Map("replyTo" -> mailTo, "breadcrumbId" -> "scatter-gather-testing-5"))
+
+    assertMockEndpointsSatisfied
+
+    val (body, history) = mock_pubsub.getExchanges.get(0).getIn.getBody(classOf[(String, List[String])])
+    assert(body.contains(submission))
+    assert(history.length == 3)
+    for((item, n) <- history.zip(1 to 3)) {
+      assert(item.contains(s"Dummy Feedback History $n"))
+    }
+  }
 }
