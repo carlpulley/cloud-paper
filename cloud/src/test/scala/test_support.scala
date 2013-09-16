@@ -1,9 +1,9 @@
 // Copyright (C) 2013  Carl Pulley
 // 
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 // 
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,21 +11,25 @@
 // GNU General Public License for more details.
 // 
 // You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+// along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 package cloud.workflow.test
 
-import org.apache.camel.CamelContext
+import akka.actor.ActorSystem
+import akka.camel.CamelExtension
 import org.apache.camel.model.RouteDefinition
-import org.apache.camel.scala.dsl.builder.RouteBuilder
-import org.apache.camel.scala.dsl.builder.RouteBuilderSupport
-import org.apache.camel.test.junit4.CamelTestSupport
+import org.apache.camel.CamelContext
+import org.apache.camel.component.mock.MockEndpoint
+import org.apache.activemq.ActiveMQConnectionFactory
+import org.apache.camel.component.jms.JmsComponent
 import org.scalatest.BeforeAndAfter
+import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FunSuiteLike
+import org.scalatest.MustMatchers
 import scala.collection.JavaConversions._
 import scala.language.implicitConversions
-import scala.util.matching.Regex
+import scalaz.camel.core._
+import scalaz.concurrent.Strategy
 
 class CamelContextWrapper(context: CamelContext) {
   def getRouteDefinitions(pattern: String): List[RouteDefinition]  = {
@@ -33,14 +37,25 @@ class CamelContextWrapper(context: CamelContext) {
   }
 }
 
-trait ScalaTestSupport extends CamelTestSupport with RouteBuilderSupport with FunSuiteLike with BeforeAndAfter {
-  val builders: Seq[RouteBuilder]
+trait ScalaTestSupport extends Camel with FunSuiteLike with MustMatchers with BeforeAndAfterAll with BeforeAndAfter {
+  dispatchConcurrencyStrategy = Strategy.Sequential
+  multicastConcurrencyStrategy = Strategy.Sequential
 
-  override protected def createRouteBuilders = builders.map(scalaToJavaBuilder _).toArray
+  implicit val group = "default"
+  implicit val system = ActorSystem(group)
+  val camel = CamelExtension(system)
 
-  override protected def getMockEndpoint(uri: String) = super.getMockEndpoint(uri)
+  val connectionFactory = new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false")
+  camel.context.addComponent("jms", JmsComponent.jmsComponentAutoAcknowledge(connectionFactory))
+  camel.context.setTracing(true)
 
-  override protected def assertMockEndpointsSatisfied() = super.assertMockEndpointsSatisfied()
+  val template = camel.context.createProducerTemplate
+
+  implicit val router = new Router(camel.context)
+
+  router.start
+
+  def getMockEndpoint(uri: String) = camel.context.getEndpoint(uri, classOf[MockEndpoint])
 
   implicit def wrapCamelContext(context: CamelContext): CamelContextWrapper = new CamelContextWrapper(context)
 }

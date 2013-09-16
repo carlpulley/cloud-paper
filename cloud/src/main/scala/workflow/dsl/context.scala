@@ -13,24 +13,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-package cloud.lib
+package cloud.workflow.dsl
 
-package image
+import cloud.lib.Image
+import cloud.lib.Workflow
+import scalaz._
+import scalaz.camel.core._
 
-import org.jclouds.compute.domain.OsFamily
-import org.jclouds.openstack.nova.v2_0.compute.options.NovaTemplateOptions
-import org.jclouds.openstack.nova.v2_0.compute.options.NovaTemplateOptions.Builder._
+object Context extends Workflow {
+  import Scalaz._
 
-// WARNING: Windows is currently to be considered experimental!
-abstract class Windows(version: String) extends Image {
-  template_builder
-    .osFamily(OsFamily.WINDOWS)
-    .osVersionMatches(version)
-    .smallest()
-
-  ports += 3389 // RDP
-  ports += 5985 // winrm
-
-  chef_runlist
-    .addRecipe("windows")
+  def apply(image: Image, workflow: MessageRoute): MessageRoute = {
+    // TODO: implement this!
+    workflow
+  }
 }

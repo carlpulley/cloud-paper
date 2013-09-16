@@ -1,9 +1,9 @@
 // Copyright (C) 2013  Carl Pulley
 // 
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 // 
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,8 +11,7 @@
 // GNU General Public License for more details.
 // 
 // You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+// along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import sbt._
 import Keys._
@@ -41,6 +40,7 @@ object V {
   val SCALA = "2.10.2"
   val SCALACHECK = "1.10.1"
   val SCALATEST = "2.0.M6"
+  val SCALAZ = "7.1.0-M1"
   val SCALIKEJDBC = "[1.6,)"
   val SLF4J = "1.7.5"
 }
@@ -52,7 +52,10 @@ trait Dependencies {
     "com.github.seratch" %% "scalikejdbc-interpolation" % V.SCALIKEJDBC,
     "org.xerial" % "sqlite-jdbc" % "3.7.15-M1",
     "org.apache.directory.studio" % "org.apache.commons.io" % V.APACHE,
-    "net.liftweb" %% "lift-json" % V.LIFT
+    "net.liftweb" %% "lift-json" % V.LIFT,
+    "org.scalaz" %% "scalaz-core" % V.SCALAZ,
+    "org.scalaz" %% "scalaz-concurrent" % V.SCALAZ,
+    "info.folone" %% "poi-scala" % "0.9"
   )
 
   val Testing = Seq(
@@ -88,7 +91,8 @@ trait Dependencies {
     "org.apache.camel" % "camel-test" % V.CAMEL % "test",
     "org.apache.activemq" % "activemq-core" % V.ACTIVEMQ,
     "org.apache.activemq" % "activemq-camel" % V.ACTIVEMQ,
-    "com.typesafe.akka" %% "akka-camel" % V.AKKA
+    "com.typesafe.akka" %% "akka-camel" % V.AKKA,
+    "scalaz.camel" %% "scalaz-camel-core" % "0.4-SNAPSHOT"
   )
   
   val JClouds = Seq(

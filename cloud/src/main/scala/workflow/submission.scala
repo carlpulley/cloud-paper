@@ -1,9 +1,9 @@
 // Copyright (C) 2013  Carl Pulley
 // 
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 // 
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,28 +11,23 @@
 // GNU General Public License for more details.
 // 
 // You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+// along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-package cloud
-
-package workflow
+package cloud.workflow
 
 import akka.actor.ActorRef
-import cloud.lib.EndpointWorkflow
-import cloud.lib.Helpers
-import cloud.lib.RouterWorkflow
+import cloud.lib.Workflow
 import cloud.workflow.controller.FeedbackTable
 import cloud.workflow.controller.SubmissionTable
-import com.typesafe.config._
-import java.sql.Connection
-import org.apache.camel.Exchange
-import org.apache.camel.scala.dsl.builder.RouteBuilder
 import scalikejdbc.DB
 import scalikejdbc.SQLInterpolation._
+import scalaz._
+import scalaz.camel.core._
 
-class Submission(val group: String, controller: ActorRef, workflow: RouterWorkflow, endpoints: EndpointWorkflow*) extends EndpointWorkflow with Helpers {
-  private[this] val config = getConfig(group)
+class Submission(val controller: ActorRef, workflow: Conv.MessageRoute, endpoints: Conv.MessageRoute*)(implicit val group: String, val router: Router) extends Workflow {
+  import Scalaz._
+
+  protected[this] val config = getConfig(group)
 
   private[this] val mailFrom = config.getString("feedback.tutor")
   private[this] val subject  = config.getString("feedback.subject")
@@ -42,72 +37,72 @@ class Submission(val group: String, controller: ActorRef, workflow: RouterWorkfl
   private[this] val webhost  = config.getString("web.host")
   private[this] val webuser  = config.getString("web.user")
 
-  entryUri = s"jms:queue:$group-submission-entry"
-
+  val uri = s"jms:queue:$group-submission-entry"
   val msg_store = s"direct:$group-msg-store"
+  val error_channel = s"jms:queue:$group-error"
 
-  def addSHA256Header = { (exchange: Exchange) =>
-    val hash = sha256(exchange.in[String])
-    exchange.getIn.setHeader("sha256", hash)
-  }
-
-  def submissionSQL: Exchange => Unit = { (exchange: Exchange) =>
-    val message_id = exchange.in("breadcrumbId")
-    val replyTo = exchange.in("replyTo")
-    val body = exchange.in[String]
+  val submissionSQL = { (msg: Message) =>
+    val message_id = msg.header("breadcrumbId")
+    val replyTo = msg.header("replyTo")
+    val body = msg.bodyAs[String]
     DB autoCommit { implicit session =>
-      sql"INSERT INTO ${SubmissionTable.name}(module, student, message_id, message, created_at) VALUES (${group}, ${replyTo}, ${message_id}, ${body}, DATETIME('now'))".update.apply()
+      val num_rows = sql"INSERT INTO ${SubmissionTable.name}(module, student, message_id, message, created_at) VALUES (${group}, ${replyTo}, ${message_id}, ${body}, DATETIME('now'))".update.apply()
+
+      if (num_rows != 1) {
+        throw new Exception(s"Failed to insert submission into ${SubmissionTable.name.value} table - $num_rows changed")
+      }
     }
+    msg
   }
 
-  def feedbackSQL: Exchange => Unit = { (exchange: Exchange) =>
-    val message_id = exchange.in("breadcrumbId")
-    val sha256 = exchange.in("sha256")
-    val body = exchange.in[String]
+  val feedbackSQL = { (msg: Message) =>
+    val message_id = msg.header("breadcrumbId")
+    val sha256 = msg.header("sha256")
+    val body = msg.bodyAs[String]
     DB autoCommit { implicit session =>
-      sql"""
+      val num_rows = sql"""
         INSERT INTO ${FeedbackTable.name}(submission_id, sha256, message, created_at) 
           SELECT id, ${sha256}, ${body}, DATETIME('now')
           FROM ${SubmissionTable.name}
           WHERE message_id = ${message_id}
       """.update.apply()
+
+      if(num_rows != 1) {
+        throw new Exception(s"Failed to insert feedback into ${FeedbackTable.name.value} table - $num_rows changed")
+      }
+    }
+    msg
+  }
+
+  from(uri) {
+    // Only process messages that have a replyTo header (i.e. the student's email address)
+    attempt {
+      choose {
+        case Message(_, hdrs) if (hdrs.lift("replyTo").isDefined) => {
+          { msg: Message => msg.addHeader("table" -> SubmissionTable.name.value) } >=>
+          multicast(
+            to(msg_store), 
+            workflow >=> 
+              ((msg: Message) => msg.setHeaders(Map("sha256" -> sha256(msg.bodyAs[String]), "table" -> FeedbackTable.name.value, "breadcrumbId" -> msg.headerAs[String]("breadcrumbId").get))) >=>
+              multicast((messageRoute(to(msg_store)) +: endpoints.toSeq): _*)
+          )
+        }
+      }
+    } fallback {
+      case ex: Exception => { msg: Message => msg.setException(ex) } >=> to(error_channel)
     }
   }
 
-  val routes = Seq(new RouteBuilder {
-    entryUri ==> {
-      errorHandler(deadLetterChannel(error_channel))
-
-      // Only process messages that have a replyTo header (i.e. the student's email address)
-      when(_.in("replyTo") != null) {
-        setHeader("table", SubmissionTable.name.value)
-        wireTap(msg_store)
-        to(workflow.entryUri)
+  from(msg_store) {
+    attempt {
+      choose {
+        case Message(_, hdrs) if (hdrs("table") == SubmissionTable.name.value) => 
+          submissionSQL
+        case Message(_, hdrs) if (hdrs("table") == FeedbackTable.name.value) =>
+          feedbackSQL
       }
+    } fallback {
+        case ex: Exception => { msg: Message => msg.setException(ex) } >=> to(error_channel)
     }
-
-    workflow.exitUri ==> {
-      process(addSHA256Header)
-      setHeader("table", FeedbackTable.name.value)
-      wireTap(msg_store)
-      to(endpoints.map(_.entryUri): _*)
-    }
-
-    msg_store ==> {
-      choice {
-        when (_.in("table") == SubmissionTable.name.value) {
-          process(submissionSQL)
-        }
-        when (_.in("table") == FeedbackTable.name.value) {
-          process(feedbackSQL)
-        }
-      }
-    }
-  }) ++ workflow.routes ++ endpoints.flatMap(_.routes)
-}
-
-object Submission {
-  def apply(controller: ActorRef, workflow: RouterWorkflow, endpoints: EndpointWorkflow*)(implicit group: String) = {
-    new Submission(group, controller, workflow, endpoints: _*)
   }
 }
