@@ -24,7 +24,7 @@ import org.apache.camel.scala.Preamble
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 
-// NOTE: as we need to access a CamelMessage's attachments, we can't use the scalaz-camel DSL here
+// NOTE: as we need to access a CamelMessage's attachments, we prefer the use of the Java fluent builder DSL over the scalaz-camel DSL
 
 trait Imap extends Preamble { this: Submission =>
   private[this] val mailhost = config[String]("mail.host")
@@ -33,30 +33,40 @@ trait Imap extends Preamble { this: Submission =>
 
   private[this] val folder   = config[String]("imap.folder")
   private[this] val poll     = new DurationInt(config[Int]("imap.poll", 1)).minutes
+  private[this] val proto    = if (config[Boolean]("imap.ssl")) "imaps" else "imap"
 
   val extractAttachment = { (exchange: Exchange) =>
+    val replyTo = if (exchange.getIn.getHeader("ReplyTo") == null) exchange.getIn.getHeader("From") else exchange.getIn.getHeader("ReplyTo")
+    assert(replyTo != null)
+    exchange.getIn.setHeader("replyTo", replyTo)
+
     assert(exchange.getIn().hasAttachments())
     val attachments = exchange.getIn().getAttachments()
     assert(attachments.size() == 1)
   
     val name = attachments.keySet().head
+    assert(name.endsWith(".tgz") || name.endsWith(".tar.gz"))
     val dh = attachments.get(name)
-    assert(dh.getContentType() == "application/x-tgz")
+    assert(Seq("application/octet-stream", "application/x-tgz", "application/x-gzip").contains(dh.getContentType()))
   
-    exchange.getContext().getTypeConverter().convertTo(classOf[Array[Byte]], dh.getInputStream())
+    val tarball = exchange.getContext().getTypeConverter().convertTo(classOf[Array[Byte]], dh.getInputStream())
+    exchange.getIn.setBody(tarball, classOf[Array[Byte]])
   }
 
   router.context.addRoutes(new RouteBuilder {
-    s"imaps:$mailhost?username=$mailuser&password=$mailpw&folderName=$folder&consumer.delay=${poll.toMillis}" ==> {
-      transform(extractAttachment)
+    s"$proto:$mailhost?username=$mailuser&password=$mailpw&folderName=$folder&consumer.delay=${poll.toMillis}" ==> {
+      errorHandler(deadLetterChannel(error_channel))
+
+      process(extractAttachment)
       to(uri)
     }
   })
 }
 
 object Imap {
-  def apply(folder: String, poll: Duration = 1.minute) {
+  def apply(folder: String, poll: Duration = 1.minute, ssl: Boolean = true) {
     Config.setValue("imap.folder", folder)
     Config.setValue("imap.poll", poll.toMinutes.toString)
+    Config.setValue("imap.ssl", ssl.toString)
   }
 }

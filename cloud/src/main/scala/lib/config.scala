@@ -19,8 +19,9 @@ import java.io.File
 import org.streum.configrity._
 
 object Config {
+  // FIXME: improve this hack!
   private val prefix = "cloud/src/test/resources"
-  
+
   private var config = if (new File(s"$prefix/application.conf").exists) Configuration.load(s"$prefix/application.conf") else Configuration()
 
   def apply() = config

@@ -15,7 +15,10 @@
 
 package cloud.lib
 
+import java.security.DigestInputStream
 import java.security.MessageDigest
+import java.io.File
+import java.io.FileInputStream
 import java.util.Date
 import org.apache.log4j.Level
 import org.apache.log4j.Logger
@@ -28,7 +31,22 @@ trait Helpers {
 
   def getUniqueName(seed: String) = sha256(seed+(new Date().getTime.toString)+rand.alphanumeric.take(64).mkString)
 
-  def sha256(data: String) = MessageDigest.getInstance("SHA-256").digest(data.getBytes).map("%02X".format(_)).mkString
+  def sha256(data: String): String = sha256(data.getBytes)
+  def sha256(data: Array[Byte]): String = MessageDigest.getInstance("SHA-256").digest(data).map("%02X".format(_)).mkString
+  def sha256(data: File): String = {
+    val sha = MessageDigest.getInstance("SHA-256")
+    val file = new FileInputStream(data)
+    try {
+      val dis = new DigestInputStream(file, sha)
+      val buffer = new Array[Byte](8192)
+      while(dis.read(buffer) >= 0) {}
+      dis.close()
+
+      sha.digest.map("%02X".format(_)).mkString
+    } finally { 
+      file.close()
+    }
+  }
 
   def setLogLevel(level: String) {
     if (level == "DEBUG") {
