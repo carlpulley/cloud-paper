@@ -83,6 +83,8 @@ class DropboxTests extends ScalaTestSupport with Helpers {
 
     mock_workflow.expectedMessageCount(1)
     mock_workflow.expectedHeaderReceived("replyTo", "u1234567@hud.ac.uk")
+    mock_workflow.expectedHeaderReceived("ContentType", "application/x-tgz")
+    mock_workflow.message(0).header("breadcrumbId").isNotNull
     mock_workflow.expectedBodiesReceived(submission+"-1")
 
     Path(s"$folder/u1234567.tgz").toFile.writeAll(submission+"-1")
@@ -95,6 +97,8 @@ class DropboxTests extends ScalaTestSupport with Helpers {
     
     mock_workflow.expectedMessageCount(1)
     mock_workflow.expectedHeaderReceived("replyTo", "u1234567@hud.ac.uk")
+    mock_workflow.expectedHeaderReceived("ContentType", "application/x-tgz")
+    mock_workflow.message(0).header("breadcrumbId").isNotNull
     mock_workflow.expectedBodiesReceived(submission+"-2")
 
     Path(s"$folder/u1234567.tar.gz").toFile.writeAll(submission+"-2")

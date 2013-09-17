@@ -127,6 +127,8 @@ class ImapTests extends ScalaTestSupport with Helpers {
     
     mock_workflow.expectedMessageCount(1)
     mock_workflow.expectedHeaderReceived("replyTo", mailFrom)
+    mock_workflow.expectedHeaderReceived("ContentType", "application/x-tgz")
+    mock_workflow.message(0).header("breadcrumbId").isNotNull
 
     implicit val session: Session = Session.getDefaultInstance(options, null)
     session.setDebug(true)
@@ -145,7 +147,7 @@ class ImapTests extends ScalaTestSupport with Helpers {
     val exchange = mock_workflow.getExchanges.head
     val tarball: Array[Byte] = mock_workflow.message(0).body.evaluate(exchange, classOf[Array[Byte]])
     
-    assert(sha256(tarball) == sha256(new File(filename))) //"3AA973523E07D45FF38A9D997A56A8C9FDB7A43535E4ECFBF0CBE563871BE9B9"
+    assert(sha256(tarball) == sha256(new File(filename)))
   }
 
   test("Ensure IMAP emails with invalid attachments are routed correctly") {

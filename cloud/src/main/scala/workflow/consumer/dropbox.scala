@@ -41,7 +41,7 @@ trait Dropbox extends Workflow { this: Submission =>
           { msg: Message => 
             val student = parse_filename(msg.headerAs[String]("CamelFileNameOnly").get)
 
-            msg.addHeaders(Map("replyTo" -> "%s@hud.ac.uk".format(student), "breadcrumbId" -> getUniqueName(student))) 
+            msg.addHeaders(Map("replyTo" -> "%s@hud.ac.uk".format(student), "ContentType" -> "application/x-tgz", "breadcrumbId" -> getUniqueName(student))) 
           } >=> 
           to(uri)
         }

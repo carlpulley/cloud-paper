@@ -48,6 +48,7 @@ trait Imap extends Preamble { this: Submission =>
     assert(name.endsWith(".tgz") || name.endsWith(".tar.gz"))
     val dh = attachments.get(name)
     assert(Seq("application/octet-stream", "application/x-tgz", "application/x-gzip").contains(dh.getContentType()))
+    exchange.getIn.setHeader("ContentType", "application/x-tgz")
   
     val tarball = exchange.getContext().getTypeConverter().convertTo(classOf[Array[Byte]], dh.getInputStream())
     exchange.getIn.setBody(tarball, classOf[Array[Byte]])

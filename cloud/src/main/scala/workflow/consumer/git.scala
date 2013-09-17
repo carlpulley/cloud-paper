@@ -38,6 +38,7 @@ trait Git extends Workflow { this: Submission =>
     val tarball = File.makeTemp(suffix=".tgz")
   
     to(s"exec:tar?outFile=$tarball&args=-czf $tarball -C $folder .") >=> 
+    { msg: Message => msg.addHeader("ContentType", "application/x-tgz") } >=>
     to(this.uri)
   }
 }
