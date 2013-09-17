@@ -39,6 +39,10 @@ class HTTPTests extends ScalaTestSupport with Helpers {
 
   setLogLevel(loglevel)
 
+  before {
+    MockEndpoint.resetMocks(camel.context)
+  }
+
   after {
     MockEndpoint.resetMocks(camel.context)
   }

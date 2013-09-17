@@ -72,6 +72,7 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
   }
 
   before {
+    MockEndpoint.resetMocks(camel.context)
     SubmissionTable.create
     FeedbackTable.create
   }

@@ -42,6 +42,7 @@ class DropboxTests extends ScalaTestSupport with Helpers {
   setLogLevel(loglevel)
 
   before {
+    MockEndpoint.resetMocks(camel.context)
     SubmissionTable.create
     FeedbackTable.create
   }
@@ -71,9 +72,9 @@ class DropboxTests extends ScalaTestSupport with Helpers {
 
     mock_workflow.expectedMessageCount(1)
     mock_workflow.expectedHeaderReceived("replyTo", "u1234567@hud.ac.uk")
-    mock_workflow.expectedBodiesReceived(submission)
+    mock_workflow.expectedBodiesReceived(submission+"-1")
 
-    template.sendBodyAndHeaders(s"file:$folder", submission, Map("fileName" -> "u1234567.tgz"))
+    template.sendBodyAndHeaders(s"file:$folder", submission+"-1", Map("fileName" -> "u1234567.tgz"))
 
     mock_workflow.assertIsSatisfied
   }
@@ -83,9 +84,9 @@ class DropboxTests extends ScalaTestSupport with Helpers {
     
     mock_workflow.expectedMessageCount(1)
     mock_workflow.expectedHeaderReceived("replyTo", "u1234567@hud.ac.uk")
-    mock_workflow.expectedBodiesReceived(submission)
+    mock_workflow.expectedBodiesReceived(submission+"-2")
 
-    template.sendBodyAndHeaders(s"file:$folder", submission, Map("fileName" -> "u1234567.tar.gz"))
+    template.sendBodyAndHeaders(s"file:$folder", submission+"-2", Map("fileName" -> "u1234567.tar.gz"))
 
     mock_workflow.assertIsSatisfied
   }
@@ -93,12 +94,14 @@ class DropboxTests extends ScalaTestSupport with Helpers {
   test("Ensure that incorrectly typed dropbox files are rejected") {
     val mock_workflow = getMockEndpoint("mock:workflow")
     val mock_error = getMockEndpoint("mock:error")
+    mock_workflow.reset
+    mock_error.reset
     
     mock_workflow.expectedMessageCount(0)
     mock_error.expectedMessageCount(1)
-    mock_error.expectedBodiesReceived(submission)
+    mock_error.expectedBodiesReceived(submission+"-3")
 
-    template.sendBodyAndHeaders(s"file:$folder", submission, Map("fileName" -> "u1234567.txt"))
+    template.sendBodyAndHeaders(s"file:$folder", submission+"-3", Map("fileName" -> "u1234567.txt"))
 
     mock_workflow.assertIsSatisfied
     mock_error.assertIsSatisfied
@@ -107,12 +110,14 @@ class DropboxTests extends ScalaTestSupport with Helpers {
   test("Ensure that incorrectly named dropbox files are rejected") {
     val mock_workflow = getMockEndpoint("mock:workflow")
     val mock_error = getMockEndpoint("mock:error")
+    mock_workflow.reset
+    mock_error.reset
 
     mock_workflow.expectedMessageCount(0)
     mock_error.expectedMessageCount(1)
-    mock_error.expectedBodiesReceived(submission)
+    mock_error.expectedBodiesReceived(submission+"-4")
 
-    template.sendBodyAndHeaders(s"file:$folder", submission, Map("fileName" -> "abcdefg.tgz"))
+    template.sendBodyAndHeaders(s"file:$folder", submission+"-4", Map("fileName" -> "abcdefg.tgz"))
 
     mock_workflow.assertIsSatisfied
     mock_error.assertIsSatisfied
