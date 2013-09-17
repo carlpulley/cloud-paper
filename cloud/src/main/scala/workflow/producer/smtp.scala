@@ -34,9 +34,9 @@ object SMTP extends Workflow {
     val webuser  = config.getString("web.user")
 
     // Here we send a template email containing a URL link to the actual assessment feedback
-    { msg: Message => msg.setHeaders(Map("webuser" -> webuser, "webhost" -> webhost, "group" -> group)) } >=>
+    { msg: Message => msg.addHeaders(Map("webuser" -> webuser, "webhost" -> webhost, "group" -> group)) } >=>
     to(s"velocity:$group/feedback-email.vm") >=>
-    { msg: Message => msg.setHeaders(Map("username" -> mailuser, "password" -> mailpw, "from" -> mailFrom, "to" -> msg.headerAs[String]("replyTo"), "subject" -> subject)) } >=>
+    { msg: Message => msg.setHeaders(Map("username" -> mailuser, "password" -> mailpw, "from" -> mailFrom, "to" -> msg.headerAs[String]("replyTo").get, "subject" -> subject)) } >=>
     to(s"smtp:$mailhost")
   }
 }

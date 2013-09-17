@@ -30,7 +30,7 @@ object Printer extends Workflow {
     val lprpath    = if (config.hasPath("lpr.path")) config.getString("lpr.path") else "default"
     val lproptions = if (config.hasPath("lpr.options")) config.getString("lpr.options") else "sides=two-sided"
 
-    { msg: Message => msg.setHeaders(Map("student" -> msg.headerAs[String]("replyTo"), "title" -> subject)) } >=>
+    { msg: Message => msg.addHeaders(Map("student" -> msg.headerAs[String]("replyTo").get, "title" -> subject)) } >=>
     to(s"xslt:$group/feedback-printer.xsl") >=>
     to("fop:application/pdf") >=>
     to(s"lpr:$lpraddr/$lprpath?$lproptions")

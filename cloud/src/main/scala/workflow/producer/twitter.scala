@@ -31,7 +31,7 @@ object Twitter extends Workflow {
     val accessToken       = config.getString("twitter.access.token")
     val accessTokenSecret = config.getString("twitter.access.secret")
 
-    { msg: Message => msg.setHeaders(Map("student" -> msg.headerAs[String]("replyTo"), "title" -> subject)) } >=>
+    { msg: Message => msg.addHeaders(Map("student" -> msg.headerAs[String]("replyTo").get, "title" -> subject)) } >=>
     to(s"velocity:$group/feedback-twitter.vm") >=>
     to(s"twitter:directmessage?consumerKey=$consumerKey&consumerSecret=$consumerSecret&accessToken=$accessToken&accessTokenSecret=$accessTokenSecret")
   }

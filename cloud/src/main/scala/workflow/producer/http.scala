@@ -34,9 +34,9 @@ object HTTP extends Workflow {
     //   2. we also assume that Apache (or similar) can serve pages from ~$webuser/www/$crypto_link via the 
     //      URL https://$webhost/$webuser/$crypto_link
     //   3. here the message body contains the $crypto_link file contents which are transformed from XML to HTML
-    { msg: Message => msg.setHeaders(Map("student" -> msg.headerAs[String]("replyTo"), "title" -> subject)) } >=>
+    { msg: Message => msg.addHeaders(Map("student" -> msg.headerAs[String]("replyTo").get, "title" -> subject)) } >=>
     to(s"xslt:$group/feedback-file.xsl") >=>
-    { msg: Message => msg.addHeader("CamelFileName" -> msg.headerAs[String]("sha256")) } >=>
+    { msg: Message => msg.setHeaders(Map("CamelFileName" -> msg.headerAs[String]("sha256").get)) } >=>
     to(s"sftp:$webuser@$webhost/www/$group")
   }
 }

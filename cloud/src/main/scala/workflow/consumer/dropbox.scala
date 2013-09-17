@@ -27,19 +27,24 @@ trait Dropbox extends Workflow { this: Submission =>
   
   def parse_filename(headers: Map[String, Any]) = {
     val filename = """([uU][0-9]{7})\.(tar\.gz|tgz)""".r
+    val filename(student, extn) = headers("fileName").asInstanceOf[String]
 
-    filename.findFirstMatchIn(headers("filename").asInstanceOf[String])
+    student
   }
 
   from(s"file:$folder") {
     // Only process tar ball files (we rely on file naming conventions here)
-    choose {
-      case Message(_, hdrs) if (hdrs.lift("fileName").isDefined && parse_filename(hdrs).isDefined) => {
-        { msg: Message => msg.addHeader("replyTo" -> "%s@hud.ac.uk".format(parse_filename(hdrs).get)) } >=> 
-        to(this.uri)
+    attempt {
+      choose {
+        case Message(_, hdrs) if (hdrs.lift("fileName").isDefined) => {
+          { msg: Message => msg.addHeader("replyTo" -> "%s@hud.ac.uk".format(parse_filename(hdrs))) } >=> 
+          to(uri)
+        }
+        case _ =>
+          { msg: Message => throw new Exception("Invalid message received") }
       }
-      case _ =>
-        to(this.error_channel)
+    } fallback {
+        case ex: Exception => { msg: Message => msg.setException(ex) } >=> to(error_channel)
     }
   }
 }

@@ -17,7 +17,6 @@ package cloud.workflow
 
 package test
 
-import akka.actor.ActorSystem
 import akka.actor.Props
 import akka.testkit.TestActorRef
 import cloud.lib.Helpers
@@ -28,8 +27,6 @@ import cloud.workflow.producer.HTTP
 import cloud.workflow.producer.SMTP
 import cloud.workflow.Submission
 import com.typesafe.config._
-import org.apache.camel.builder.AdviceWithRouteBuilder
-import org.apache.camel.CamelContext
 import org.apache.camel.component.mock.MockEndpoint
 import scala.collection.JavaConversions._
 import scalikejdbc.ConnectionPool
@@ -69,7 +66,10 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
 
   val controller = TestActorRef(Props(new ControlBus(group, Map.empty)))
   val simple_feedback = { msg: Message => msg.setBody(msg.bodyAs[String].replaceAll("Submission", "Feedback")) }
-  val submission_endpoint = new Submission(controller, simple_feedback, to("mock:smtp"), to("mock:http"))
+  val submission_endpoint = new Submission(controller, simple_feedback, to("mock:mail"), to("mock:web"))
+  from(submission_endpoint.error_channel) {
+    to("mock:error")
+  }
 
   before {
     SubmissionTable.create
@@ -82,7 +82,10 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
     MockEndpoint.resetMocks(camel.context)
   }
 
-  override def afterAll = router.stop
+  override def afterAll = {
+    router.stop
+    system.shutdown
+  }
 
   def getSubmissionCount = DB autoCommit { implicit session =>
     sql"SELECT COUNT(*) FROM ${SubmissionTable.name}".map(_.int(1)).single.apply().get
@@ -93,12 +96,12 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
   }
 
   test("Check successful submission route") {
-    val mock_mail = getMockEndpoint("mock:smtp")
+    val mock_mail = getMockEndpoint("mock:mail")
     mock_mail.expectedMessageCount(1)
     mock_mail.expectedBodiesReceived(feedback)
     mock_mail.expectedHeaderReceived("sha256", feedback_hash)
 
-    val mock_web = getMockEndpoint("mock:http")
+    val mock_web = getMockEndpoint("mock:web")
     mock_web.expectedMessageCount(1)
     mock_web.expectedBodiesReceived(feedback)
     mock_web.expectedHeaderReceived("sha256", feedback_hash)
@@ -108,27 +111,32 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
     mock_mail.assertIsSatisfied
     mock_web.assertIsSatisfied
 
-    // TODO: mock msg_store
     assert(getSubmissionCount == 1)
     assert(getFeedbackCount == 1)
-    Thread.sleep(1000)
   }
 
   test("Check failing submission route") {
-    val mock_mail = getMockEndpoint("mock:smtp")
+    val mock_mail = getMockEndpoint("mock:mail")
     mock_mail.expectedMessageCount(0)
 
-    val mock_web = getMockEndpoint("mock:http")
+    val mock_web = getMockEndpoint("mock:web")
     mock_web.expectedMessageCount(0)
+
+    val mock_error = getMockEndpoint("mock:error")
+    mock_error.expectedMessageCount(1)
+    mock_error.expectedBodiesReceived(submission)
 
     template.sendBody(submission_endpoint.uri, submission)
 
     mock_mail.assertIsSatisfied
     mock_web.assertIsSatisfied
+    mock_error.assertIsSatisfied
 
-    // TODO: mock error_channel and check msg for exception
     assert(getSubmissionCount == 0)
     assert(getFeedbackCount == 0)
+    // FIXME:
+    //assert(mock_error.getExchanges.head.isFailed)
+    //assert(mock_error.getExchanges.head.getException.getMessage.contains("Invalid message received"))
   }
 
   test("Check message store inserts") {
@@ -157,16 +165,28 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
   }
 
   test("Check message store behaviour with invalid table specified") {
+    val mock_error = getMockEndpoint("mock:error")
+    mock_error.expectedMessageCount(1)
+    mock_error.expectedBodiesReceived(submission)
+
     DB autoCommit { implicit session =>
       template.sendBodyAndHeaders(submission_endpoint.msg_store, submission, Map("table" -> "invalid-table", "replyTo" -> mailTo, "breadcrumbId" -> "submission-testing-3"))
 
-      // TODO: mock error_channel and check msg for exception
       assert(getSubmissionCount == 0)
       assert(getFeedbackCount == 0)
+      mock_error.assertIsSatisfied
+      // FIXME:
+      //assert(mock_error.getExchanges.head.isFailed)
+      //assert(mock_error.getExchanges.head.getException.getMessage.contains("Invalid message received"))
     }
   }
 
   test("Check message store inserts with differing breadcrumb IDs") {
+    val mock_error = getMockEndpoint("mock:error")
+    mock_error.expectedMessageCount(1)
+    mock_error.expectedBodiesReceived(feedback)
+    mock_error.expectedHeaderReceived("sha256", feedback_hash)
+
     DB autoCommit { implicit session =>
       template.sendBodyAndHeaders(submission_endpoint.msg_store, submission, Map("table" -> SubmissionTable.name.value, "replyTo" -> mailTo, "breadcrumbId" -> "submission-testing-3"))
 
@@ -181,9 +201,12 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
   
       template.sendBodyAndHeaders(submission_endpoint.msg_store, feedback, Map("table" -> FeedbackTable.name.value, "replyTo" -> mailTo, "sha256" ->   feedback_hash, "breadcrumbId" -> "submission-testing-3-1"))
 
-      // TODO: mock error_channel and check msg for exception
       assert(getSubmissionCount == 1)
       assert(getFeedbackCount == 0)
+      mock_error.assertIsSatisfied
+      // FIXME:
+      //assert(mock_error.getExchanges.head.isFailed)
+      //assert(mock_error.getExchanges.head.getException.getMessage.contains(s"Failed to insert feedback into ${FeedbackTable.name.value} table - 0 changed"))
     }
   }
 }

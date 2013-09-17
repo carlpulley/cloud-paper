@@ -77,6 +77,7 @@ class Submission(val controller: ActorRef, workflow: Conv.MessageRoute, endpoint
   from(uri) {
     // Only process messages that have a replyTo header (i.e. the student's email address)
     attempt {
+      oneway >=>
       choose {
         case Message(_, hdrs) if (hdrs.lift("replyTo").isDefined) => {
           { msg: Message => msg.addHeader("table" -> SubmissionTable.name.value) } >=>
@@ -87,19 +88,24 @@ class Submission(val controller: ActorRef, workflow: Conv.MessageRoute, endpoint
               multicast((messageRoute(to(msg_store)) +: endpoints.toSeq): _*)
           )
         }
+        case _ =>
+          { msg: Message => throw new Exception("Invalid message received") }
       }
     } fallback {
-      case ex: Exception => { msg: Message => msg.setException(ex) } >=> to(error_channel)
+        case ex: Exception => { msg: Message => msg.setException(ex) } >=> to(error_channel)
     }
   }
 
   from(msg_store) {
     attempt {
+      oneway >=>
       choose {
         case Message(_, hdrs) if (hdrs("table") == SubmissionTable.name.value) => 
           submissionSQL
         case Message(_, hdrs) if (hdrs("table") == FeedbackTable.name.value) =>
           feedbackSQL
+        case _ => 
+          { msg: Message => throw new Exception("Invalid message received") }
       }
     } fallback {
         case ex: Exception => { msg: Message => msg.setException(ex) } >=> to(error_channel)
