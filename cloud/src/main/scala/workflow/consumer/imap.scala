@@ -15,6 +15,7 @@
 
 package cloud.workflow.consumer
 
+import cloud.lib.Config
 import cloud.lib.Workflow
 import cloud.workflow.Submission
 import org.apache.camel.Exchange
@@ -26,12 +27,12 @@ import scala.concurrent.duration._
 // NOTE: as we need to access a CamelMessage's attachments, we can't use the scalaz-camel DSL here
 
 trait Imap extends Preamble { this: Submission =>
-  private[this] val mailhost = config.getString("mail.host")
-  private[this] val mailuser = config.getString("mail.user")
-  private[this] val mailpw   = config.getString("mail.password")
+  private[this] val mailhost = config[String]("mail.host")
+  private[this] val mailuser = config[String]("mail.user")
+  private[this] val mailpw   = config[String]("mail.password")
 
-  private[this] val folder   = config.getString("imap.folder")
-  private[this] val poll     = new DurationInt(if (config.hasPath("imap.poll")) config.getInt("imap.poll") else 1).minutes
+  private[this] val folder   = config[String]("imap.folder")
+  private[this] val poll     = new DurationInt(config[Int]("imap.poll", 1)).minutes
 
   val extractAttachment = { (exchange: Exchange) =>
     assert(exchange.getIn().hasAttachments())
@@ -55,7 +56,7 @@ trait Imap extends Preamble { this: Submission =>
 
 object Imap {
   def apply(folder: String, poll: Duration = 1.minute) {
-    System.setProperty("imap.folder", folder)
-    System.setProperty("imap.poll", poll.toMinutes.toString)
+    Config.setValue("imap.folder", folder)
+    Config.setValue("imap.poll", poll.toMinutes.toString)
   }
 }

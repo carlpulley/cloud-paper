@@ -15,6 +15,7 @@
 
 package cloud.workflow.consumer
 
+import cloud.lib.Config
 import cloud.lib.Workflow
 import cloud.workflow.Submission
 import scalaz._
@@ -23,21 +24,25 @@ import scalaz.camel.core._
 trait Dropbox extends Workflow { this: Submission =>
   import Scalaz._
 
-  private[this] val folder = config.getString("dropbox.folder")
+  private[this] val folder = config[String]("dropbox.folder")
   
-  def parse_filename(headers: Map[String, Any]) = {
+  def parse_filename(header: String) = {
     val filename = """([uU][0-9]{7})\.(tar\.gz|tgz)""".r
-    val filename(student, extn) = headers("fileName").asInstanceOf[String]
+    val filename(student, extn) = header
 
     student
   }
 
-  from(s"file:$folder") {
+  from(s"file:$folder?moveFailed=.error&move=.done") {
     // Only process tar ball files (we rely on file naming conventions here)
     attempt {
       choose {
-        case Message(_, hdrs) if (hdrs.lift("fileName").isDefined) => {
-          { msg: Message => msg.addHeader("replyTo" -> "%s@hud.ac.uk".format(parse_filename(hdrs))) } >=> 
+        case Message(_, hdrs) if (hdrs.lift("CamelFileNameOnly").isDefined) => {
+          { msg: Message => 
+            val student = parse_filename(msg.headerAs[String]("CamelFileNameOnly").get)
+
+            msg.addHeaders(Map("replyTo" -> "%s@hud.ac.uk".format(student), "breadcrumbId" -> getUniqueName(student))) 
+          } >=> 
           to(uri)
         }
         case _ =>
@@ -51,6 +56,6 @@ trait Dropbox extends Workflow { this: Submission =>
 
 object Dropbox {
   def apply(folder: String) {
-    System.setProperty("dropbox.folder", folder)
+    Config.setValue("dropbox.folder", folder)
   }
 }

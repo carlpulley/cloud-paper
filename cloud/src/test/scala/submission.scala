@@ -19,6 +19,7 @@ package test
 
 import akka.actor.Props
 import akka.testkit.TestActorRef
+import cloud.lib.Config
 import cloud.lib.Helpers
 import cloud.workflow.controller.ControlBus
 import cloud.workflow.controller.SubmissionTable
@@ -26,8 +27,9 @@ import cloud.workflow.controller.FeedbackTable
 import cloud.workflow.producer.HTTP
 import cloud.workflow.producer.SMTP
 import cloud.workflow.Submission
-import com.typesafe.config._
+import java.io.File
 import org.apache.camel.component.mock.MockEndpoint
+import org.streum.configrity._
 import scala.collection.JavaConversions._
 import scalikejdbc.ConnectionPool
 import scalikejdbc.DB
@@ -38,21 +40,21 @@ import scalaz.camel.core._
 class SubmissionTests extends ScalaTestSupport with Helpers {
   import Scalaz._
 
-  val config: Config = ConfigFactory.load("application.conf")
+  val config = Config.load("application.conf")
 
-  val mailFrom  = config.getString("feedback.tutor")
+  val mailFrom  = "tutor@hud.ac.uk"
   val mailTo    = "student@hud.ac.uk"
-  val subject   = config.getString("feedback.subject")
-  val sqldriver = config.getString("sql.driver")
-  val sqlurl    = config.getString("sql.url")
-  val sqluser   = config.getString("sql.user")
-  val sqlpw     = config.getString("sql.password")
-  val mailhost  = config.getString("mail.host")
-  val mailuser  = config.getString("mail.user")
-  val mailpw    = config.getString("mail.password")
-  val webhost   = config.getString("web.host")
-  val webuser   = config.getString("web.user")
-  val loglevel  = config.getString("log.level")
+  val subject   = s"Assessment feedback for ${group.toUpperCase}"
+  val sqldriver = config[String]("sql.driver")
+  val sqlurl    = config[String]("sql.url")
+  val sqluser   = config[String]("sql.user")
+  val sqlpw     = config[String]("sql.password")
+  val mailhost  = config[String]("mail.host")
+  val mailuser  = config[String]("mail.user")
+  val mailpw    = config[String]("mail.password")
+  val webhost   = config[String]("web.host")
+  val webuser   = config[String]("web.user")
+  val loglevel  = config[String]("log.level")
 
   val submission = "Dummy Submission"
   val submission_hash = sha256(submission)
@@ -68,7 +70,9 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
   val simple_feedback = { msg: Message => msg.setBody(msg.bodyAs[String].replaceAll("Submission", "Feedback")) }
   val submission_endpoint = new Submission(controller, simple_feedback, to("mock:mail"), to("mock:web"))
   from(submission_endpoint.error_channel) {
-    to("mock:error")
+    { msg: Message => if (msg.exception.isDefined) msg.addHeader("Exception", msg.exception.get.getMessage) else msg } >=> 
+    to("log:ERROR?showAll=true") >=> 
+    to("mock:submission-error")
   }
 
   before {
@@ -85,7 +89,7 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
 
   override def afterAll = {
     router.stop
-    system.shutdown
+    new File(sqlurl.split(":").last).delete
   }
 
   def getSubmissionCount = DB autoCommit { implicit session =>
@@ -123,7 +127,7 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
     val mock_web = getMockEndpoint("mock:web")
     mock_web.expectedMessageCount(0)
 
-    val mock_error = getMockEndpoint("mock:error")
+    val mock_error = getMockEndpoint("mock:submission-error")
     mock_error.expectedMessageCount(1)
     mock_error.expectedBodiesReceived(submission)
 
@@ -166,7 +170,7 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
   }
 
   test("Check message store behaviour with invalid table specified") {
-    val mock_error = getMockEndpoint("mock:error")
+    val mock_error = getMockEndpoint("mock:submission-error")
     mock_error.expectedMessageCount(1)
     mock_error.expectedBodiesReceived(submission)
 
@@ -183,7 +187,7 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
   }
 
   test("Check message store inserts with differing breadcrumb IDs") {
-    val mock_error = getMockEndpoint("mock:error")
+    val mock_error = getMockEndpoint("mock:submission-error")
     mock_error.expectedMessageCount(1)
     mock_error.expectedBodiesReceived(feedback)
     mock_error.expectedHeaderReceived("sha256", feedback_hash)

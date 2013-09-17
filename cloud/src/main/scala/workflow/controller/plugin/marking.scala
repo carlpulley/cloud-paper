@@ -15,6 +15,7 @@
 
 package cloud.workflow.controller.plugin
 
+import cloud.lib.Config
 import cloud.lib.Workflow
 import cloud.workflow.controller.ControlEvent
 import cloud.workflow.controller.FeedbackTable
@@ -36,11 +37,11 @@ object Marking extends Workflow {
   import Scalaz._
 
   def apply()(implicit group: String, router: Router): PartialFunction[ControlEvent, MessageRoute] = {
-    val config = getConfig(group)
+    val config = Config(group)
   
-    val mailhost = config.getString("mail.host")
-    val mailuser = config.getString("mail.user")
-    val mailpw   = config.getString("mail.password")
+    val mailhost = config[String]("mail.host")
+    val mailuser = config[String]("mail.user")
+    val mailpw   = config[String]("mail.password")
 
     val generateFeedback = { msg: Message =>
       val feedback = DB autoCommit { implicit session =>

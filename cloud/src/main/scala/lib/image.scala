@@ -16,7 +16,6 @@
 package cloud.lib
 
 import com.google.common.collect.ImmutableSet
-import com.typesafe.config._
 import java.io.File
 import java.io.FileOutputStream
 import java.util.Properties
@@ -47,17 +46,17 @@ import scala.collection.mutable
 import scala.language.implicitConversions
 
 trait Image {
-  val group: String = System.getProperty("group")
+  val group: String = Config()[String]("group")
   assert(new WrappedString(group).filter("abcdefghijklmnopqrstuvwxyz0123456789-".contains(_)) == group)
 
   // N.B. cloud providers are *not* organised by group
-  protected[this] val config: Config = ConfigFactory.load("cloud.conf")
+  protected[this] val config = Config.load("cloud.conf")
 
-  private[this] val chef_server = config.getString("chef.url")
-  private[this] val chef_user = config.getString("chef.user.name")
-  private[this] val chef_pem = config.getString("chef.user.pem")
-  private[this] val validation_name = config.getString("chef.validation.client_name")
-  private[this] val validation_pem = config.getString("chef.validation.pem")
+  private[this] val chef_server     = config[String]("chef.url")
+  private[this] val chef_user       = config[String]("chef.user.name")
+  private[this] val chef_pem        = config[String]("chef.user.pem")
+  private[this] val validation_name = config[String]("chef.validation.client_name")
+  private[this] val validation_pem  = config[String]("chef.validation.pem")
 
   private[this] val chef_config = new Properties()
   chef_config
@@ -76,7 +75,7 @@ trait Image {
 
   protected[this] val client_properties = new Properties()
   client_properties
-    .put(ComputeServiceProperties.TIMEOUT_SCRIPT_COMPLETE, (config.getInt("jclouds.script-complete") * 1000).asInstanceOf[java.lang.Integer]) // Convert seconds to milliseconds
+    .put(ComputeServiceProperties.TIMEOUT_SCRIPT_COMPLETE, (config[Int]("jclouds.script-complete") * 1000).asInstanceOf[java.lang.Integer]) // Convert seconds to milliseconds
 
   protected[this] val client_context: ComputeServiceContext // 'override lazy val' in children
 

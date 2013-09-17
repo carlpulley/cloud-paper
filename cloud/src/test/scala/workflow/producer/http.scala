@@ -17,9 +17,9 @@ package cloud.workflow.producer
 
 package test
 
+import cloud.lib.Config
 import cloud.lib.Helpers
 import cloud.workflow.test.ScalaTestSupport
-import com.typesafe.config._
 import org.apache.camel.component.mock.MockComponent
 import org.apache.camel.component.mock.MockEndpoint
 import scala.collection.JavaConversions._
@@ -29,13 +29,13 @@ import scalaz.camel.core._
 class HTTPTests extends ScalaTestSupport with Helpers {
   import Scalaz._
 
-  val config: Config = ConfigFactory.load("application.conf")
+  val config = Config.load("application.conf")
   
   val mailTo   = "student@hud.ac.uk"
-  val subject  = config.getString("feedback.subject")
-  val webhost  = config.getString("web.host")
-  val webuser  = config.getString("web.user")
-  val loglevel = config.getString("log.level")
+  val subject  = s"Assessment feedback for ${group.toUpperCase}"
+  val webhost  = config[String]("web.host")
+  val webuser  = config[String]("web.user")
+  val loglevel = config[String]("log.level")
 
   setLogLevel(loglevel)
 
@@ -49,7 +49,6 @@ class HTTPTests extends ScalaTestSupport with Helpers {
 
   override def afterAll = {
     router.stop
-    system.shutdown
   }
 
   val feedback = "<feedback><item id='2'><comment>Dummy comment 2</comment></item><item id='1'><comment>Dummy comment 1</comment></item></feedback>"

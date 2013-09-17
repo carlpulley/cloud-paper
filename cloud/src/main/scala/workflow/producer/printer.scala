@@ -15,6 +15,7 @@
 
 package cloud.workflow.producer
 
+import cloud.lib.Config
 import cloud.lib.Workflow
 import scalaz._
 import scalaz.camel.core._
@@ -23,14 +24,13 @@ object Printer extends Workflow {
   import Scalaz._
 
   def apply()(implicit group: String, router: Router): MessageRoute = {
-    val config = getConfig(group)
+    val config = Config(group)
   
-    val subject    = config.getString("feedback.subject")
-    val lpraddr    = if (config.hasPath("lpr.address")) config.getString("lpr.address") else "localhost"
-    val lprpath    = if (config.hasPath("lpr.path")) config.getString("lpr.path") else "default"
-    val lproptions = if (config.hasPath("lpr.options")) config.getString("lpr.options") else "sides=two-sided"
+    val lpraddr    = config[String]("lpr.address", "localhost")
+    val lprpath    = config[String]("lpr.path", "default")
+    val lproptions = config[String]("lpr.options", "sides=two-sided")
 
-    { msg: Message => msg.addHeaders(Map("student" -> msg.headerAs[String]("replyTo").get, "title" -> subject)) } >=>
+    { msg: Message => msg.addHeaders(Map("student" -> msg.headerAs[String]("replyTo").get, "module" -> group)) } >=>
     to(s"xslt:$group/feedback-printer.xsl") >=>
     to("fop:application/pdf") >=>
     to(s"lpr:$lpraddr/$lprpath?$lproptions")

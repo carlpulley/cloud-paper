@@ -15,6 +15,7 @@
 
 package cloud.workflow.producer
 
+import cloud.lib.Config
 import cloud.lib.Workflow
 import scalaz._
 import scalaz.camel.core._
@@ -23,15 +24,14 @@ object Twitter extends Workflow {
   import Scalaz._
 
   def apply()(implicit group: String, router: Router): MessageRoute = {
-    val config = getConfig(group)
+    val config = Config(group)
   
-    val subject           = config.getString("feedback.subject")
-    val consumerKey       = config.getString("twitter.consumer.key")
-    val consumerSecret    = config.getString("twitter.consumer.secret")
-    val accessToken       = config.getString("twitter.access.token")
-    val accessTokenSecret = config.getString("twitter.access.secret")
+    val consumerKey       = config[String]("twitter.consumer.key")
+    val consumerSecret    = config[String]("twitter.consumer.secret")
+    val accessToken       = config[String]("twitter.access.token")
+    val accessTokenSecret = config[String]("twitter.access.secret")
 
-    { msg: Message => msg.addHeaders(Map("student" -> msg.headerAs[String]("replyTo").get, "title" -> subject)) } >=>
+    { msg: Message => msg.addHeaders(Map("student" -> msg.headerAs[String]("replyTo").get, "module" -> group)) } >=>
     to(s"velocity:$group/feedback-twitter.vm") >=>
     to(s"twitter:directmessage?consumerKey=$consumerKey&consumerSecret=$consumerSecret&accessToken=$accessToken&accessTokenSecret=$accessTokenSecret")
   }

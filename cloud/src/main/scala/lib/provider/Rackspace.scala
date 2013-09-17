@@ -17,7 +17,6 @@ package cloud.lib
 
 package provider.Rackspace
 
-import com.typesafe.config._
 import scala.collection.JavaConversions._
 import org.jclouds.ContextBuilder
 import org.jclouds.compute.ComputeServiceContext
@@ -27,11 +26,11 @@ import org.jclouds.domain.LoginCredentials
 import org.jclouds.sshj.config.SshjSshClientModule
 
 abstract class Ubuntu(version: String) extends image.Ubuntu(version) {
-  private[this] val region = config.getString("rackspace.region")
-  private[this] val username = config.getString("rackspace.username")
-  private[this] val apikey = config.getString("rackspace.apikey")
-  private[this] val rackspace_private_key = scala.io.Source.fromFile(System.getenv("HOME") + "/.ssh/rackspace").mkString
-  private[this] val rackspace_public_key = scala.io.Source.fromFile(System.getenv("HOME") + "/.ssh/rackspace.pub").mkString
+  private[this] val region = config[String]("rackspace.region")
+  private[this] val username = config[String]("rackspace.username")
+  private[this] val apikey = config[String]("rackspace.apikey")
+  private[this] val rackspace_private_key = scala.io.Source.fromFile(config[String]("ssl.certs") + "/rackspace").mkString
+  private[this] val rackspace_public_key = scala.io.Source.fromFile(config[String]("ssl.certs") + "/rackspace.pub").mkString
 
   override lazy val admin = LoginCredentials.builder()
     .user("root")

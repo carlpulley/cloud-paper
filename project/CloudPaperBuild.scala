@@ -32,8 +32,7 @@ object V {
   val AKKA = "2.2.1"
   val APACHE = "2.1"
   val CAMEL = "2.11.1"
-  val CONFIG = "1.0.2"
-  val GUICE = "4.0.0-beta"
+  val CONFIG = "1.0.0"
   val JCLOUDS = "1.6.1-incubating"
   val LIFT = "2.5.1"
   val LOG4J = "1.2.17"
@@ -47,20 +46,26 @@ object V {
 
 trait Dependencies {
   val Miscellaneous = Seq(
-    "com.typesafe" % "config" % V.CONFIG,
+    // Configuration
+    "org.streum" %% "configrity-core" % V.CONFIG,
+    // JDBC
     "com.github.seratch" %% "scalikejdbc" % V.SCALIKEJDBC,
     "com.github.seratch" %% "scalikejdbc-interpolation" % V.SCALIKEJDBC,
     "org.xerial" % "sqlite-jdbc" % "3.7.15-M1",
-    "org.apache.directory.studio" % "org.apache.commons.io" % V.APACHE,
+    // JSON (used to configure Chef)
     "net.liftweb" %% "lift-json" % V.LIFT,
+    // Functional programming
     "org.scalaz" %% "scalaz-core" % V.SCALAZ,
     "org.scalaz" %% "scalaz-concurrent" % V.SCALAZ,
+    // Microsoft document format handling
     "info.folone" %% "poi-scala" % "0.9"
   )
 
   val Testing = Seq(
     "org.scalatest" % "scalatest_2.10" % V.SCALATEST % "test",
-    "org.scalacheck" % "scalacheck_2.10" % V.SCALACHECK % "test"
+    "org.scalacheck" % "scalacheck_2.10" % V.SCALACHECK % "test",
+    // Mocking mail servers and clients
+    "org.jvnet.mock-javamail" % "mock-javamail" % "1.9" % "test"
   )
     
   val Logging = Seq(
@@ -87,7 +92,6 @@ trait Dependencies {
     "org.apache.camel" % "camel-velocity" % V.CAMEL,
     "org.apache.camel" % "camel-quartz" % V.CAMEL,
     "org.apache.camel" % "camel-scala" % V.CAMEL,
-    "org.apache.camel" % "camel-jclouds" % V.CAMEL,
     "org.apache.camel" % "camel-test" % V.CAMEL % "test",
     "org.apache.activemq" % "activemq-core" % V.ACTIVEMQ,
     "org.apache.activemq" % "activemq-camel" % V.ACTIVEMQ,
@@ -101,6 +105,7 @@ trait Dependencies {
     "org.apache.jclouds.api" % "chef" % V.JCLOUDS,
     "org.apache.jclouds.api" % "openstack-nova" % V.JCLOUDS,
     "org.apache.jclouds.driver" % "jclouds-sshj" % V.JCLOUDS,
+    // Needed due to "issues"
     "com.google.code.findbugs" % "jsr305" % "1.3.9",
     "org.eclipse.jetty.orbit" % "javax.servlet" % "3.0.0.v201112011016" artifacts (Artifact("javax.servlet", "jar", "jar"))
   )

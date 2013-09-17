@@ -17,7 +17,6 @@ package cloud.lib
 
 package provider.AwsEc2
 
-import com.typesafe.config._
 import scala.collection.JavaConversions._
 import org.jclouds.ContextBuilder
 import org.jclouds.compute.ComputeServiceContext
@@ -25,9 +24,9 @@ import org.jclouds.domain.LoginCredentials
 import org.jclouds.sshj.config.SshjSshClientModule
 
 trait Config { self: Image => 
-  private[this] val id = config.getString("aws-ec2.id")
-  private[this] val apikey = config.getString("aws-ec2.apikey")
-  protected[this] val ec2_private_key = scala.io.Source.fromFile(System.getenv("HOME") + "/.ssh/aws-ec2.pem").mkString
+  private[this] val id = config[String]("aws-ec2.id")
+  private[this] val apikey = config[String]("aws-ec2.apikey")
+  protected[this] val ec2_private_key = scala.io.Source.fromFile(config[String]("ssl.certs") + "/aws-ec2.pem").mkString
 
   override lazy val client_context = ContextBuilder.newBuilder("aws-ec2")
       .credentials(id, apikey)

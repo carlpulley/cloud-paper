@@ -1,1 +1,1 @@
-${in.headers.get('student')} has just received ${in.headers.get('title').toLowerCase}
+${in.headers.get('student')} has just received assessment feedback for ${in.headers.get('module').toUpperCase}

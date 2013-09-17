@@ -16,6 +16,7 @@
 package cloud.workflow
 
 import akka.actor.ActorRef
+import cloud.lib.Config
 import cloud.lib.Workflow
 import cloud.workflow.controller.FeedbackTable
 import cloud.workflow.controller.SubmissionTable
@@ -27,15 +28,15 @@ import scalaz.camel.core._
 class Submission(val controller: ActorRef, workflow: Conv.MessageRoute, endpoints: Conv.MessageRoute*)(implicit val group: String, val router: Router) extends Workflow {
   import Scalaz._
 
-  protected[this] val config = getConfig(group)
+  protected[this] val config = Config(group)
 
-  private[this] val mailFrom = config.getString("feedback.tutor")
-  private[this] val subject  = config.getString("feedback.subject")
-  private[this] val mailhost = config.getString("mail.host")
-  private[this] val mailuser = config.getString("mail.user")
-  private[this] val mailpw   = config.getString("mail.password")
-  private[this] val webhost  = config.getString("web.host")
-  private[this] val webuser  = config.getString("web.user")
+  private[this] val mailFrom = "tutor@hud.ac.uk"
+  private[this] val subject  = s"Assessment feedback for ${group.toUpperCase}"
+  private[this] val mailhost = config[String]("mail.host")
+  private[this] val mailuser = config[String]("mail.user")
+  private[this] val mailpw   = config[String]("mail.password")
+  private[this] val webhost  = config[String]("web.host")
+  private[this] val webuser  = config[String]("web.user")
 
   val uri = s"jms:queue:$group-submission-entry"
   val msg_store = s"direct:$group-msg-store"

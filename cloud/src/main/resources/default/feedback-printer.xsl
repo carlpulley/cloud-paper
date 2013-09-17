@@ -1,12 +1,9 @@
 <xsl:transform xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
-  <xsl:param name="title"/>
+  <xsl:param name="module"/>
   <xsl:param name="student"/>
    
   <xsl:template match="/feedback">
-    <fo:root xmlns:fo="http://www.w3.org/1999/XSL/Format">
-      <xsl:param name="title"/>
-      <xsl:param name="student"/>
-    
+    <fo:root xmlns:fo="http://www.w3.org/1999/XSL/Format">    
       <fo:layout-master-set>
         <fo:simple-page-master master-name="A4"
           page-width="297mm" 
@@ -40,7 +37,7 @@
         <fo:flow flow-name="xsl-region-body">
           <fo:block font-family="arial">
             <fo:block font-size="16pt" font-weight="bold" margin-bottom="20mm">
-              <xsl:value-of select="$title"/>
+              <xsl:value-of select='translate($module, "abcdefghijklmnopqrstuvwxyz", "ABCDEFGHIJKLMNOPQRSTUVWXYZ")'/> assessment feedback
             </fo:block>
 
             <fo:table font-size="12pt" table-layout="fixed" width="100%">

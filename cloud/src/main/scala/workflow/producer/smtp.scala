@@ -15,6 +15,7 @@
 
 package cloud.workflow.producer
 
+import cloud.lib.Config
 import cloud.lib.Workflow
 import scalaz._
 import scalaz.camel.core._
@@ -23,18 +24,18 @@ object SMTP extends Workflow {
   import Scalaz._
 
   def apply()(implicit group: String, router: Router): MessageRoute = {
-    val config = getConfig(group)
+    val config = Config(group)
   
-    val mailFrom = config.getString("feedback.tutor")
-    val subject  = config.getString("feedback.subject")
-    val mailhost = config.getString("mail.host")
-    val mailuser = config.getString("mail.user")
-    val mailpw   = config.getString("mail.password")
-    val webhost  = config.getString("web.host")
-    val webuser  = config.getString("web.user")
+    val mailFrom = "tutor@hud.ac.uk"
+    val subject  = s"Assessment feedback for ${group.toUpperCase}"
+    val mailhost = config[String]("mail.host")
+    val mailuser = config[String]("mail.user")
+    val mailpw   = config[String]("mail.password")
+    val webhost  = config[String]("web.host")
+    val webuser  = config[String]("web.user")
 
     // Here we send a template email containing a URL link to the actual assessment feedback
-    { msg: Message => msg.addHeaders(Map("webuser" -> webuser, "webhost" -> webhost, "group" -> group)) } >=>
+    { msg: Message => msg.addHeaders(Map("webuser" -> webuser, "webhost" -> webhost, "module" -> group)) } >=>
     to(s"velocity:$group/feedback-email.vm") >=>
     { msg: Message => msg.setHeaders(Map("username" -> mailuser, "password" -> mailpw, "from" -> mailFrom, "to" -> msg.headerAs[String]("replyTo").get, "subject" -> subject)) } >=>
     to(s"smtp:$mailhost")

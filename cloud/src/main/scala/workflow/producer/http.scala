@@ -15,6 +15,7 @@
 
 package cloud.workflow.producer
 
+import cloud.lib.Config
 import cloud.lib.Workflow
 import scalaz._
 import scalaz.camel.core._
@@ -23,18 +24,17 @@ object HTTP extends Workflow {
   import Scalaz._
 
   def apply()(implicit group: String, router: Router): MessageRoute = {
-    val config = getConfig(group)
+    val config = Config(group)
   
-    val subject = config.getString("feedback.subject")
-    val webhost = config.getString("web.host")
-    val webuser = config.getString("web.user")
+    val webhost = config[String]("web.host")
+    val webuser = config[String]("web.user")
 
     // NOTES:
     //   1. we assume that SSH certificates have been setup to allow passwordless login to $webuser@$webhost
     //   2. we also assume that Apache (or similar) can serve pages from ~$webuser/www/$crypto_link via the 
     //      URL https://$webhost/$webuser/$crypto_link
     //   3. here the message body contains the $crypto_link file contents which are transformed from XML to HTML
-    { msg: Message => msg.addHeaders(Map("student" -> msg.headerAs[String]("replyTo").get, "title" -> subject)) } >=>
+    { msg: Message => msg.addHeaders(Map("student" -> msg.headerAs[String]("replyTo").get, "module" -> group)) } >=>
     to(s"xslt:$group/feedback-file.xsl") >=>
     { msg: Message => msg.setHeaders(Map("CamelFileName" -> msg.headerAs[String]("sha256").get)) } >=>
     to(s"sftp:$webuser@$webhost/www/$group")

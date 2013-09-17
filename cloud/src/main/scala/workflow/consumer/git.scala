@@ -15,6 +15,7 @@
 
 package cloud.workflow.consumer
 
+import cloud.lib.Config
 import cloud.lib.Workflow
 import cloud.workflow.Submission
 import scala.tools.nsc.io.File
@@ -24,8 +25,8 @@ import scalaz.camel.core._
 trait Git extends Workflow { this: Submission =>
   import Scalaz._
 
-  private[this] val folder = config.getString("git.folder")
-  private[this] val cron   = if (config.hasPath("git.cron")) config.getString("git.cron") else "* * * * Mon-Sun"
+  private[this] val folder = config[String]("git.folder")
+  private[this] val cron   = config[String]("git.cron")
 
   // Run a 'git pull' using cron (defaults to once per day)
   from(s"quartz:$group-git?cron=$cron") {
@@ -43,7 +44,7 @@ trait Git extends Workflow { this: Submission =>
 
 object Git {
   def apply(folder: String, cron: String = "* * * * Mon-Sun") {
-    System.setProperty("git.folder", folder)
-    System.setProperty("git.cron", cron)
+    Config.setValue("git.folder", folder)
+    Config.setValue("git.cron", cron)
   }
 }

@@ -1,3 +1,7 @@
+ssl {
+  certs = "/path/to/.ssh"
+}
+
 jclouds {
   // Time to wait for scripting to complete (seconds)
   script-complete = 600

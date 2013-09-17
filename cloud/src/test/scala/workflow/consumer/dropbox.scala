@@ -17,29 +17,38 @@ package cloud.workflow.consumer
 
 package test
 
+import cloud.lib.Config
 import cloud.lib.Helpers
 import cloud.workflow.controller.ControlBus
 import cloud.workflow.controller.SubmissionTable
 import cloud.workflow.controller.FeedbackTable
 import cloud.workflow.Submission
 import cloud.workflow.test.ScalaTestSupport
-import com.typesafe.config._
-import org.apache.camel.component.direct.DirectComponent
+import java.io.File
 import org.apache.camel.component.mock.MockEndpoint
 import scala.collection.JavaConversions._
+import scala.tools.nsc.io.Directory
+import scala.tools.nsc.io.Path
+import scalikejdbc.ConnectionPool
 import scalaz._
 import scalaz.camel.core._
 
 class DropboxTests extends ScalaTestSupport with Helpers {
   import Scalaz._
 
-  val config: Config = ConfigFactory.load("application.conf")
+  val config = Config.load("application.conf")
   
-  val mailTo   = "student@hud.ac.uk"
-  val folder   = "submissions"
-  val loglevel = config.getString("log.level")
+  val sqldriver = config[String]("sql.driver")
+  val sqlurl    = config[String]("sql.url")
+  val sqluser   = config[String]("sql.user")
+  val sqlpw     = config[String]("sql.password")
+  val folder    = Directory.makeTemp().toString
+  val loglevel  = config[String]("log.level")
 
   setLogLevel(loglevel)
+
+  Class.forName(sqldriver)
+  ConnectionPool.singleton(sqlurl, sqluser, sqlpw)
 
   before {
     MockEndpoint.resetMocks(camel.context)
@@ -55,69 +64,69 @@ class DropboxTests extends ScalaTestSupport with Helpers {
 
   override def afterAll = {
     router.stop
+    new File(sqlurl.split(":").last).delete
   }
 
-  camel.context.addComponent("file", new DirectComponent())
   Dropbox(folder)
-  val workflow_hook = to("mock:workflow") >=> to("log:STOPPED?showAll=true") >=> failWith(new Exception("stopped"))
+  val workflow_hook = to("mock:dropbox-workflow") >=> to("log:STOPPED?showAll=true") >=> failWith(new Exception("stopped"))
   val submission_endpoint = new Submission(ControlBus(), workflow_hook) with Dropbox
   from(submission_endpoint.error_channel) {
-    to("mock:error")
+    { msg: Message => if (msg.exception.isDefined) msg.addHeader("Exception", msg.exception.get.getMessage) else msg } >=> 
+    to("log:ERROR?showAll=true") >=> 
+    to("mock:dropbox-error")
   }
 
   val submission = "Dummy submission file"
 
   test("Ensure that dropbox .tgz files are correctly processed") {
-    val mock_workflow = getMockEndpoint("mock:workflow")
+    val mock_workflow = getMockEndpoint("mock:dropbox-workflow")
 
     mock_workflow.expectedMessageCount(1)
     mock_workflow.expectedHeaderReceived("replyTo", "u1234567@hud.ac.uk")
     mock_workflow.expectedBodiesReceived(submission+"-1")
 
-    template.sendBodyAndHeaders(s"file:$folder", submission+"-1", Map("fileName" -> "u1234567.tgz"))
+    Path(s"$folder/u1234567.tgz").toFile.writeAll(submission+"-1")
 
     mock_workflow.assertIsSatisfied
   }
 
   test("Ensure that dropbox .tar.gz files are correctly processed") {
-    val mock_workflow = getMockEndpoint("mock:workflow")
+    val mock_workflow = getMockEndpoint("mock:dropbox-workflow")
     
     mock_workflow.expectedMessageCount(1)
     mock_workflow.expectedHeaderReceived("replyTo", "u1234567@hud.ac.uk")
     mock_workflow.expectedBodiesReceived(submission+"-2")
 
-    template.sendBodyAndHeaders(s"file:$folder", submission+"-2", Map("fileName" -> "u1234567.tar.gz"))
+    Path(s"$folder/u1234567.tar.gz").toFile.writeAll(submission+"-2")
 
     mock_workflow.assertIsSatisfied
   }
 
   test("Ensure that incorrectly typed dropbox files are rejected") {
-    val mock_workflow = getMockEndpoint("mock:workflow")
-    val mock_error = getMockEndpoint("mock:error")
-    mock_workflow.reset
+    val mock_workflow = getMockEndpoint("mock:dropbox-workflow")
+    val mock_error = getMockEndpoint("mock:dropbox-error")
     mock_error.reset
     
     mock_workflow.expectedMessageCount(0)
     mock_error.expectedMessageCount(1)
     mock_error.expectedBodiesReceived(submission+"-3")
 
-    template.sendBodyAndHeaders(s"file:$folder", submission+"-3", Map("fileName" -> "u1234567.txt"))
+    Path(s"$folder/u1234567.txt").toFile.writeAll(submission+"-3")
 
     mock_workflow.assertIsSatisfied
     mock_error.assertIsSatisfied
   }
 
   test("Ensure that incorrectly named dropbox files are rejected") {
-    val mock_workflow = getMockEndpoint("mock:workflow")
-    val mock_error = getMockEndpoint("mock:error")
-    mock_workflow.reset
+    val mock_workflow = getMockEndpoint("mock:dropbox-workflow")
+    val mock_error = getMockEndpoint("mock:dropbox-error")
     mock_error.reset
 
     mock_workflow.expectedMessageCount(0)
     mock_error.expectedMessageCount(1)
     mock_error.expectedBodiesReceived(submission+"-4")
 
-    template.sendBodyAndHeaders(s"file:$folder", submission+"-4", Map("fileName" -> "abcdefg.tgz"))
+    Path(s"$folder/abcdefg.tgz").toFile.writeAll(submission+"-4")
 
     mock_workflow.assertIsSatisfied
     mock_error.assertIsSatisfied

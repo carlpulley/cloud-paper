@@ -1,6 +1,6 @@
-Feedback for your assessment submission is located at the following link:
+Feedback for your ${in.headers.get('module')} assessment submission is located at the following link:
 
-  https://${in.headers.get('webhost')}/${in.headers.get('webuser')}/${in.headers.get('group')}/${in.headers.get('sha256')}
+  https://${in.headers.get('webhost')}/${in.headers.get('webuser')}/${in.headers.get('module')}/${in.headers.get('sha256')}
 
 If you have any queries regarding this feedback, then please either directly contact your module tutor or reply to this email.
 
