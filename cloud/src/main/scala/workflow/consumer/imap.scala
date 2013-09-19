@@ -31,9 +31,9 @@ trait Imap extends Preamble { this: Submission =>
   private[this] val mailuser = config[String]("mail.user")
   private[this] val mailpw   = config[String]("mail.password")
 
-  private[this] val folder   = config[String]("imap.folder")
+  private[this] val folders  = config[List[String]]("imap.folders")
   private[this] val poll     = new DurationInt(config[Int]("imap.poll", 1)).minutes
-  private[this] val proto    = if (config[Boolean]("imap.ssl")) "imaps" else "imap"
+  private[this] val proto    = if (config[Boolean]("imap.ssl", true)) "imaps" else "imap"
 
   val extractAttachment = { (exchange: Exchange) =>
     val replyTo = if (exchange.getIn.getHeader("ReplyTo") == null) exchange.getIn.getHeader("From") else exchange.getIn.getHeader("ReplyTo")
@@ -54,20 +54,22 @@ trait Imap extends Preamble { this: Submission =>
     exchange.getIn.setBody(tarball, classOf[Array[Byte]])
   }
 
-  router.context.addRoutes(new RouteBuilder {
-    s"$proto:$mailhost?username=$mailuser&password=$mailpw&folderName=$folder&consumer.delay=${poll.toMillis}" ==> {
-      errorHandler(deadLetterChannel(error_channel))
-
-      process(extractAttachment)
-      to(uri)
-    }
-  })
+  for(folder <- folders) {
+    router.context.addRoutes(new RouteBuilder {
+      s"$proto:$mailhost?username=$mailuser&password=$mailpw&folderName=$folder&consumer.delay=${poll.toMillis}" ==> {
+        errorHandler(deadLetterChannel(error_channel))
+  
+        process(extractAttachment)
+        to(uri)
+      }
+    })
+  }
 }
 
 object Imap {
-  def apply(folder: String, poll: Duration = 1.minute, ssl: Boolean = true) {
-    Config.setValue("imap.folder", folder)
-    Config.setValue("imap.poll", poll.toMinutes.toString)
-    Config.setValue("imap.ssl", ssl.toString)
+  def apply(folders: String*)(implicit poll: Duration = 1.minute, ssl: Boolean = true) {
+    Config.setValue("imap.folders", folders.toList)
+    Config.setValue("imap.poll", poll.toMinutes)
+    Config.setValue("imap.ssl", ssl)
   }
 }

@@ -25,27 +25,29 @@ import scalaz.camel.core._
 trait Git extends Workflow { this: Submission =>
   import Scalaz._
 
-  private[this] val folder = config[String]("git.folder")
-  private[this] val cron   = config[String]("git.cron")
+  private[this] val folders = config[String]("git.folders")
+  private[this] val cron    = config[String]("git.cron")
 
-  // Run a 'git pull' using cron (defaults to once per day)
-  from(s"quartz:$group-git?cron=$cron") {
-    to(s"exec:git?args=pull&workingDir=$folder")
-  }
-  
-  // Monitor git repository directory for changes and generate a submission tar ball
-  from(s"file:$folder?recursive=true") {
-    val tarball = File.makeTemp(suffix=".tgz")
-  
-    to(s"exec:tar?outFile=$tarball&args=-czf $tarball -C $folder .") >=> 
-    { msg: Message => msg.addHeader("ContentType", "application/x-tgz") } >=>
-    to(this.uri)
+  for(folder <- folders) {
+    // Run a 'git pull' using cron (defaults to once per day)
+    from(s"quartz:$group-git?cron=$cron") {
+      to(s"exec:git?args=pull&workingDir=$folder")
+    }
+    
+    // Monitor git repository directory for changes and generate a submission tar ball
+    from(s"file:$folder?recursive=true") {
+      val tarball = File.makeTemp(suffix=".tgz")
+    
+      to(s"exec:tar?outFile=$tarball&args=-czf $tarball -C $folder .") >=> 
+      { msg: Message => msg.addHeader("ContentType", "application/x-tgz") } >=>
+      to(this.uri)
+    }
   }
 }
 
 object Git {
-  def apply(folder: String, cron: String = "* * * * Mon-Sun") {
-    Config.setValue("git.folder", folder)
+  def apply(folders: String*)(implicit cron: String = "* * * * Mon-Sun") {
+    Config.setValue("git.folders", folders.toList)
     Config.setValue("git.cron", cron)
   }
 }

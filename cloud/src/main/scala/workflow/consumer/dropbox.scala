@@ -24,7 +24,7 @@ import scalaz.camel.core._
 trait Dropbox extends Workflow { this: Submission =>
   import Scalaz._
 
-  private[this] val folder = config[String]("dropbox.folder")
+  private[this] val folders = config[List[String]]("dropbox.folders")
   
   def parse_filename(header: String) = {
     val filename = """([uU][0-9]{7})\.(tar\.gz|tgz)""".r
@@ -33,29 +33,31 @@ trait Dropbox extends Workflow { this: Submission =>
     student
   }
 
-  from(s"file:$folder?moveFailed=.error&move=.done") {
-    // Only process tar ball files (we rely on file naming conventions here)
-    attempt {
-      choose {
-        case Message(_, hdrs) if (hdrs.lift("CamelFileNameOnly").isDefined) => {
-          { msg: Message => 
-            val student = parse_filename(msg.headerAs[String]("CamelFileNameOnly").get)
-
-            msg.addHeaders(Map("replyTo" -> "%s@hud.ac.uk".format(student), "ContentType" -> "application/x-tgz", "breadcrumbId" -> getUniqueName(student))) 
-          } >=> 
-          to(uri)
+  for(folder <- folders) {
+    from(s"file:$folder?moveFailed=.error&move=.done") {
+      // Only process tar ball files (we rely on file naming conventions here)
+      attempt {
+        choose {
+          case Message(_, hdrs) if (hdrs.lift("CamelFileNameOnly").isDefined) => {
+            { msg: Message => 
+              val student = parse_filename(msg.headerAs[String]("CamelFileNameOnly").get)
+  
+              msg.addHeaders(Map("replyTo" -> "%s@hud.ac.uk".format(student), "ContentType" -> "application/x-tgz", "breadcrumbId" -> getUniqueName(student)))   
+            } >=> 
+            to(uri)
+          }
+          case _ =>
+            { msg: Message => throw new Exception("Invalid message received") }
         }
-        case _ =>
-          { msg: Message => throw new Exception("Invalid message received") }
+      } fallback {
+          case ex: Exception => { msg: Message => msg.setException(ex) } >=> to(error_channel)
       }
-    } fallback {
-        case ex: Exception => { msg: Message => msg.setException(ex) } >=> to(error_channel)
     }
   }
 }
 
 object Dropbox {
-  def apply(folder: String) {
-    Config.setValue("dropbox.folder", folder)
+  def apply(folders: String*) {
+    Config.setValue("dropbox.folders", folders.toList)
   }
 }

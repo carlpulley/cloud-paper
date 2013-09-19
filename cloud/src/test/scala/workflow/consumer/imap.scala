@@ -85,7 +85,8 @@ class ImapTests extends ScalaTestSupport with Helpers {
   }
 
   // Test IMAP without SSL (otherwise mock-javamail hits the real server!)
-  Imap(folder, ssl=false)
+  implicit val ssl = false
+  Imap(folder)
   val workflow_hook = to("mock:imap-workflow") >=> to("log:STOPPED?showAll=true") >=> failWith(new Exception("stopped"))
   val submission_endpoint = new Submission(ControlBus(), workflow_hook) with Imap
   from(submission_endpoint.error_channel) {
