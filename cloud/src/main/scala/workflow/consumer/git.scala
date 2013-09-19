@@ -31,7 +31,12 @@ trait Git extends Workflow { this: Submission =>
   for(folder <- folders) {
     // Run a 'git pull' using cron (defaults to once per day)
     from(s"quartz:$group-git?cron=$cron") {
-      to(s"exec:git?args=pull&workingDir=$folder")
+      to(s"exec:git?args=pull&workingDir=$folder") >=>
+      choose {
+        case Message("fatal: Not a git repository (or any of the parent directories): .git", _) => {
+          to(error_channel)
+        }
+      }
     }
     
     // Monitor git repository directory for changes and generate a submission tar ball
