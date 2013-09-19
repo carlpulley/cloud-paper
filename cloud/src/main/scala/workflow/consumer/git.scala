@@ -34,7 +34,7 @@ trait Git extends Workflow { this: Submission =>
       to(s"exec:git?args=pull&workingDir=$folder") >=>
       choose {
         case Message("fatal: Not a git repository (or any of the parent directories): .git", _) => {
-          to(error_channel)
+          to(error_channel) >=> failWith(new Exception(s"$folder is not a git repository"))
         }
       }
     }

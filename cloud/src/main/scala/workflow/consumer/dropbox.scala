@@ -50,7 +50,7 @@ trait Dropbox extends Workflow { this: Submission =>
             { msg: Message => throw new Exception("Invalid message received") }
         }
       } fallback {
-          case ex: Exception => { msg: Message => msg.setException(ex) } >=> to(error_channel)
+          case ex: Exception => to(error_channel) >=> failWith(ex)
       }
     }
   }

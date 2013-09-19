@@ -93,7 +93,7 @@ class Submission(val controller: ActorRef, workflow: Conv.MessageRoute, endpoint
           { msg: Message => throw new Exception("Invalid message received") }
       }
     } fallback {
-        case ex: Exception => { msg: Message => msg.setException(ex) } >=> to(error_channel)
+        case ex: Exception => to(error_channel) >=> failWith(ex)
     }
   }
 
@@ -109,7 +109,7 @@ class Submission(val controller: ActorRef, workflow: Conv.MessageRoute, endpoint
           { msg: Message => throw new Exception("Invalid message received") }
       }
     } fallback {
-        case ex: Exception => { msg: Message => msg.setException(ex) } >=> to(error_channel)
+        case ex: Exception => to(error_channel) >=> failWith(ex)
     }
   }
 }
