@@ -47,4 +47,8 @@ object Config {
   def setValue[T](key: String, value: T) {
     config = config.set(key, value)
   }
+
+  def setValue[T](key: String, value: List[T]) {
+    config = config.set(key, value)
+  }
 }
