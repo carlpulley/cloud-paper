@@ -45,68 +45,74 @@ object Marking extends Workflow {
 
     val generateFeedback = { msg: Message =>
       val feedback = DB autoCommit { implicit session =>
-        val last_submission = sql"""
+        val lastest_submissions = sql"""
           SELECT 
-            LAST(s.created_at)
+            s.student, LAST(s.created_at)
           FROM ${FeedbackTable.name} AS f
             INNER JOIN ${SubmissionTable.name} AS s ON s.id = f.submission_id
           WHERE
             module = ${group}
-          ORDER BY s.created_at ASC
-        """.map(_.date(1)).single.apply().get
-
-        sql"""
-          SELECT 
-            s.student, s.created_at, f.message
-          FROM ${FeedbackTable.name} AS f
-            INNER JOIN ${SubmissionTable.name} AS s ON s.id = f.submission_id
-          WHERE
-            module = ${group}
-            AND s.created_at = ${last_submission}
           GROUP BY
             s.student
-        """.map(rs => Feedback(rs.string("student"), rs.date("created_at"), XML.loadString(rs.string("message")))).list.apply()
+          ORDER BY 
+            s.created_at ASC
+        """.map(rs => (rs.string("student"), rs.date(1))).list.apply()
+
+        for((student, last_submission) <- lastest_submissions)
+          yield (student, last_submission, sql"""
+            SELECT 
+              f.message
+            FROM ${FeedbackTable.name} AS f
+              INNER JOIN ${SubmissionTable.name} AS s ON s.id = f.submission_id
+            WHERE
+              module = ${group}
+              AND s.student = ${student}
+              AND s.created_at = ${last_submission}
+            GROUP BY
+              s.student
+          """.map(rs => Feedback(student, last_submission, XML.loadString(rs.string("message")))).list.apply())
       }
 
       Message(feedback, Map("group" -> group))
     }
 
+    def saveMarkingGrid(filename: String, grader: PartialFunction[String, Int]) = { msg: Message => msg.transform[List[(String, Date, List[Feedback])]](table => 
+      Workbook {
+        Set(
+          Sheet(s"$group marking grid") {
+            Set(
+              Row(0) {
+                val hdr = table.head._3
+    
+                Set(StringCell(1, "Student"), StringCell(2, "Submission Date"), StringCell(hdr.length+3, "Total")) ++
+                  (hdr.zipWithIndex.map { pr => {
+                    val (item, i) = pr
+                    val n = item.feedback \ "feedback" \ "item" \ "@id"
+    
+                    StringCell(i+2, s"Question $n")
+                  }})
+              }
+            ) ++
+            (for(((student, submitted_at, result), row) <- table.zipWithIndex)
+              yield Row(row+1) {
+                def grade(item: Feedback) = grader.lift((item.feedback \ "feedback" \ "item" \ "@id").toString).getOrElse(0)
+  
+                Set(StringCell(1, student), StringCell(2, submitted_at.toString), NumericCell(result.length+3, result.map(grade(_)).sum)) ++
+                  (result.zipWithIndex.map { pr => {
+                    val (item, i) = pr
+  
+                    NumericCell(i, grade(item))
+                  }})
+              }
+            )
+          }
+        )
+      }.toFile(filename)
+    ) }
+
+
     { case GenerateFeedback(filename, grader) =>
-        generateFeedback >=> 
-        // FIXME: aggregate({ msg: Message => Message(List[(String, Date, List[Feedback])], Map("group" -> group)) }) >=>
-        { msg: Message => msg.transform[List[(String, Date, List[Feedback])]](table => 
-            Workbook {
-              Set(
-                Sheet(s"$group marking grid") {
-                  Set(
-                    Row(0) {
-                      val hdr = table.head._3
-    
-                      Set(StringCell(1, "Student"), StringCell(2, "Submission Date"), StringCell(hdr.length+3, "Total")) ++
-                        (hdr.zipWithIndex.map { pr => {
-                          val (item, i) = pr
-                          val n = item.feedback \ "feedback" \ "item" \ "@id"
-    
-                          StringCell(i+2, s"Question $n")
-                        }})
-                    }
-                  ) ++
-                  (for(((student, submitted_at, result), row) <- table.zipWithIndex)
-                    yield Row(row+1) {
-                      def grade(item: Feedback) = grader.lift((item.feedback \ "feedback" \ "item" \ "@id").toString).getOrElse(0)
-  
-                      Set(StringCell(1, student), StringCell(2, submitted_at.toString), NumericCell(result.length+3, result.map(grade(_)).sum)) ++
-                        (result.zipWithIndex.map { pr => {
-                          val (item, i) = pr
-  
-                          NumericCell(i, grade(item))
-                        }})
-                    }
-                  )
-                }
-              )
-            }.toFile(filename)
-        ) }
+        generateFeedback >=> saveMarkingGrid(filename, grader)
     }
   }
 }
