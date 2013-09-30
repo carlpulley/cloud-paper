@@ -34,6 +34,7 @@ object V {
   val CAMEL = "2.11.1"
   val CONFIG = "1.0.0"
   val JCLOUDS = "1.6.1-incubating"
+  val JUNIT = "4.11"
   val LIFT = "2.5.1"
   val LOG4J = "1.2.17"
   val SCALA = "2.10.2"
@@ -58,14 +59,17 @@ trait Dependencies {
     "org.scalaz" %% "scalaz-core" % V.SCALAZ,
     "org.scalaz" %% "scalaz-concurrent" % V.SCALAZ,
     // Microsoft document format handling
-    "info.folone" %% "poi-scala" % "0.9"
+    "info.folone" %% "poi-scala" % "0.9",
+    // For Java based DI
+    "com.google.inject" % "guice" % "4.0-beta"
   )
 
   val Testing = Seq(
     "org.scalatest" % "scalatest_2.10" % V.SCALATEST % "test",
     "org.scalacheck" % "scalacheck_2.10" % V.SCALACHECK % "test",
     // Mocking mail servers and clients
-    "org.jvnet.mock-javamail" % "mock-javamail" % "1.9" % "test"
+    "org.jvnet.mock-javamail" % "mock-javamail" % "1.9" % "test",
+    "junit" % "junit" % V.JUNIT
   )
     
   val Logging = Seq(
@@ -76,6 +80,8 @@ trait Dependencies {
   val Akka = Seq(
     "com.typesafe.akka" %% "akka-kernel" % V.AKKA,
     "com.typesafe.akka" %% "akka-actor" % V.AKKA,
+    "com.typesafe.akka" %% "akka-remote" % V.AKKA,
+   "com.typesafe.akka" %% "akka-camel" % V.AKKA,
     "com.typesafe.akka" %% "akka-testkit" % V.AKKA % "test"
   )
   

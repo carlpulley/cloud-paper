@@ -15,16 +15,97 @@
 
 package cloud.workflow.dsl
 
+import akka.actor.Actor
+import akka.actor.ActorRef
+import akka.actor.Actor.Receive
+import akka.actor.ActorSystem
+import akka.actor.AddressFromURIString
+import akka.actor.Deploy
+import akka.actor.PoisonPill
+import akka.actor.Props
+import akka.camel.Ack
+import akka.pattern.ask
+import akka.remote.RemoteScope
+import akka.util.Timeout
 import cloud.lib.Image
 import cloud.lib.Workflow
+import cloud.workflow.controller.ControlEvent
+import cloud.workflow.controller.StartVM
+import org.jclouds.compute.domain.NodeMetadata
+import scala.collection.JavaConversions._
+import scala.collection.mutable
+import scala.concurrent.Await
+import scala.concurrent.duration._
+import scala.concurrent.Future
+import scala.language.postfixOps
 import scalaz._
+import scalaz.camel.core.Conv.MessageRoute
 import scalaz.camel.core._
 
-object Context extends Workflow {
-  import Scalaz._
+// Cloud compute instance interactions
+case class AddWorkflow(workflow: (String, MessageRoute)) extends ControlEvent
 
-  def apply(image: Image, workflow: MessageRoute): MessageRoute = {
-    // TODO: implement this!
-    workflow
+object VMStarted extends ControlEvent
+object WorkflowStarted extends ControlEvent
+
+// This actor provides a bridge between the parent compute node's VMInstance actor and this actor's encapsulated workflow
+// The actor is started when the compute node boots (as part of a Chef configured service script)
+class WorkflowEndpoint(workflow: MessageRoute) extends Actor {
+  override def preStart = {
+    context.actorSelection("..") ! WorkflowStarted
+  }
+
+  def receive = {
+    case msg: Message =>
+      // FIXME: is message processing here really asynchronous?
+      workflow apply Validation.success(msg)
+  }
+}
+
+// This actor is used to control and interact with the cloud compute node that it launches
+// Note: instances are launched with the cloud-dispatcher so that we have some tolerance when
+//       code blocks during cloud image spin up
+class VMInstance(image: Image) extends Actor {
+  import context.dispatcher
+
+  private[this] var node: Option[NodeMetadata] = None
+
+  override def preStart() = {
+    node = Some(image.bootstrap())
+    self ! VMStarted
+  }
+
+  override def postStop() = {
+    image.shutdown()
+  }
+
+  def booting: Receive = {
+    case VMStarted =>
+      context.become(running)
+  }
+
+  def running: Receive = {
+    case AddWorkflow((name, workflow)) => {
+      val host = node.get.getPublicAddresses.head
+      val addr = AddressFromURIString(s"akka.tcp://$host/user/${image.group}/${name}")
+  
+      sender ! context.actorOf(Props(new WorkflowEndpoint(workflow)).withDeploy(Deploy(scope = RemoteScope(addr))), name)
+    }
+  }
+
+  def receive = booting
+}
+
+object Context extends Workflow {
+  private[this] val vm: mutable.Map[Image, ActorRef] = mutable.Map()
+
+  def apply(image: Image, workflow: (String, MessageRoute))(implicit router: Router, controller: ActorRef, timeout: Timeout = Timeout(10 minutes)): MessageRoute = {
+    if (! vm.contains(image)) {
+      val node = controller ? StartVM(image)
+      vm(image) = Await.result(node, timeout.duration).asInstanceOf[ActorRef]
+    }
+    val endpoint = vm(image) ? AddWorkflow(workflow)
+    
+    to(Await.result(endpoint, timeout.duration).asInstanceOf[ActorRef].path.name) // FIXME:
   }
 }

@@ -16,65 +16,19 @@
 package cloud.workflow.controller
 
 import akka.actor.Actor
-import akka.actor.ActorRef
-import akka.actor.Actor.Receive
 import akka.actor.ActorSystem
-import akka.actor.PoisonPill
 import akka.actor.Props
-import akka.camel.Ack
 import cloud.lib.Image
-import org.jclouds.compute.domain.NodeMetadata
-import scala.concurrent.Future
+import cloud.workflow.dsl.VMInstance
 import scalaz.camel.core.Conv.MessageRoute
-import scalaz.camel.core.Message
 
 trait ControlEvent
-// Cloud compute instance interactions
 case class StartVM(image: Image) extends ControlEvent
-case class BuildVM(caller: ActorRef) extends ControlEvent
-case class StopVM(vm: ActorRef) extends ControlEvent
-case class VMStarted(node: NodeMetadata) extends ControlEvent
 
-class VMInstance(image: Image) extends Actor {
-  import context.dispatcher
-
-  override def postStop() = {
-    image.shutdown()
-  }
-
-  def booting: Receive = {
-    case BuildVM(caller) => {
-      context.become(waiting)
-      val nodeF = Future {
-        image.bootstrap()
-      }
-      // FIXME: when bootstrap returns, is the VM really up and running?
-      nodeF map { node =>
-        caller ! VMStarted(node)
-        context.become(running)
-      }
-    }
-  }
-
-  def waiting: Receive = Actor.emptyBehavior
-
-  // FIXME: should we add in any extra behaviour here?
-  def running: Receive = Actor.emptyBehavior
-
-  def receive = booting
-}
-
-class ControlBus(group: String, handlers: PartialFunction[ControlEvent, MessageRoute]) extends Actor {
+class ControlBus(handlers: PartialFunction[ControlEvent, MessageRoute]) extends Actor {
   def receive = {
     case StartVM(image) => {
-      val vm = context.actorOf(Props(new VMInstance(image)), image.group)
-      vm ! BuildVM(sender)
-      sender ! Message(vm)
-    }
-
-    case StopVM(vm) => {
-      vm ! PoisonPill
-      sender ! Ack
+      sender ! context.actorOf(Props(new VMInstance(image)).withDispatcher("cloud-dispatcher"), image.group)
     }
 
     case msg: ControlEvent => {
@@ -84,7 +38,7 @@ class ControlBus(group: String, handlers: PartialFunction[ControlEvent, MessageR
 }
 
 object ControlBus {
-  def apply(handlers: PartialFunction[ControlEvent, MessageRoute] = Map.empty)(implicit group: String, system: ActorSystem) = {
-    system.actorOf(Props(new ControlBus(group, handlers)), "control-bus")
+  def apply(handlers: PartialFunction[ControlEvent, MessageRoute] = Map.empty)(implicit system: ActorSystem) = {
+    system.actorOf(Props(new ControlBus(handlers)), "control-bus")
   }
 }

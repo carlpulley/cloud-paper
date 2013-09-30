@@ -66,7 +66,7 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
   Class.forName(sqldriver)
   ConnectionPool.singleton(sqlurl, sqluser, sqlpw)
 
-  val controller = TestActorRef(Props(new ControlBus(group, Map.empty)))
+  val controller = TestActorRef(Props(new ControlBus(Map.empty)))
   val simple_feedback = { msg: Message => msg.setBody(msg.bodyAs[String].replaceAll("Submission", "Feedback")) }
   val submission_endpoint = new Submission(controller, simple_feedback, to("mock:mail"), to("mock:web"))
   from(submission_endpoint.error_channel) {
