@@ -15,6 +15,7 @@
 
 package cloud.lib
 
+import scalaz.camel.akka.Akka
 import scalaz.camel.core.Camel
 
-trait Workflow extends Camel with Helpers
+trait Workflow extends Camel with Akka with Helpers

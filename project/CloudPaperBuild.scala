@@ -41,6 +41,7 @@ object V {
   val SCALACHECK = "1.10.1"
   val SCALATEST = "2.0.M6"
   val SCALAZ = "7.1.0-M1"
+  val SCALAZCAMEL = "0.4-SNAPSHOT"
   val SCALIKEJDBC = "[1.6,)"
   val SLF4J = "1.7.5"
 }
@@ -102,7 +103,8 @@ trait Dependencies {
     "org.apache.activemq" % "activemq-core" % V.ACTIVEMQ,
     "org.apache.activemq" % "activemq-camel" % V.ACTIVEMQ,
     "com.typesafe.akka" %% "akka-camel" % V.AKKA,
-    "scalaz.camel" %% "scalaz-camel-core" % "0.4-SNAPSHOT"
+    "scalaz.camel" %% "scalaz-camel-core" % V.SCALAZCAMEL,
+    "scalaz.camel" %% "scalaz-camel-akka" % V.SCALAZCAMEL
   )
   
   val JClouds = Seq(

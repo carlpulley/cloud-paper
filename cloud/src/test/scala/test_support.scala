@@ -28,6 +28,7 @@ import org.scalatest.FunSuiteLike
 import org.scalatest.MustMatchers
 import scala.collection.JavaConversions._
 import scala.language.implicitConversions
+import scalaz.camel.akka._
 import scalaz.camel.core._
 import scalaz.concurrent.Strategy
 
@@ -37,7 +38,7 @@ class CamelContextWrapper(context: CamelContext) {
   }
 }
 
-trait ScalaTestSupport extends Camel with FunSuiteLike with MustMatchers with BeforeAndAfterAll with BeforeAndAfter {
+trait ScalaTestSupport extends Camel with Akka with FunSuiteLike with MustMatchers with BeforeAndAfterAll with BeforeAndAfter {
   dispatchConcurrencyStrategy = Strategy.Sequential
   multicastConcurrencyStrategy = Strategy.Sequential
 

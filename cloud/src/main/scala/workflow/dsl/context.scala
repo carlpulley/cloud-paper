@@ -99,13 +99,13 @@ class VMInstance(image: Image) extends Actor {
 object Context extends Workflow {
   private[this] val vm: mutable.Map[Image, ActorRef] = mutable.Map()
 
-  def apply(image: Image, workflow: (String, MessageRoute))(implicit router: Router, controller: ActorRef, timeout: Timeout = Timeout(10 minutes)): MessageRoute = {
+  def apply(image: Image, workflow: (String, MessageRoute))(implicit router: Router, controller: ActorRef, system: ActorSystem, timeout: Timeout = Timeout(10 minutes)): MessageRoute = {
     if (! vm.contains(image)) {
       val node = controller ? StartVM(image)
       vm(image) = Await.result(node, timeout.duration).asInstanceOf[ActorRef]
     }
     val endpoint = vm(image) ? AddWorkflow(workflow)
     
-    to(Await.result(endpoint, timeout.duration).asInstanceOf[ActorRef].path.name) // FIXME:
+    to(Await.result(endpoint, timeout.duration).asInstanceOf[ActorRef])
   }
 }
