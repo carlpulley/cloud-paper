@@ -49,6 +49,7 @@ class HTTPTests extends ScalaTestSupport with Helpers {
 
   override def afterAll = {
     router.stop
+    system.shutdown
   }
 
   val feedback = "<feedback><item id='2'><comment>Dummy comment 2</comment></item><item id='1'><comment>Dummy comment 1</comment></item></feedback>"

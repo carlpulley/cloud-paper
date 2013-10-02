@@ -81,6 +81,7 @@ class ImapTests extends ScalaTestSupport with Helpers {
 
   override def afterAll = {
     router.stop
+    system.shutdown
     new File(sqlurl.split(":").last).delete
   }
 
