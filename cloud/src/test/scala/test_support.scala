@@ -17,6 +17,7 @@ package cloud.workflow.test
 
 import akka.actor.ActorSystem
 import akka.camel.CamelExtension
+import cloud.lib.Config
 import org.apache.camel.model.RouteDefinition
 import org.apache.camel.CamelContext
 import org.apache.camel.component.mock.MockEndpoint
@@ -43,6 +44,7 @@ trait ScalaTestSupport extends Camel with Akka with FunSuiteLike with MustMatche
   multicastConcurrencyStrategy = Strategy.Sequential
 
   implicit val group = "default"
+  Config.setValue("group", group)
   implicit val system = ActorSystem(group)
   val camel = CamelExtension(system)
 

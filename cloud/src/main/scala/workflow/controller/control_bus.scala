@@ -28,7 +28,7 @@ case class StartVM(image: Image) extends ControlEvent
 class ControlBus(handlers: PartialFunction[ControlEvent, MessageRoute]) extends Actor {
   def receive = {
     case StartVM(image) => {
-      sender ! context.actorOf(Props(new VMInstance(image)).withDispatcher("cloud-dispatcher"), image.group)
+      sender ! context.actorOf(Props(new VMInstance(image)).withDispatcher("akka.actor.cloud-dispatcher"), image.group)
     }
 
     case msg: ControlEvent => {

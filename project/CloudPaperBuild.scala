@@ -15,6 +15,8 @@
 
 import sbt._
 import Keys._
+import sbtassembly.Plugin._
+import AssemblyKeys._
 import akka.sbt.AkkaKernelPlugin
 import akka.sbt.AkkaKernelPlugin.{ Dist, outputDirectory, distJvmOptions}
 
@@ -60,9 +62,7 @@ trait Dependencies {
     "org.scalaz" %% "scalaz-core" % V.SCALAZ,
     "org.scalaz" %% "scalaz-concurrent" % V.SCALAZ,
     // Microsoft document format handling
-    "info.folone" %% "poi-scala" % "0.9",
-    // For Java based DI
-    "com.google.inject" % "guice" % "4.0-beta"
+    "info.folone" %% "poi-scala" % "0.9"
   )
 
   val Testing = Seq(
@@ -82,7 +82,7 @@ trait Dependencies {
     "com.typesafe.akka" %% "akka-kernel" % V.AKKA,
     "com.typesafe.akka" %% "akka-actor" % V.AKKA,
     "com.typesafe.akka" %% "akka-remote" % V.AKKA,
-   "com.typesafe.akka" %% "akka-camel" % V.AKKA,
+    "com.typesafe.akka" %% "akka-camel" % V.AKKA,
     "com.typesafe.akka" %% "akka-testkit" % V.AKKA % "test"
   )
   
@@ -140,12 +140,12 @@ object CloudPaperBuild extends Build with Resolvers with Dependencies {
     id = "cloud-paper",
     base = file("."),
     settings = CloudPaperSettings
-  ) aggregate(cloud)
+  ) aggregate(cloud, example)
 
   lazy val cloud = Project(
     id = "cloud",
     base = file("cloud"),
-    settings = CloudPaperSettings ++ AkkaKernelPlugin.distSettings ++ Seq(
+    settings = CloudPaperSettings ++ assemblySettings ++ AkkaKernelPlugin.distSettings ++ Seq(
       outputDirectory in Dist := file("target/deploy"),
       parallelExecution in Test := false,
       scalacOptions += "-language:experimental.macros",
@@ -153,5 +153,11 @@ object CloudPaperBuild extends Build with Resolvers with Dependencies {
       scalacOptions += "-P:continuations:enable",
       libraryDependencies ++= Akka ++ ApacheCamel ++ JClouds
     )
+  )
+
+  lazy val example = Project(
+    id = "example",
+    base = file("example"),
+    settings = CloudPaperSettings ++ assemblySettings
   )
 }

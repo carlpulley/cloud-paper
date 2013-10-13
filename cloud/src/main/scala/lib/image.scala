@@ -47,7 +47,7 @@ import scala.language.implicitConversions
 
 trait Image {
   val group: String = Config()[String]("group")
-  assert(new WrappedString(group).filter("abcdefghijklmnopqrstuvwxyz0123456789-".contains(_)) == group)
+  assert(new WrappedString(group).filter("abcdefghijklmnopqrstuvwxyz0123456789-".contains(_)).toString == group, "group names need to contain lower case alphanumerics or hypens")
 
   // N.B. cloud providers are *not* organised by group
   protected[this] val config = Config.load("cloud.conf")
@@ -68,7 +68,7 @@ trait Image {
     .endpoint(chef_server)
     .credentials(chef_user, scala.io.Source.fromFile(chef_pem).mkString)
     .overrides(chef_config)
-    .build()
+    .buildView(classOf[ChefContext])
 
   protected[this] val chef_runlist: RunListBuilder = new RunListBuilder()
   protected[this] val chef_attributes = mutable.Map[String, JObject]()
