@@ -47,19 +47,13 @@ import scalaz.camel.core._
 case class AddWorkflow(workflow: (String, MessageRoute)) extends ControlEvent
 
 object VMStarted extends ControlEvent
-object WorkflowStarted extends ControlEvent
 
 // This actor provides a bridge between the parent compute node's VMInstance actor and this actor's encapsulated workflow
 // The actor is started when the compute node boots (as part of a Chef configured service script)
-class WorkflowEndpoint(workflow: MessageRoute) extends Actor {
-  override def preStart = {
-    context.actorSelection("..") ! WorkflowStarted
-  }
-
+class WorkflowEndpoint(workflow: MessageRoute) extends Actor with Camel {
   def receive = {
     case msg: Message =>
-      // FIXME: is message processing here really asynchronous?
-      workflow apply Validation.success(msg)
+      sender ! (workflow process msg)
   }
 }
 
