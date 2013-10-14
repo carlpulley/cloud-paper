@@ -17,6 +17,7 @@ package cloud.workflow.dsl.test
 
 import akka.actor.Props
 import akka.testkit.TestActorRef
+import akka.util.Timeout
 import cloud.lib.Config
 import cloud.lib.Helpers
 import cloud.workflow.controller.ControlBus
@@ -25,6 +26,8 @@ import cloud.workflow.test.MockImage
 import cloud.workflow.test.ScalaTestSupport
 import org.streum.configrity._
 import scala.collection.JavaConversions._
+import scala.concurrent.duration._
+import scala.language.postfixOps
 import scalaz._
 import scalaz.camel.core._
 
@@ -36,6 +39,7 @@ class ContextTests extends ScalaTestSupport with Helpers {
 
   setLogLevel(loglevel)
 
+  implicit val timeout: Timeout = Timeout(30 seconds)
   implicit val controller = TestActorRef(Props(new ControlBus(Map.empty)))
   val appender = { msg: Message => msg.setBody(msg.bodyAs[String] + "-done") }
   val image = new MockImage()

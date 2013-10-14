@@ -17,6 +17,7 @@ package cloud.workflow.test
 
 import cloud.lib.Image
 import cloud.lib.provider
+import java.net.InetAddress
 import org.jclouds.compute.ComputeServiceContext
 import org.jclouds.compute.domain.internal.NodeMetadataImpl
 import org.jclouds.compute.domain.NodeMetadata
@@ -27,7 +28,26 @@ class LiveImage extends provider.AwsEc2.Ubuntu("12.04")
 
 class MockImage extends LiveImage {
   override def bootstrap() = {
-    new NodeMetadataImpl(null, null, null, null, null, Map[String, String](), Set[String](), group, null, null, null, null, null, 22, Seq("127.0.0.1"), Seq(), null, "test")
+    new NodeMetadataImpl(
+      /* String providerId */ null,
+      /* String name */ null, 
+      /* String id */ "mockimage", 
+      /* Location location */ null, 
+      /* URI uri */ null, 
+      /* Map<String, String> userMetadata */ Map[String, String](),
+      /* Set<String> tags */ Set[String](), 
+      /* @Nullable String group */ group, 
+      /* @Nullable Hardware hardware */ null, 
+      /* @Nullable String imageId */ null, 
+      /* @Nullable OperatingSystem os */ null, 
+      /* Status status */ NodeMetadata.Status.RUNNING, 
+      /* @Nullable String backendStatus */ null, 
+      /* int loginPort */ 22, 
+      /* Iterable<String> publicAddresses */ Seq(InetAddress.getLocalHost.getHostAddress), 
+      /* Iterable<String> privateAddresses */ Seq(), 
+      /* @Nullable LoginCredentials credentials */ null, 
+      /* String hostname */ "test"
+    )
   }
 
   override def shutdown() {

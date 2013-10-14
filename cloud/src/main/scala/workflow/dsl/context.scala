@@ -23,6 +23,7 @@ import akka.actor.AddressFromURIString
 import akka.actor.Deploy
 import akka.actor.PoisonPill
 import akka.actor.Props
+import akka.actor.Stash
 import akka.camel.Ack
 import akka.pattern.ask
 import akka.remote.RemoteScope
@@ -65,7 +66,7 @@ class WorkflowEndpoint(workflow: MessageRoute) extends Actor {
 // This actor is used to control and interact with the cloud compute node that it launches
 // Note: instances are launched with the cloud-dispatcher so that we have some tolerance when
 //       code blocks during cloud image spin up
-class VMInstance(image: Image) extends Actor {
+class VMInstance(image: Image) extends Actor with Stash {
   import context.dispatcher
 
   private[this] var node: Option[NodeMetadata] = None
@@ -80,8 +81,13 @@ class VMInstance(image: Image) extends Actor {
   }
 
   def booting: Receive = {
-    case VMStarted =>
+    case VMStarted => {
+      unstashAll()
       context.become(running)
+    }
+    case msg =>
+      // Stash all other messages until we are running
+      stash()
   }
 
   def running: Receive = {
@@ -101,11 +107,11 @@ object Context extends Workflow {
 
   def apply(image: Image, workflow: (String, MessageRoute))(implicit router: Router, controller: ActorRef, system: ActorSystem, timeout: Timeout = Timeout(10 minutes)): MessageRoute = {
     if (! vm.contains(image)) {
-      val node = controller ? StartVM(image)
-      vm(image) = Await.result(node, timeout.duration).asInstanceOf[ActorRef]
+      val node = (controller ? StartVM(image)).mapTo[ActorRef]
+      vm(image) = Await.result(node, timeout.duration)
     }
-    val endpoint = vm(image) ? AddWorkflow(workflow)
+    val endpoint = (vm(image) ? AddWorkflow(workflow)).mapTo[ActorRef]
     
-    to(Await.result(endpoint, timeout.duration).asInstanceOf[ActorRef])
+    to(Await.result(endpoint, timeout.duration))
   }
 }
