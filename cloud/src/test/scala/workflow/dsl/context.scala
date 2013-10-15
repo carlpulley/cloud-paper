@@ -24,6 +24,7 @@ import cloud.workflow.controller.ControlBus
 import cloud.workflow.dsl.Context
 import cloud.workflow.test.MockImage
 import cloud.workflow.test.ScalaTestSupport
+import java.util.concurrent.TimeUnit
 import org.streum.configrity._
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
@@ -50,16 +51,14 @@ class ContextTests extends ScalaTestSupport with Helpers {
     system.shutdown
   }
 
-  test("Check that contexts launch and process messages correctly") {
-    // TODO: check that expected actors have launched!
-
+  test("Check that contexts process messages correctly") {
     val mock_workflow = getMockEndpoint("mock:workflow")
     mock_workflow.expectedMessageCount(1)
     mock_workflow.expectedBodiesReceived("send")
 
-    context_route process Message("send") match {
+    context_route process(Message("send"), 30, TimeUnit.SECONDS) match {
       case Success(msg: Message) => msg.bodyAs[String] matches "send-done"
-      case _ => fail("FIXME:")
+      case _ => fail("workflow failed to process message")
     }
 
     mock_workflow.assertIsSatisfied
