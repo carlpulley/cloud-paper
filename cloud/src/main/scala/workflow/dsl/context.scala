@@ -87,7 +87,7 @@ class VMInstance(image: Image) extends Actor with Stash {
   def running: Receive = {
     case AddWorkflow((name, workflow)) => {
       val host = node.get.getPublicAddresses.head
-      val addr = AddressFromURIString(s"akka.tcp://$host/user/${image.group}/${name}")
+      val addr = AddressFromURIString(s"akka.tcp://${image.group}@$host:2552/user/${image.group}/${name}")
   
       sender ! context.actorOf(Props(new WorkflowEndpoint(workflow)).withDeploy(Deploy(scope = RemoteScope(addr))), name)
     }
