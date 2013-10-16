@@ -4,3 +4,6 @@
 [submodule "cookbook/apt"]
 	path = cookbook/apt
 	url = https://github.com/opscode-cookbooks/apt.git
+[submodule "cookbook/sqlite"]
+	path = cookbook/sqlite
+	url = https://github.com/opscode-cookbooks/sqlite.git
