@@ -18,6 +18,7 @@ package cloud.workflow.test
 import cloud.lib.Image
 import cloud.lib.provider
 import java.net.InetAddress
+import net.liftweb.json.JsonDSL._
 import org.jclouds.compute.ComputeServiceContext
 import org.jclouds.compute.domain.internal.NodeMetadataImpl
 import org.jclouds.compute.domain.NodeMetadata
@@ -25,9 +26,14 @@ import org.jclouds.domain.LoginCredentials
 import scala.collection.JavaConversions._
 
 class LiveImage extends provider.AwsEc2.Ubuntu("12.04") {
+  template_builder
+    .minRam(1024)
+
   chef_runlist
     .addRecipe("java")
     .addRecipe("cloud")
+
+  chef_attributes += ("cloud" -> ("boot_class" -> "cloud.lib.Kernel"))
 }
 
 class MockImage extends LiveImage {
