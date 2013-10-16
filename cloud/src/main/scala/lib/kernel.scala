@@ -22,9 +22,7 @@ import org.apache.activemq.ActiveMQConnectionFactory
 import org.apache.camel.component.jms.JmsComponent
 import scalaz.camel.core.Router
 
-class Kernel extends Bootable {
-  val module: String = this.getClass.getSimpleName.replaceAll("_", "-")
-
+class Kernel(module: String = "default") extends Bootable {
   implicit val group = module.toLowerCase
   Config.setValue("group", group)
   implicit val system = ActorSystem(module.toUpperCase)

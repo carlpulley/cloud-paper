@@ -27,7 +27,7 @@ import scala.collection.JavaConversions._
 
 class LiveImage extends provider.AwsEc2.Ubuntu("12.04") {
   template_builder
-    .minRam(1024)
+    .minRam(2048)
 
   chef_runlist
     .addRecipe("java")
