@@ -13,6 +13,6 @@
 [submodule "cookbook/chef-sbt"]
 	path = cookbook/chef-sbt
 	url = https://github.com/farmdawgnation/chef-sbt.git
-[submodule "cookbook/chef-typesafe-stack"]
-	path = cookbook/chef-typesafe-stack
-	url = https://github.com/gildegoma/chef-typesafe-stack.git
+[submodule "cookbook/scala"]
+	path = cookbook/scala
+	url = https://github.com/RiotGames/scala-cookbook.git
