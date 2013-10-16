@@ -1,0 +1,19 @@
+description "Akka Assessment Workflow Daemon: <%= node[:cloud][:service] %>@<%= node[:cloud][:port] %>"
+  
+respawn
+
+expect fork
+
+setuid <%= node[:cloud][:uid] %>
+setgid users
+
+pre-start script
+        exec sh <%= node[:cloud][:deploy_dir] %>/<%= node[:cloud][:service] %>/bin/start '<%= node[:cloud][:boot_class] %>' 2>&1 > /var/log/<%= node[:cloud][:service] %>.log &
+end script
+
+post-start script
+  # wait for listen on port <%= node[:cloud][:port] %>
+  while ! nc -q0 `hostname -i` <%= node[:cloud][:port] %> </dev/null >/dev/null 2>&1; do
+    sleep 1;
+  done
+end script

@@ -15,8 +15,6 @@
 
 import sbt._
 import Keys._
-import sbtassembly.Plugin._
-import AssemblyKeys._
 import akka.sbt.AkkaKernelPlugin
 import akka.sbt.AkkaKernelPlugin.{ Dist, outputDirectory, distJvmOptions}
 
@@ -145,19 +143,21 @@ object CloudPaperBuild extends Build with Resolvers with Dependencies {
   lazy val cloud = Project(
     id = "cloud",
     base = file("cloud"),
-    settings = CloudPaperSettings ++ assemblySettings ++ AkkaKernelPlugin.distSettings ++ Seq(
+    settings = CloudPaperSettings ++ AkkaKernelPlugin.distSettings ++ Seq(
       outputDirectory in Dist := file("target/deploy"),
       parallelExecution in Test := false,
       scalacOptions += "-language:experimental.macros",
       libraryDependencies <+= scalaVersion { v => compilerPlugin("org.scala-lang.plugins" % "continuations" % V.SCALA) },
       scalacOptions += "-P:continuations:enable",
-      libraryDependencies ++= Akka ++ ApacheCamel ++ JClouds
+      libraryDependencies ++= Akka ++ ApacheCamel ++ JClouds,
+      distJvmOptions in Dist := "-Xms256M -Xmx1024M",
+      outputDirectory in Dist := file("cookbook/cloud/files/default/cloud-deploy")
     )
   )
 
   lazy val example = Project(
     id = "example",
     base = file("example"),
-    settings = CloudPaperSettings ++ assemblySettings
+    settings = CloudPaperSettings
   )
 }

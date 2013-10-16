@@ -24,7 +24,11 @@ import org.jclouds.compute.domain.NodeMetadata
 import org.jclouds.domain.LoginCredentials
 import scala.collection.JavaConversions._
 
-class LiveImage extends provider.AwsEc2.Ubuntu("12.04")
+class LiveImage extends provider.AwsEc2.Ubuntu("12.04") {
+  chef_runlist
+    .addRecipe("java")
+    .addRecipe("cloud")
+}
 
 class MockImage extends LiveImage {
   override def bootstrap() = {
