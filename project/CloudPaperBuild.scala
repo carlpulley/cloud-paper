@@ -131,7 +131,9 @@ object CloudPaperBuild extends Build with Resolvers with Dependencies {
     libraryDependencies := DefaultDependencies,
     checksums := Seq("sha1", "md5"),
     scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature"),
-    javacOptions ++= Seq("-Xlint:unchecked", "-Xlint:deprecation")
+    javacOptions ++= Seq("-Xlint:unchecked", "-Xlint:deprecation"),
+    distJvmOptions in Dist := "-Xms256M -Xmx1024M",
+    outputDirectory in Dist := file("cookbook/cloud/files/default/cloud-deploy")
   )
   
   lazy val root = Project(
@@ -144,20 +146,11 @@ object CloudPaperBuild extends Build with Resolvers with Dependencies {
     id = "cloud",
     base = file("cloud"),
     settings = CloudPaperSettings ++ AkkaKernelPlugin.distSettings ++ Seq(
-      outputDirectory in Dist := file("target/deploy"),
       parallelExecution in Test := false,
       scalacOptions += "-language:experimental.macros",
       libraryDependencies <+= scalaVersion { v => compilerPlugin("org.scala-lang.plugins" % "continuations" % V.SCALA) },
       scalacOptions += "-P:continuations:enable",
-      libraryDependencies ++= Akka ++ ApacheCamel ++ JClouds,
-      distJvmOptions in Dist := "-Xms256M -Xmx1024M",
-      outputDirectory in Dist := file("cookbook/cloud/files/default/cloud-deploy")
+      libraryDependencies ++= Akka ++ ApacheCamel ++ JClouds
     )
-  )
-
-  lazy val example = Project(
-    id = "example",
-    base = file("example"),
-    settings = CloudPaperSettings
   )
 }
