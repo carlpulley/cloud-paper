@@ -18,15 +18,16 @@ package cloud.lib
 import akka.actor.ActorSystem
 import akka.camel.CamelExtension
 import akka.kernel.Bootable
-import cloud.lib.Config
 import org.apache.activemq.ActiveMQConnectionFactory
 import org.apache.camel.component.jms.JmsComponent
 import scalaz.camel.core.Router
 
 class Kernel extends Bootable {
-  implicit val group = "kernel"
+  val module: String = this.getClass.getSimpleName.replaceAll("_", "-")
+
+  implicit val group = module.toLowerCase
   Config.setValue("group", group)
-  implicit val system = ActorSystem(group)
+  implicit val system = ActorSystem(module.toUpperCase)
   val camel = CamelExtension(system)
   val connectionFactory = new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false")
   camel.context.addComponent("jms", JmsComponent.jmsComponentAutoAcknowledge(connectionFactory))

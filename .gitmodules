@@ -7,3 +7,9 @@
 [submodule "cookbook/sqlite"]
 	path = cookbook/sqlite
 	url = https://github.com/opscode-cookbooks/sqlite.git
+[submodule "cookbook/git"]
+	path = cookbook/git
+	url = https://github.com/opscode-cookbooks/git.git
+[submodule "cookbook/chef-sbt"]
+	path = cookbook/chef-sbt
+	url = https://github.com/farmdawgnation/chef-sbt.git
