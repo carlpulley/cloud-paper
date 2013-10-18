@@ -39,6 +39,20 @@ akka {
   actor {
     provider = "akka.remote.RemoteActorRefProvider"
 
+    serializers {
+      pickle = "cloud.lib.Serializer"
+    }
+
+    serialization-bindings {
+      "cloud.workflow.controller.ControlBus" = pickle
+      "cloud.workflow.controller.ControlEvent" = pickle
+      "cloud.workflow.controller.StartVM" = pickle
+      "cloud.workflow.dsl.AddWorkflow" = pickle
+      "cloud.workflow.dsl.VMInstance" = pickle
+      "cloud.workflow.dsl.VMStarted" = pickle
+      "cloud.workflow.dsl.WorkflowEndpoint" = pickle
+    }
+
     cloud-dispatcher {
       # Dispatcher is the name of the event-based dispatcher
       type = Dispatcher

@@ -22,7 +22,7 @@ import org.jclouds.openstack.nova.v2_0.compute.options.NovaTemplateOptions
 import org.jclouds.openstack.nova.v2_0.compute.options.NovaTemplateOptions.Builder._
 
 // WARNING: Windows is currently to be considered experimental!
-abstract class Windows(version: String) extends Image {
+abstract class Windows(version: String, group: String) extends Image(group) {
   template_builder
     .osFamily(OsFamily.WINDOWS)
     .osVersionMatches(version)

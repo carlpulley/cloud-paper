@@ -25,7 +25,7 @@ import org.jclouds.compute.domain.NodeMetadata
 import org.jclouds.domain.LoginCredentials
 import scala.collection.JavaConversions._
 
-class LiveImage extends provider.AwsEc2.Ubuntu("12.04") {
+class LiveImage(label: String) extends provider.AwsEc2.Ubuntu("12.04", label) {
   template_builder
     .minRam(2048)
 
@@ -36,7 +36,7 @@ class LiveImage extends provider.AwsEc2.Ubuntu("12.04") {
   chef_attributes += ("cloud" -> ("boot_class" -> "cloud.lib.Kernel"))
 }
 
-class MockImage extends LiveImage {
+class MockImage(label: String) extends LiveImage(label) {
   override def bootstrap() = {
     new NodeMetadataImpl(
       /* String providerId */ null,
@@ -46,7 +46,7 @@ class MockImage extends LiveImage {
       /* URI uri */ null, 
       /* Map<String, String> userMetadata */ Map[String, String](),
       /* Set<String> tags */ Set[String](), 
-      /* @Nullable String group */ group, 
+      /* @Nullable String group */ label, 
       /* @Nullable Hardware hardware */ null, 
       /* @Nullable String imageId */ null, 
       /* @Nullable OperatingSystem os */ null, 

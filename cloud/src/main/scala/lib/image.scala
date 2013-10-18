@@ -40,17 +40,21 @@ import org.jclouds.domain.JsonBall
 import org.jclouds.domain.LoginCredentials
 import org.jclouds.scriptbuilder.domain.Statement
 import org.jclouds.scriptbuilder.domain.StatementList
+import org.streum.configrity.Configuration
 import scala.collection.immutable.WrappedString
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.language.implicitConversions
 
-trait Image {
-  val group: String = Config()[String]("group")
-  assert(new WrappedString(group).filter("abcdefghijklmnopqrstuvwxyz0123456789-".contains(_)).toString == group, "group names need to contain lower case alphanumerics or hypens")
-
+trait ClientContextConfig {
   // N.B. cloud providers are *not* organised by group
-  protected[this] val config = Config.load("cloud.conf")
+  protected[this] val config: Configuration = Config.load("cloud.conf")
+
+  protected[this] val client_context: ComputeServiceContext // 'override lazy val' in children
+}
+
+abstract class Image(val group: String) extends ClientContextConfig {
+  assert(new WrappedString(group).filter("abcdefghijklmnopqrstuvwxyz0123456789-".contains(_)).toString == group, "group names need to contain lower case alphanumerics or hypens")
 
   private[this] val chef_server     = config[String]("chef.url")
   private[this] val chef_user       = config[String]("chef.user.name")
@@ -77,15 +81,13 @@ trait Image {
   client_properties
     .put(ComputeServiceProperties.TIMEOUT_SCRIPT_COMPLETE, (config[Int]("jclouds.script-complete") * 1000).asInstanceOf[java.lang.Integer]) // Convert seconds to milliseconds
 
-  protected[this] val client_context: ComputeServiceContext // 'override lazy val' in children
-
   private[this] val client: ComputeService = client_context.getComputeService()
 
   protected[this] val template_builder: TemplateBuilder = client.templateBuilder()
     
   protected[this] val admin: LoginCredentials // 'override lazy val' in children
 
-  protected[this] var node: NodeMetadata = _ // initialised in bootstrap
+  protected[this] var node: Option[NodeMetadata] = None // initialised in bootstrap
 
   protected[this] val bootstrap_builder: ImmutableSet.Builder[Statement] = ImmutableSet.builder()
 
@@ -97,26 +99,28 @@ trait Image {
     chef_context.getChefService().updateBootstrapConfigForGroup(chef_runlist.build(), new JsonBall(compact(render(chef_attrs))), group)
     val chef_bootstrap = chef_context.getChefService().createBootstrapScriptForGroup(group)
     val bootstrap_node = new StatementList(bootstrap_builder.add(chef_bootstrap).build())
-    node = client.createNodesInGroup(group, 1, template).head
-    client.runScriptOnNode(node.getId(), bootstrap_node, overrideLoginCredentials(admin))
-    node
+    node = Some(client.createNodesInGroup(group, 1, template).head)
+    client.runScriptOnNode(node.get.getId(), bootstrap_node, overrideLoginCredentials(admin))
+    node.get
   }
 
-  def shutdown() = {
-    val chef_service = chef_context.getChefService()
-    val ipaddr = node.getPrivateAddresses().head
-    val nodename = s"$group-$ipaddr"
-    if (chef_service.listClientsDetails().toSeq.map(_.getName()) contains (nodename)) {
-      chef_service.deleteAllClientsInList(Seq(nodename))
-    }
-    if (chef_service.listNodes().toSeq.map(_.getName()) contains (nodename)) {
-      chef_service.deleteAllNodesInList(Seq(nodename))
-    }
-    val chef_api = chef_context.getApi(classOf[ChefApi])
-    val bootstrap_databag = ChefApiMetadata.defaultProperties().get(ChefProperties.CHEF_BOOTSTRAP_DATABAG).asInstanceOf[String]
-    if (chef_api.listDatabags.contains(bootstrap_databag) && chef_api.listDatabagItems(bootstrap_databag).contains(group)) {
-      chef_api.deleteDatabagItem(bootstrap_databag, group)
-    }
-    client.destroyNode(node.getId())
+  def shutdown() {
+    node.map( metadata => {
+      val chef_service = chef_context.getChefService()
+      val ipaddr = metadata.getPrivateAddresses().head
+      val nodename = s"$group-$ipaddr"
+      if (chef_service.listClientsDetails().toSeq.map(_.getName()) contains (nodename)) {
+        chef_service.deleteAllClientsInList(Seq(nodename))
+      }
+      if (chef_service.listNodes().toSeq.map(_.getName()) contains (nodename)) {
+        chef_service.deleteAllNodesInList(Seq(nodename))
+      }
+      val chef_api = chef_context.getApi(classOf[ChefApi])
+      val bootstrap_databag = ChefApiMetadata.defaultProperties().get(ChefProperties.CHEF_BOOTSTRAP_DATABAG).asInstanceOf[String]
+      if (chef_api.listDatabags.contains(bootstrap_databag) && chef_api.listDatabagItems(bootstrap_databag).contains(group)) {
+        chef_api.deleteDatabagItem(bootstrap_databag, group)
+      }
+      client.destroyNode(metadata.getId())
+    })
   }
 }

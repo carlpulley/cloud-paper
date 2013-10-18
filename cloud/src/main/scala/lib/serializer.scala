@@ -15,18 +15,17 @@
 
 package cloud.lib
 
-package image
+import akka.serialization.{Serializer => AkkaSerializer}
+import scala.collection.JavaConversions._
+import scala.pickling._
+import scala.pickling.binary._
 
-import org.jclouds.compute.domain.OsFamily
+class Serializer extends AkkaSerializer {
+  def includeManifest: Boolean = false
 
-abstract class Ubuntu(version: String, group: String) extends Image(group) {
-  template_builder
-    .osFamily(OsFamily.UBUNTU)
-    .osVersionMatches(version)
-    .smallest()
+  def identifier = 20131018
 
-  ports += 22 // SSH
+  def toBinary(obj: AnyRef): Array[Byte] = obj.pickle.value
 
-  chef_runlist
-    .addRecipe("apt")
+  def fromBinary(bytes: Array[Byte], manifest: Option[Class[_]]): AnyRef = bytes.unpickle
 }

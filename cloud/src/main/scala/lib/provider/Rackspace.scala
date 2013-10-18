@@ -25,7 +25,7 @@ import org.jclouds.openstack.nova.v2_0.compute.options.NovaTemplateOptions.Build
 import org.jclouds.domain.LoginCredentials
 import org.jclouds.sshj.config.SshjSshClientModule
 
-abstract class Ubuntu(version: String) extends image.Ubuntu(version) {
+abstract class Ubuntu(version: String, group: String) extends image.Ubuntu(version, group) {
   private[this] lazy val region = config[String]("rackspace.region")
   private[this] lazy val username = config[String]("rackspace.username")
   private[this] lazy val apikey = config[String]("rackspace.apikey")

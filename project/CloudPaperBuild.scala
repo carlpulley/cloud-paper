@@ -60,7 +60,9 @@ trait Dependencies {
     "org.scalaz" %% "scalaz-core" % V.SCALAZ,
     "org.scalaz" %% "scalaz-concurrent" % V.SCALAZ,
     // Microsoft document format handling
-    "info.folone" %% "poi-scala" % "0.9"
+    "info.folone" %% "poi-scala" % "0.9",
+    // Scala Serializer
+    "org.scala-lang" %% "scala-pickling" % "0.8.0-SNAPSHOT"
   )
 
   val Testing = Seq(
@@ -152,4 +154,10 @@ object CloudPaperBuild extends Build with Resolvers with Dependencies {
     base = file("cloud"),
     settings = CloudPaperSettings
   )
+
+  lazy val example = Project(
+    id = "example",
+    base = file("example"),
+    settings = CloudPaperSettings
+  ) dependsOn(cloud)
 }
