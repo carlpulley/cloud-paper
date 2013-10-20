@@ -1,5 +1,5 @@
-Use Case Example: Intermediate Level Coursework
-===============================================
+Use Case: Intermediate Level Coursework
+=======================================
 
 **Notes:** 
 * student handout code may be found in the src/main directory [java/handout](https://github.com/carlpulley/cloud-paper/tree/master/example/src/main/java/handout)
@@ -17,9 +17,9 @@ For example, consider the following HTML fragment:
     <frame name="display">
  </frameset>
 ```
-It should cause a browser to display a two frame window. To do this, the frames _menu_ and _display_ **must** be rendered and drawn _before_ the window containing these frames may be built.
+It should cause a browser to display a two frame window. To do this, the frames _menu_ and _display_ **must** be rendered and drawn _before_ the window containing these frames has been built.
 
-To solve this problem, we need first to build an appropriate tree data structures for storing the HTML dependency structure. Having done that, we may perform a _topological sorting_ of the tree data structure to determine the order in which the HTML elements should be drawn and rendered.
+To solve this problem, we need first to build an appropriate tree data structures for storing the HTML dependency structure. Having done that, we may perform a _topological sorting_ of the tree data structure to determine the linear order in which the HTML elements should be drawn and rendered. Elements occurring latter in the linear order must be rendered and drawn before elements listed earlier.
 
 Tree Data Structures
 --------------------
