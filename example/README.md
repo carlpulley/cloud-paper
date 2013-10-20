@@ -2,8 +2,8 @@ Use Case Example: Intermediate Level Coursework
 ===============================================
 
 **Notes:** 
-* student handout code may be found in the src/main directory `[java/handout](https://github.com/carlpulley/cloud-paper/tree/master/example/src/main/java/handout)`
-* a model solution, along with unit tests and a testing harness, may be found in the `[src/main/java](https://github.com/carlpulley/cloud-paper/tree/master/example/src/main/java/)` directory.
+* student handout code may be found in the src/main directory [java/handout](https://github.com/carlpulley/cloud-paper/tree/master/example/src/main/java/handout)
+* a model solution, along with unit tests and a testing harness, may be found in the [src/main/java](https://github.com/carlpulley/cloud-paper/tree/master/example/src/main/java/) directory.
 
 Introduction
 ------------
