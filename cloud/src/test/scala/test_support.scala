@@ -44,7 +44,6 @@ trait ScalaTestSupport extends Camel with Akka with FunSuiteLike with MustMatche
   multicastConcurrencyStrategy = Strategy.Sequential
 
   implicit val group = "default"
-  Config.setValue("group", group)
   implicit val system = ActorSystem(group)
   val camel = CamelExtension(system)
 

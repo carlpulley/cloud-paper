@@ -50,6 +50,7 @@ trait Dependencies {
   val Miscellaneous = Seq(
     // Configuration
     "org.streum" %% "configrity-core" % V.CONFIG,
+    "com.typesafe" % "config" % "1.0.2",
     // JDBC
     "com.github.seratch" %% "scalikejdbc" % V.SCALIKEJDBC,
     "com.github.seratch" %% "scalikejdbc-interpolation" % V.SCALIKEJDBC,

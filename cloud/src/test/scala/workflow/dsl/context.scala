@@ -20,10 +20,12 @@ import akka.testkit.TestActorRef
 import akka.util.Timeout
 import cloud.lib.Config
 import cloud.lib.Helpers
+import cloud.lib.Image
 import cloud.workflow.controller.ControlBus
 import cloud.workflow.dsl.Context
 import cloud.workflow.test.MockImage
 import cloud.workflow.test.ScalaTestSupport
+import java.util.concurrent.TimeoutException
 import java.util.concurrent.TimeUnit
 import org.streum.configrity._
 import scala.collection.JavaConversions._
@@ -43,8 +45,9 @@ class ContextTests extends ScalaTestSupport with Helpers {
   implicit val timeout: Timeout = Timeout(30 seconds)
   implicit val controller = TestActorRef(Props(new ControlBus(Map.empty)))
   val appender = { msg: Message => msg.setBody(msg.bodyAs[String] + "-done") }
-  val image = new MockImage()
-  val context_route = Context(image, ("test" -> (to("mock:workflow") >=> appender)))
+  val image1 = new MockImage("image1")
+  val image2 = new MockImage("image2")
+  val context_route1 = Context(image1, "default", "test1", to("mock:image1_workflow1") >=> appender)
 
   override def afterAll = {
     router.stop
@@ -52,11 +55,11 @@ class ContextTests extends ScalaTestSupport with Helpers {
   }
 
   test("Check that contexts process messages correctly") {
-    val mock_workflow = getMockEndpoint("mock:workflow")
+    val mock_workflow = getMockEndpoint("mock:image1_workflow1")
     mock_workflow.expectedMessageCount(1)
     mock_workflow.expectedBodiesReceived("send")
 
-    context_route process(Message("send"), 30, TimeUnit.SECONDS) match {
+    context_route1 process(Message("send"), 30, TimeUnit.SECONDS) match {
       case Success(msg: Message) => msg.bodyAs[String] matches "send-done"
       case _ => fail("workflow failed to process message")
     }

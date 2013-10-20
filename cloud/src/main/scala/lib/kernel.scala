@@ -18,14 +18,16 @@ package cloud.lib
 import akka.actor.ActorSystem
 import akka.camel.CamelExtension
 import akka.kernel.Bootable
+import com.typesafe.config.ConfigFactory
 import org.apache.activemq.ActiveMQConnectionFactory
 import org.apache.camel.component.jms.JmsComponent
+import scala.collection.JavaConversions._
 import scalaz.camel.core.Router
 
-class Kernel(module: String = "default") extends Bootable {
-  implicit val group = module.toLowerCase
-  Config.setValue("group", group)
-  implicit val system = ActorSystem(module.toUpperCase)
+class Kernel(name: String = "default", port: Int = 2552) extends Bootable {
+  implicit val group = name.toLowerCase
+  val config = ConfigFactory.load("application.conf").withFallback(ConfigFactory.parseMap(Map("akka.remote.server.port" -> port)))
+  implicit val system = ActorSystem(name, config)
   val camel = CamelExtension(system)
   val connectionFactory = new ActiveMQConnectionFactory("vm://localhost?broker.persistent=false")
   camel.context.addComponent("jms", JmsComponent.jmsComponentAutoAcknowledge(connectionFactory))
