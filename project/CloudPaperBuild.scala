@@ -100,6 +100,7 @@ trait Dependencies {
     "org.apache.camel" % "camel-velocity" % V.CAMEL,
     "org.apache.camel" % "camel-quartz" % V.CAMEL,
     "org.apache.camel" % "camel-scala" % V.CAMEL,
+    "org.apache.camel" % "camel-exec" % V.CAMEL,
     "org.apache.camel" % "camel-test" % V.CAMEL % "test",
     "org.apache.activemq" % "activemq-core" % V.ACTIVEMQ,
     "org.apache.activemq" % "activemq-camel" % V.ACTIVEMQ,
