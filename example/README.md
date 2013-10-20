@@ -33,6 +33,7 @@ Both types of node may be created by invoking the `TreeNode` constructor functio
 The `Question1` class provides methods for creating and manipulating nodes of a tree data structure. In addition, methods within the `HTML` class may be used to produce instances of `TreeNode` for testing purposes.
 
 For example, here is the tree data structure that results from the above _frameset_ example[^2]:
+
 ![Tree Data Structure](https://github.com/carlpulley/cloud-paper/raw/master/images/tree.gif)
 
 Topological Sorts
