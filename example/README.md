@@ -2,8 +2,8 @@ Use Case Example: Intermediate Level Coursework
 ===============================================
 
 **Notes:** 
-* student handout code may be found in the src/main directory `java/handout`
-* a model solution, along with unit tests and a testing harness, may be found in the `src/main/java` directory.
+* student handout code may be found in the src/main directory `[java/handout](https://github.com/carlpulley/cloud-paper/tree/master/example/src/main/java/handout)`
+* a model solution, along with unit tests and a testing harness, may be found in the `[src/main/java](https://github.com/carlpulley/cloud-paper/tree/master/example/src/main/java/)` directory.
 
 Introduction
 ------------
@@ -40,8 +40,10 @@ Topological Sorts
 -----------------
 
 You are advised to look at your lecture notes and the relevant chapter of the course recommended text:
+
 -> _Data Structures and Algorithms in Java_ <-
 -> by M.T.Goodrich and R.Tamassia. Wiley, 1997 <-
+
 to learn more about topological sorts.
 
 The `Question2` class provides us with a tree data structure and a series of methods that are useful for implementing a topological ordering of its nodes. `Question3` is used to implement the actual topological sort.
@@ -76,4 +78,5 @@ Further details as to what is required to implement each of these methods may be
 ---
 
 [^1]: As the browser will run on an experimental platform, a custom GUI library will be supplied by our customer.
+
 [^2]: **Note:** the example tree has been annotated with integers to indicate what the reference count of each tree node will be.
