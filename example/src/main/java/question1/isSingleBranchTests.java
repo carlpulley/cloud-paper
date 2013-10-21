@@ -17,10 +17,6 @@ package example;
 
 public class isSingleBranchTests extends FeedbackCase {
 
-    public int getWeight() {
-        return 2;
-    } // end of method getWeight
-
     public Question1 setTree(TreeNode tr) {
         ((Question1)answer).data = tr.data;
         ((Question1)answer).branch = tr.branch;

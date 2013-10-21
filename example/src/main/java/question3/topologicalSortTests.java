@@ -17,10 +17,6 @@ package example;
 
 public class topologicalSortTests extends FeedbackCase {
 
-    public int getWeight() {
-        return 15;
-    } // end of method getWeight
-
     public Question1 setTree(TreeNode tr) {
         ((Question3)answer).tree = new ModelAnswer2(new ModelAnswer1(tr.data));
         ((Question3)answer).tree.tree.branch = tr.branch;

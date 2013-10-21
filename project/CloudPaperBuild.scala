@@ -63,7 +63,9 @@ trait Dependencies {
     // Microsoft document format handling
     "info.folone" %% "poi-scala" % "0.9",
     // Scala Serializer
-    "org.scala-lang" %% "scala-pickling" % "0.8.0-SNAPSHOT"
+    "org.scala-lang" %% "scala-pickling" % "0.8.0-SNAPSHOT",
+    // Java source parser
+    "com.google.code.javaparser" % "javaparser" % "1.0.10"
   )
 
   val Testing = Seq(

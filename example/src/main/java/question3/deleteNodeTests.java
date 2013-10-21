@@ -21,10 +21,6 @@ import java.util.Collections;
 
 public class deleteNodeTests extends FeedbackCase {
 
-    public int getWeight() {
-        return 11;
-    } // end of method getWeight
-
     public Question1 setTree(TreeNode tr) {
         ((Question3)answer).tree = new ModelAnswer2(new ModelAnswer1(tr.data));
         ((Question3)answer).tree.tree.branch = tr.branch;

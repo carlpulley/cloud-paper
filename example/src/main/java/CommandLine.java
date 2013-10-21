@@ -15,10 +15,20 @@
 
 package example;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.BufferedWriter;
+import java.util.HashSet;
+import java.util.Set;
 import org.apache.ecs.xml.XML;
 import org.apache.ecs.xml.XMLDocument;
+import japa.parser.ast.body.ClassOrInterfaceDeclaration;
+import japa.parser.ast.CompilationUnit;
+import japa.parser.ast.PackageDeclaration;
+import japa.parser.ast.type.ClassOrInterfaceType;
+import japa.parser.ast.visitor.VoidVisitorAdapter;
+import japa.parser.JavaParser;
 
 public class CommandLine {
 
@@ -28,88 +38,113 @@ public class CommandLine {
         feedback.addElement((XML)(new XML("feedback").setPrettyPrint(true)));
         int minArgSize = 2;
         if (args == null || args.length == 0) {
-            throw new Exception("Usage: CommandLine <XML file> <fully qualified class>+");
+            throw new Exception("Usage: CommandLine <XML file> <java source file>+");
         } // end of if-then
         String outputFile = args[0];
         BufferedWriter outputF = new BufferedWriter(new FileWriter(outputFile));
         if (args.length < minArgSize) {
             feedback.addElement(error("No answer classes supplied!"));
         } else {
-            String[] argClasses = new String[args.length - 1];
+            String[] argSources = new String[args.length - 1];
             for(int i = 1; i < args.length; i++) {
-                argClasses[i-1] = args[i];
+                argSources[i-1] = args[i];
             }
-            Class[] answerClass = new Class[argClasses.length];
-            int count = argClasses.length;
-            for(int nos = 0; nos < argClasses.length; nos++) {
-                argClasses[nos] = argClasses[nos].trim();
+            Set<Class> answerClass = new HashSet<Class>();
+            for(int nos = 0; nos < argSources.length; nos++) {
+                argSources[nos] = argSources[nos].trim();
+                File javaSrc = new File(argSources[nos]);
+                if (!javaSrc.exists()) {
+                    feedback.addElement(error(argSources[nos] + " does not exist!"));
+                    continue;
+                }
+                if (!javaSrc.canRead()) {
+                    feedback.addElement(error(argSources[nos] + " exists, but can not be read!"));
+                    continue;
+                }
+                FileInputStream in = new FileInputStream(argSources[nos]);
+                CompilationUnit cu;
                 try {
-                    answerClass[nos] = Class.forName(argClasses[nos]);
-                    if (!Question.class.isAssignableFrom(answerClass[nos])) {
-                        feedback.addElement(((XML)(new XML("ignored").setPrettyPrint(true))).addXMLAttribute("file", argClasses[nos]).addElement("it is not a subclass of any Question class!"));
-                        answerClass[nos] = null;
-                        count--;
-                    } else if (argClasses[nos].matches(".*ModelAnswer[0-9]+.class")) {
-                        feedback.addElement(((XML)(new XML("ignored").setPrettyPrint(true))).addXMLAttribute("file", argClasses[nos]).addElement("Answer class names may <b>not</b> start with the name <i>ModelAnswer</i>!"));
-                        answerClass[nos] = null;
-                        count--;
-                    } // end of if-then-else
-                } catch(NoClassDefFoundError exn) {
-                    feedback.addElement(warning(argClasses[nos], "Could not find the class " + argClasses[nos] + " [" + exn.getMessage() + "]"));
-                } catch(ClassNotFoundException exn) {
-                    feedback.addElement(warning(argClasses[nos], "Could not load the class " + argClasses[nos] + " [" + exn.getMessage() + "]"));
-                } catch(Throwable exn) {
-                    feedback.addElement(warning(argClasses[nos], "An error occured in loading the class " + argClasses[nos] + " [" + exn.getMessage() + "]"));
+                    // Parse the Java source file
+                    cu = JavaParser.parse(in);
+                } finally {
+                    in.close();
                 } // end of try-catch
+                // Analyse declared classes in Java source file
+                SourceVisitor visitor = new SourceVisitor();
+                visitor.visit(cu, null);
+                if (visitor.getClasses().isEmpty()) {
+                    feedback.addElement(((XML)(new XML("ignored").setPrettyPrint(true))).addXMLAttribute("file", argSources[nos]).addElement("java source file contains no class declarations!"));
+                } else {
+                    for(String fqClass: visitor.getClasses()) {
+                        try {
+                            Class clazz = Class.forName(fqClass);
+                            if (!Question.class.isAssignableFrom(clazz)) {
+                                feedback.addElement(((XML)(new XML("ignored").setPrettyPrint(true))).addXMLAttribute("file", argSources[nos]).addXMLAttribute("class", fqClass).addElement("it is not a subclass of any Question class!"));
+                            } else if (fqClass.matches(".*ModelAnswer[0-9]+")) {
+                                feedback.addElement(((XML)(new XML("ignored").setPrettyPrint(true))).addXMLAttribute("file", argSources[nos]).addXMLAttribute("class", fqClass).addElement("Answer class names may <b>not</b> start with the name <i>ModelAnswer</i>!"));
+                            } else {
+                                answerClass.add(clazz);
+                            } // end of if-then-else
+                        } catch(NoClassDefFoundError exn) {
+                            feedback.addElement(warning(argSources[nos], "Could not find the class " + fqClass + " [" + exn.getMessage() + "]"));
+                        } catch(ClassNotFoundException exn) {
+                            feedback.addElement(warning(argSources[nos], "Could not load the class " + fqClass + " [" + exn.getMessage() + "]"));
+                        } catch(Throwable exn) {
+                            feedback.addElement(warning(argSources[nos], "An error occurred in loading the class " + fqClass + " [" + exn.getMessage() + "]"));
+                        } // end of try-catch
+                    } // end of for-loop
+                } // end of if-then-else
             } // end of for-loop
-            Question[] answers = new Question[count];
-            int index = 0;
-            for(int nos = 0; nos < answerClass.length; nos++) {
-                if (answerClass[nos] != null) {
-                    try {
-                        if (Question1.class.isAssignableFrom(answerClass[nos])) {
-                            try {
-                                answers[index] = (Question)(answerClass[nos].getConstructor(new Class[]{Object.class}).newInstance(new Object[]{null}));
-                            } catch(NoSuchMethodException exn) {
-                                feedback.addElement(warning(answerClass[nos].getName(), "The required constructor function does not exist, so we could not create an instance of " + answerClass[nos].getName() + ". Check that:<ul><li>your constructor functions are public</li> <li>and that they have the correct signatures (see the <i>Question1</i> class).</li></ul>"));
-                            } catch(java.lang.reflect.InvocationTargetException exn) {
-                                feedback.addElement(warning(answerClass[nos].getName(), "The required constructor function does not exist, so we could not create an instance of " + answerClass[nos].getName() + ". Check that:<ul><li>your constructor functions are public</li> <li>and that they have the correct signatures (see the <i>Question1</i> class).</li></ul>"));
-                            } // end of try-catch
-                        } else {
-                            if (Question2.class.isAssignableFrom(answerClass[nos])) {
+            if (answerClass.isEmpty()) {
+                feedback.addElement(warning("Could not find any answer classes!"));
+            } else {
+                Set<Question> answers = new HashSet<Question>();
+                for(Class clazz: answerClass) {
+                    if (clazz != null) {
+                        try {
+                            if (Question1.class.isAssignableFrom(clazz)) {
                                 try {
-                                    answers[index] = (Question)(answerClass[nos].getConstructor(new Class[]{Question1.class}).newInstance(new Question1[]{null}));
+                                    answers.add((Question)(clazz.getConstructor(new Class[]{Object.class}).newInstance(new Object[]{null})));
                                 } catch(NoSuchMethodException exn) {
-                                    feedback.addElement(warning(answerClass[nos].getName(), "The required constructor function does not exist, so we could not create an instance of " + answerClass[nos].getName() + ". Check that:<ul><li>your constructor functions are public</li> <li>and that they have the correct signatures (see the <i>Question2</i> class).</li></ul>"));
+                                    feedback.addElement(warning(clazz.getName(), "The required constructor function does not exist, so we could not create an instance of " + clazz.getName() + ". Check that:<ul><li>your constructor functions are public</li><li>and that they have the correct signatures (see the <i>Question1</i> class).</li></ul>"));
                                 } catch(java.lang.reflect.InvocationTargetException exn) {
-                                    feedback.addElement(warning(answerClass[nos].getName(), "The required constructor function does not exist, so we could not create an instance of " + answerClass[nos].getName() + ". Check that:<ul><li>your constructor functions are public</li> <li>and that they have the correct signatures (see the <i>Question2</i> class).</li></ul>"));
+                                    feedback.addElement(warning(clazz.getName(), "The required constructor function does not exist, so we could not create an instance of " + clazz.getName() + ". Check that:<ul><li>your constructor functions are public</li><li>and that they have the correct signatures (see the <i>Question1</i> class).</li></ul>"));
                                 } // end of try-catch
                             } else {
-                                if (Question3.class.isAssignableFrom(answerClass[nos])) {
+                                if (Question2.class.isAssignableFrom(clazz)) {
                                     try {
-                                            answers[index] = (Question)(answerClass[nos].getConstructor(new Class[]{Question2.class}).newInstance(new Question2[]{null}));
+                                        answers.add((Question)(clazz.getConstructor(new Class[]{Question1.class}).newInstance(new Question1[]{null})));
                                     } catch(NoSuchMethodException exn) {
-                                        feedback.addElement(warning(answerClass[nos].getName(), "The required constructor function does not exist, so we could not create an instance of " + answerClass[nos].getName() + ". Check that:<ul><li>your constructor functions are public</li> <li>and that they have the correct signatures (see the <i>Question3</i> class).</li></ul>"));
+                                        feedback.addElement(warning(clazz.getName(), "The required constructor function does not exist, so we could not create an instance of " + clazz.getName() + ". Check that:<ul><li>your constructor functions are public</li> <li>and that they have the correct signatures (see the <i>Question2</i> class).</li></ul>"));
                                     } catch(java.lang.reflect.InvocationTargetException exn) {
-                                        feedback.addElement(warning(answerClass[nos].getName(), "The required constructor function does not exist, so we could not create an instance of " + answerClass[nos].getName() + ". Check that:<ul><li>your constructor functions are public</li> <li>and that they have the correct signatures (see the <i>Question3</i> class).</li></ul>"));
+                                        feedback.addElement(warning(clazz.getName(), "The required constructor function does not exist, so we could not create an instance of " + clazz.getName() + ". Check that:<ul><li>your constructor functions are public</li> <li>and that they have the correct signatures (see the <i>Question2</i> class).</li></ul>"));
                                     } // end of try-catch
                                 } else {
-                                    feedback.addElement(warning(answerClass[nos].getName(), answerClass[nos].getName() + " is not recognised!"));
+                                    if (Question3.class.isAssignableFrom(clazz)) {
+                                        try {
+                                            answers.add((Question)(clazz.getConstructor(new Class[]{Question2.class}).newInstance(new Question2[]{null})));
+                                        } catch(NoSuchMethodException exn) {
+                                            feedback.addElement(warning(clazz.getName(), "The required constructor function does not exist, so we could not create an instance of " + clazz.getName() + ". Check that:<ul><li>your constructor functions are public</li> <li>and that they have the correct signatures (see the <i>Question3</i> class).</li></ul>"));
+                                        } catch(java.lang.reflect.InvocationTargetException exn) {
+                                            feedback.addElement(warning(clazz.getName(), "The required constructor function does not exist, so we could not create an instance of " + clazz.getName() + ". Check that:<ul><li>your constructor functions are public</li> <li>and that they have the correct signatures (see the <i>Question3</i> class).</li></ul>"));
+                                        } // end of try-catch
+                                    } else {
+                                        feedback.addElement(warning(clazz.getName(), clazz.getName() + " is not recognised!"));
+                                    } // end of if-then-else
                                 } // end of if-then-else
                             } // end of if-then-else
-                        } // end of if-then-else
-                    } catch(IllegalAccessException exn) {
-                        feedback.addElement(warning(answerClass[nos].getName(), "Could not create an instance of " + answerClass[nos].getName()));
-                    } catch(InstantiationException exn) {
-                        feedback.addElement(warning(answerClass[nos].getName(), "Could not create an instance of " + answerClass[nos].getName()));
-                    } catch(Throwable exn) {
-                        feedback.addElement(warning(answerClass[nos].getName(), "Could not create an instance of " + answerClass[nos].getName()));
-                    } // end of try-catch
-                    index++;
-                } // end of if-then
-            } // end of for-loop
-            FeedbackResult results = new CourseworkTests(answers);
-            outputF.write(results.toXML().toString().replaceAll("<\\?xml .*?\\?>", ""));
+                        } catch(IllegalAccessException exn) {
+                            feedback.addElement(warning(clazz.getName(), "Could not create an instance of " + clazz.getName()));
+                        } catch(InstantiationException exn) {
+                            feedback.addElement(warning(clazz.getName(), "Could not create an instance of " + clazz.getName()));
+                        } catch(Throwable exn) {
+                            feedback.addElement(warning(clazz.getName(), "Could not create an instance of " + clazz.getName()));
+                        } // end of try-catch
+                    } // end of if-then
+                } // end of for-loop
+                FeedbackResult results = new CourseworkTests(answers);
+                feedback = results.toXML(feedback);
+            } // end of if-then-else
         } // end of if-then-else
         outputF.write(feedback.toString().replaceAll("<\\?xml .*?\\?>", ""));
         outputF.close();
@@ -127,5 +162,22 @@ public class CommandLine {
     private static XML warning(String name, String msg) {
         return ((XML)(new XML("warning").setPrettyPrint(true))).addXMLAttribute("file", name).addElement(msg);
     } // end of method usage
+
+    private static class SourceVisitor extends VoidVisitorAdapter {
+        private String pkg = "";
+        private Set<String> classes = new HashSet<String>();
+
+        public void visit(PackageDeclaration n, Object arg) {
+            pkg = n.getName().getName() + ".";
+        } // end of method visit
+
+        public void visit(ClassOrInterfaceDeclaration n, Object arg) {
+            classes.add(pkg + n.getName());
+        } // end of method visit
+
+        public Set<String> getClasses() {
+            return classes;
+        } // end of method getClasses
+    } // end of inner class SourceVisitor
 
 } // end of class CommandLine

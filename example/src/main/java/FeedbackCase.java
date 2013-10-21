@@ -20,8 +20,6 @@ abstract public class FeedbackCase extends junit.framework.TestCase {
     protected Question answer;
     protected Question model;
 
-    abstract public int getWeight();
-
     protected void fail(Throwable exn, String msg) {
         if (exn instanceof junit.framework.AssertionFailedError) {
             throw (junit.framework.AssertionFailedError)exn;

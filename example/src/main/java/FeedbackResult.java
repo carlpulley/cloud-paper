@@ -49,7 +49,7 @@ abstract public class FeedbackResult {
         } // end of if-then
     } // end of method runThread
 
-    abstract public XMLDocument toXML();
+    abstract public XMLDocument toXML(XMLDocument doc);
     
     protected XML toXML(Vector quest, int nos) {
         XML question = new XML("question").addXMLAttribute("value", "" + nos);
@@ -64,7 +64,6 @@ abstract public class FeedbackResult {
                 suite.addElement(((XML)(new XML("test").setPrettyPrint(true)))
                                  .addXMLAttribute("name", test.getClass().getSuperclass().getName())
                                  .addXMLAttribute("passed", "true")
-                                 .addXMLAttribute("mark", "" + test.getWeight())
                                  .addElement(((XML)(new XML("outcome").setPrettyPrint(true))).addXMLAttribute("name", testName)));
             } // end of for-loop
             for (Enumeration failed = testCase.getFailures(); failed.hasMoreElements();) {
@@ -74,8 +73,7 @@ abstract public class FeedbackResult {
                 TestResult testResult = (TestResult)testData[2];
                 XML testFeedback = ((XML)(new XML("test").setPrettyPrint(true)))
                                    .addXMLAttribute("name", test.getClass().getSuperclass().getName())
-                                   .addXMLAttribute("passed", "false")
-                                   .addXMLAttribute("mark", "" + test.getWeight());
+                                   .addXMLAttribute("passed", "false");
                 for (Enumeration outcomes = testResult.failures(); outcomes.hasMoreElements();) {
                     TestFailure outcome = (TestFailure)(outcomes.nextElement());
                     testFeedback.addElement(((XML)(new XML("outcome").setPrettyPrint(true))).addXMLAttribute("name", testName).addElement(outcome.exceptionMessage()));

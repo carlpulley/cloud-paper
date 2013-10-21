@@ -17,10 +17,6 @@ package example;
 
 public class deleteSubTreeTests extends FeedbackCase {
 
-    public int getWeight() {
-        return 5;
-    } // end of method getWeight
-
     public Question1 setTree(TreeNode tr) {
         ((Question1)answer).data = tr.data;
         ((Question1)answer).branch = tr.branch;

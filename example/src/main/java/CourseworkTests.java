@@ -17,6 +17,7 @@ package example;
 
 import org.apache.ecs.xml.XML;
 import org.apache.ecs.xml.XMLDocument;
+import java.util.Set;
 import java.util.Vector;
 
 public class CourseworkTests extends FeedbackResult {
@@ -25,40 +26,38 @@ public class CourseworkTests extends FeedbackResult {
     private Vector question2 = new Vector();
     private Vector question3 = new Vector();
 
-    public CourseworkTests(Question[] answer) {
-        if (answer == null) return;
-        for (int nos = 0; nos < answer.length; nos++) {
-            if (answer[nos] != null && answer[nos] instanceof Question1) {
-                FeedbackSuite question1 = new Question1Tests((Question1)(answer[nos]));
+    public CourseworkTests(Set<Question> answers) {
+        if (answers == null) return;
+        for (Question ans: answers) {
+            if (ans != null && ans instanceof Question1) {
+                FeedbackSuite question1 = new Question1Tests((Question1)(ans));
                 runThread(question1);
                 this.question1.add(question1);
             } // end of if-then
-            if (answer[nos] != null && answer[nos] instanceof Question2) {
-                FeedbackSuite question2 = new Question2Tests((Question2)(answer[nos]));
+            if (ans != null && ans instanceof Question2) {
+                FeedbackSuite question2 = new Question2Tests((Question2)(ans));
                 runThread(question2);
                 this.question2.add(question2);
             } // end of if-then
-            if (answer[nos] != null && answer[nos] instanceof Question3) {
-                FeedbackSuite question3 = new Question3Tests((Question3)(answer[nos]));
+            if (ans != null && ans instanceof Question3) {
+                FeedbackSuite question3 = new Question3Tests((Question3)(ans));
                 runThread(question3);
                 this.question3.add(question3);
             } // end of if-then
         } // end of for-loop
     } // end of constructor function
     
-    public XMLDocument toXML() {
-        XML feedback = new XML("feedback");
+    public XMLDocument toXML(XMLDocument doc) {
         XML question1 = toXML(this.question1, 1);
         XML question2 = toXML(this.question2, 2);
         XML question3 = toXML(this.question3, 3);
-        feedback.setPrettyPrint(true);
         question1.setPrettyPrint(true);
         question2.setPrettyPrint(true);
         question3.setPrettyPrint(true);
-        return new XMLDocument().addElement(feedback
-                                            .addElement(question1)
-                                            .addElement(question2)
-                                            .addElement(question3));
+        return doc
+                .addElement(question1)
+                .addElement(question2)
+                .addElement(question3);
     } // end of method toXML
 
 } // end of class CourseworkTests

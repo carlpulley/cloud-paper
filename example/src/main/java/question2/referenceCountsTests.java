@@ -21,10 +21,6 @@ import java.util.Collections;
 
 public class referenceCountsTests extends FeedbackCase {
 
-    public int getWeight() {
-        return 15;
-    } // end of method getWeight
-
     public Question1 setTree(TreeNode tr) {
         ((Question2)answer).tree = new ModelAnswer1(tr.data);
         ((Question2)answer).tree.branch = tr.branch;

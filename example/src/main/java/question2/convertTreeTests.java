@@ -22,10 +22,6 @@ import java.util.Collections;
 
 public class convertTreeTests extends FeedbackCase {
 
-    public int getWeight() {
-        return 15;
-    } // end of method getWeight
-
     private Map synchronizeTree(Map tree) {
         return tree == null ? null : Collections.synchronizedMap(tree);
     } // end of method synchronizeTree
