@@ -31,13 +31,13 @@ public class equalsTests extends FeedbackCase {
     public void testNull1() {
         try {
             equals(new TreeNode("tree1"), null);   
-            fail(null, "No <i>TreeException</i> thrown when comparing against a <b>null</b> tree");
+            fail(null, "No `TreeException` thrown when comparing against a **null** tree");
         } catch(TreeException exn) {
             assertTrue(exn, true);
         } catch(NullPointerException exn) {
-            fail(exn, "Your code should throw a <i>TreeException</i> when it encounters a <b>null</b> (sub)tree. Remember, such (sub)trees <i>might</i> be encountered during recursion.");
+            fail(exn, "Your code should throw a `TreeException` when it encounters a **null** (sub)tree. Remember, such (sub)trees `might` be encountered during recursion.");
         } catch(Throwable exn) {
-            fail(exn, "Expected a <i>TreeException</i> to be thrown, but instead we threw: " + exn.getClass().getName());
+            fail(exn, "Expected a `TreeException` to be thrown, but instead we threw: " + exn.getClass().getName());
         } // end of try-catch
     } // end of method testNull1
              
@@ -48,13 +48,13 @@ public class equalsTests extends FeedbackCase {
             TreeNode tree2 = new TreeNode("tree", 1);
             tree2.setBranch(new TreeNode[]{ new TreeNode("leaf") });
             equals(tree1, tree2);
-            fail(null, "No <i>TreeException</i> generated with a <b>null</b> subtree: <ul><li><i>null</i> subtrees are <b>not</b> allowed with this method</li><li>check that your conditional <i>logic</i> correctly rejects <i>null</i> subtrees</li></ul>");
+            fail(null, "No `TreeException` generated with a **null** subtree: \n* `null` subtrees are **not** allowed with this method\n* check that your conditional `logic` correctly rejects `null` subtrees");
         } catch(TreeException exn) {
             assertTrue(exn, true);
         } catch(NullPointerException exn) {
-            fail(exn, "Your code should throw a <i>TreeException</i> when it encounters a <b>null</b> (sub)tree. Remember, such (sub)trees <i>might</i> be encountered during recursion.");
+            fail(exn, "Your code should throw a `TreeException` when it encounters a **null** (sub)tree. Remember, such (sub)trees `might` be encountered during recursion.");
         } catch(Throwable exn) {
-            fail(exn, "Expected a <i>TreeException</i>, but we threw: " + exn.getClass().getName());
+            fail(exn, "Expected a `TreeException`, but we threw: " + exn.getClass().getName());
         } // end of try-catch
     } // end of method testNull2
 
@@ -65,13 +65,13 @@ public class equalsTests extends FeedbackCase {
             TreeNode tree2 = new TreeNode("tree", 1);
             tree2.setBranch(new TreeNode[]{ null });
             equals(tree1, tree2);
-            fail(null, "No <i>TreeException</i> generated with a <b>null</b> subtree: <ul><li><i>null</i> subtrees are <b>not</b> allowed with this method</li><li>check that your conditional <i>logic</i> correctly rejects <i>null</i> subtrees</li></ul>");
+            fail(null, "No `TreeException` generated with a **null** subtree: \n* `null` subtrees are **not** allowed with this method\n* check that your conditional `logic` correctly rejects `null` subtrees");
         } catch(TreeException exn) {
             assertTrue(exn, true);
         } catch(NullPointerException exn) {
-            fail(exn, "Your code should throw a <i>TreeException</i> when it encounters a <b>null</b> (sub)tree. Remember, such (sub)trees <i>might</i> be encountered during recursion.");
+            fail(exn, "Your code should throw a `TreeException` when it encounters a **null** (sub)tree. Remember, such (sub)trees `might` be encountered during recursion.");
         } catch(Throwable exn) {
-            fail(exn, "Expected a <i>TreeException</i>, but we threw: " + exn.getClass().getName());
+            fail(exn, "Expected a `TreeException`, but we threw: " + exn.getClass().getName());
         } // end of try-catch
     } // end of method testNull3
    
@@ -81,13 +81,13 @@ public class equalsTests extends FeedbackCase {
         TreeNode tree2 = new TreeNode("tree1");
         try {
             equals(tree1, tree2);   
-            fail(null, "No <i>TreeException</i> thrown when comparing against a (sub)tree with <b>null</b> branch");
+            fail(null, "No `TreeException` thrown when comparing against a (sub)tree with **null** branch");
         } catch(TreeException exn) {
             assertTrue(exn, true);
         } catch(NullPointerException exn) {
-            fail(exn, "Your code should throw a <i>TreeException</i> when it encounters a (sub)tree with a <b>null</b> branch. Remember, such (sub)trees <i>might</i> be encountered during recursion.");
+            fail(exn, "Your code should throw a `TreeException` when it encounters a (sub)tree with a **null** branch. Remember, such (sub)trees `might` be encountered during recursion.");
         } catch(Throwable exn) {
-            fail(exn, "Expected a <i>TreeException</i> to be thrown, but instead we threw: " + exn.getClass().getName());
+            fail(exn, "Expected a `TreeException` to be thrown, but instead we threw: " + exn.getClass().getName());
         } // end of try-catch
     } // end of method testNull4
     
@@ -97,33 +97,33 @@ public class equalsTests extends FeedbackCase {
         tree2.branch = null;
         try {
             equals(tree1, tree2);   
-            fail(null, "No <i>TreeException</i> thrown when comparing against a (sub)tree with <b>null</b> branch");
+            fail(null, "No `TreeException` thrown when comparing against a (sub)tree with **null** branch");
         } catch(TreeException exn) {
             assertTrue(exn, true);
         } catch(NullPointerException exn) {
-            fail(exn, "Your code should throw a <i>TreeException</i> when it encounters a (sub)tree with a <b>null</b> branch. Remember, such (sub)trees <i>might</i> be encountered during recursion.");
+            fail(exn, "Your code should throw a `TreeException` when it encounters a (sub)tree with a **null** branch. Remember, such (sub)trees `might` be encountered during recursion.");
         } catch(Throwable exn) {
-            fail(exn, "Expected a <i>TreeException</i> to be thrown, but instead we threw: " + exn.getClass().getName());
+            fail(exn, "Expected a `TreeException` to be thrown, but instead we threw: " + exn.getClass().getName());
         } // end of try-catch
     } // end of method testNull5
 
     public void testBranchError1() {
         try {
-            assertTrue(null, "Failed to see that a leaf node and 1-branching tree were different. What is the difference between <i>==</i> and the <i>equals(Object)</i> method?",
+            assertTrue(null, "Failed to see that a leaf node and 1-branching tree were different. What is the difference between `==` and the `equals(Object)` method?",
                 !equals(new TreeNode("tree"), new TreeNode("tree", 1)));
         } catch(Throwable exn) {
-            fail(exn, "Expected <b>no</b> exception, but we threw: " + exn.getClass().getName());
+            fail(exn, "Expected **no** exception, but we threw: " + exn.getClass().getName());
         } // end of try-catch
     } // end of method testBranchError1
     
     public void testBranchError2() {
         try {
-            assertTrue(null, "Failed to see that a leaf node and 1-branching tree were different. What is the difference between <i>==</i> and the <i>equals(Object)</i> method?",
+            assertTrue(null, "Failed to see that a leaf node and 1-branching tree were different. What is the difference between `==` and the `equals(Object)` method?",
                 !equals(new TreeNode("tree", 1), new TreeNode("tree")));
         } catch(ArrayIndexOutOfBoundsException exn) {
-            fail(exn, "<i>ArrayIndexOutOfBoundsException</i> throwm. Check the following: <ul><li>Is your recursion terminating correctly when it determines that we have differing trees? </li></ul>");
+            fail(exn, "`ArrayIndexOutOfBoundsException` throwm. Check the following: \n* Is your recursion terminating correctly when it determines that we have differing trees? ");
         } catch(Throwable exn) {
-            fail(exn, "Expected <b>no</b> exception, but we threw: " + exn.getClass().getName());
+            fail(exn, "Expected **no** exception, but we threw: " + exn.getClass().getName());
         } // end of try-catch
     } // end of method testBranchError2
         
@@ -132,7 +132,7 @@ public class equalsTests extends FeedbackCase {
             assertTrue(null, "Failed to see a difference between 1-branching and 2-branching trees", 
                 !equals(new TreeNode("tree", 2), new TreeNode("tree", 1)));
         } catch(Throwable exn) {
-            fail(exn, "Expected <b>no</b> exception, but we threw: " + exn.getClass().getName());
+            fail(exn, "Expected **no** exception, but we threw: " + exn.getClass().getName());
         } // end of try-catch
     } // end of method testBranchError3
         
@@ -141,7 +141,7 @@ public class equalsTests extends FeedbackCase {
             assertTrue(null, "Failed to see a difference between 1-branching and 2-branching trees", 
                 !equals(new TreeNode("tree", 1), new TreeNode("tree", 2)));
         } catch(Throwable exn) {
-            fail(exn, "Expected <b>no</b> exception, but we threw: " + exn.getClass().getName());
+            fail(exn, "Expected **no** exception, but we threw: " + exn.getClass().getName());
         } // end of try-catch
     } // end of method testBranchError4
         
@@ -150,7 +150,7 @@ public class equalsTests extends FeedbackCase {
             assertTrue(null, "Failed to see a difference between 1-branching trees with different labels", 
                 !equals(new TreeNode("tree1", 1), new TreeNode("tree2", 1)));
         } catch(Throwable exn) {
-            fail(exn, "Expected <b>no</b> exception, but we threw: " + exn.getClass().getName());
+            fail(exn, "Expected **no** exception, but we threw: " + exn.getClass().getName());
         } // end of try-catch
     } // end of method testBranchError5
         
@@ -163,7 +163,7 @@ public class equalsTests extends FeedbackCase {
             assertTrue(null, "Failed to see a difference between 1-branching trees with differing subtrees", 
                 !equals(tree1, tree2));
         } catch(Throwable exn) {
-            fail(exn, "Expected <b>no</b> exception, but we threw: " + exn.getClass().getName());
+            fail(exn, "Expected **no** exception, but we threw: " + exn.getClass().getName());
         } // end of try-catch
     } // end of method testBranchError6
   
@@ -176,7 +176,7 @@ public class equalsTests extends FeedbackCase {
             assertTrue(null, "Failed to see a difference between 1-branching trees with differing subtrees", 
                 !equals(tree1, tree2));
         } catch(Throwable exn) {
-            fail(exn, "Expected <b>no</b> exception, but we threw: " + exn.getClass().getName());
+            fail(exn, "Expected **no** exception, but we threw: " + exn.getClass().getName());
         } // end of try-catch
     } // end of method testBranchError7
   
@@ -189,7 +189,7 @@ public class equalsTests extends FeedbackCase {
             assertTrue(null, "Failed to see a difference between 1-branching trees with differing subtrees", 
                 !equals(tree1, tree2));
         } catch(Throwable exn) {
-            fail(exn, "Expected <b>no</b> exception, but we threw: " + exn.getClass().getName());
+            fail(exn, "Expected **no** exception, but we threw: " + exn.getClass().getName());
         } // end of try-catch
     } // end of method testBranchError8
   
@@ -200,10 +200,10 @@ public class equalsTests extends FeedbackCase {
             setTree(tree1);
             TreeNode tree2 = new TreeNode("tree", 1);
             tree2.setBranch(new TreeNode[]{ new TreeNode("leaf") });
-            assertTrue(null, "Failed to see that two copies of the <i>same</i> 1-branching tree are the same", 
+            assertTrue(null, "Failed to see that two copies of the `same` 1-branching tree are the same", 
                 ((Question1)answer).equals(tree2));
         } catch(Throwable exn) {
-            fail(exn, "Expected <b>no</b> exception, but we threw: " + exn.getClass().getName());
+            fail(exn, "Expected **no** exception, but we threw: " + exn.getClass().getName());
         } // end of try-catch
     } // end of method testBranchValid1
   
@@ -215,7 +215,7 @@ public class equalsTests extends FeedbackCase {
             assertTrue(null, "Failed to see that a 1-branching tree, when compared with itself, is the same", 
                 ((Question1)answer).equals((Question1)answer));
         } catch(Throwable exn) {
-            fail(exn, "Expected <b>no</b> exception, but we threw: " + exn.getClass().getName() + " when comparing <i>this</i> tree with itself");
+            fail(exn, "Expected **no** exception, but we threw: " + exn.getClass().getName() + " when comparing `this` tree with itself");
         } // end of try-catch
     } // end of method testBranchValid2
 

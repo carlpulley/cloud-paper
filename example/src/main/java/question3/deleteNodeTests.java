@@ -120,8 +120,8 @@ public class deleteNodeTests extends FeedbackCase {
         try {
             ((Question3)answer).deleteNode(tree, refCounts, root);
             ((Question3)answer).deleteNode(tree, refCounts, leaf);
-            assertTrue(null, "You failed to remove the <i>only</i> node of a leaf tree!", refCounts != null && refCounts.size() == 0);
-            assertTrue(null, "You failed to remove the <i>only</i> node of a leaf tree!", tree != null && tree.size() == 0);
+            assertTrue(null, "You failed to remove the `only` node of a leaf tree!", refCounts != null && refCounts.size() == 0);
+            assertTrue(null, "You failed to remove the `only` node of a leaf tree!", tree != null && tree.size() == 0);
         } catch(Throwable exn) {
             fail(exn, "No exception's should be generated, but your code threw: " + exn.getClass().getName());
         } // end of try-catch
@@ -167,7 +167,7 @@ public class deleteNodeTests extends FeedbackCase {
         //setTree(root);
         try {
             ((Question3)answer).deleteNode(tree, refCounts, node);
-            assertTrue(null, "You failed to remove nodes from the tree <i>Map</i>", tree != null && tree.size() == 1);
+            assertTrue(null, "You failed to remove nodes from the tree `Map`", tree != null && tree.size() == 1);
         } catch(Throwable exn) {
             fail(exn, "No exception's should be generated, but your code threw: " + exn.getClass().getName());
         } // end of try-catch
@@ -188,7 +188,7 @@ public class deleteNodeTests extends FeedbackCase {
         //setTree(root);
         try {
             ((Question3)answer).deleteNode(tree, refCounts, node);
-            assertTrue(null, "You failed to remove nodes from the reference count <i>Map</i>", refCounts != null && refCounts.size() == 1);
+            assertTrue(null, "You failed to remove nodes from the reference count `Map`", refCounts != null && refCounts.size() == 1);
         } catch(Throwable exn) {
             fail(exn, "No exception's should be generated, but your code threw: " + exn.getClass().getName());
         } // end of try-catch

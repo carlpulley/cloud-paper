@@ -11,11 +11,13 @@
         <h1><xsl:value-of select="$student"/>: <xsl:value-of select='translate($module, "abcdefghijklmnopqrstuvwxyz", "ABCDEFGHIJKLMNOPQRSTUVWXYZ")'/> assessment feedback</h1>
     
         <ol>
-          <xsl:for-each select="item">
-            <xsl:sort select="@id"/>
-            <li>
-              <xsl:value-of select="comment"/>
-            </li>
+          <xsl:for-each select="question">
+            <xsl:sort select="@value"/>
+            <xsl:for-each select="suite/test[@passed='false']/outcome">
+              <li>
+                <xsl:value-of select="comment"/>
+              </li>
+            </xsl:for-each>
           </xsl:for-each>
         </ol>
       </body>

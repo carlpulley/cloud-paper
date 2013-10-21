@@ -87,7 +87,7 @@ object Marking extends Workflow {
                 Set(StringCell(1, "Student"), StringCell(2, "Submission Date"), StringCell(hdr.length+3, "Total")) ++
                   (hdr.zipWithIndex.map { pr => {
                     val (item, i) = pr
-                    val n = item.feedback \ "feedback" \ "item" \ "@id"
+                    val n = item.feedback \ "feedback" \ "question" \ "@value"
     
                     StringCell(i+2, s"Question $n")
                   }})
@@ -95,7 +95,7 @@ object Marking extends Workflow {
             ) ++
             (for(((student, submitted_at, result), row) <- table.zipWithIndex)
               yield Row(row+1) {
-                def grade(item: Feedback) = grader.lift((item.feedback \ "feedback" \ "item" \ "@id").toString).getOrElse(0)
+                def grade(item: Feedback) = grader.lift((item.feedback \ "feedback" \ "question" \ "@value").toString).getOrElse(0)
   
                 Set(StringCell(1, student), StringCell(2, submitted_at.toString), NumericCell(result.length+3, result.map(grade(_)).sum)) ++
                   (result.zipWithIndex.map { pr => {

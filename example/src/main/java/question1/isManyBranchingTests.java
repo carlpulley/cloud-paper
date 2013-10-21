@@ -31,7 +31,7 @@ public class isManyBranchingTests extends FeedbackCase {
         } catch(TreeException exn) {
             assertTrue(exn, true);
         } catch(NullPointerException exn) {
-            fail(exn, "Your code failed to throw a <i>TreeException</i> when presented with a <b>null</b> tree.");
+            fail(exn, "Your code failed to throw a `TreeException` when presented with a **null** tree.");
         } catch(Throwable exn) {
             fail(exn, "The incorrect exception (ie. " + exn.getClass().getName() + ") was thrown.");
         } // endof try-catch
@@ -56,7 +56,7 @@ public class isManyBranchingTests extends FeedbackCase {
         } catch(TreeException exn) {
             assertTrue(exn, true);
         } catch(NullPointerException exn) {
-            fail(exn, "Your code failed to throw a <i>TreeException</i> when presented with a leaf node whose <i>branch</i> property is set <b>null</b>.");
+            fail(exn, "Your code failed to throw a `TreeException` when presented with a leaf node whose `branch` property is set **null**.");
         } catch(Throwable exn) {
             fail(exn, "An inappropriate exception was thrown: " + exn.getClass().getName());
         } // end of try-catch
@@ -86,7 +86,7 @@ public class isManyBranchingTests extends FeedbackCase {
             TreeNode tree = new TreeNode("subtree", 2);
             ((Question1)answer).data = tree.data;
             ((Question1)answer).branch = tree.branch;
-            assertTrue(null, "You're testing <i>this</i> tree instead of the method parameter", !((Question1)answer).isManyBranching(new TreeNode("subtree")));
+            assertTrue(null, "You're testing `this` tree instead of the method parameter", !((Question1)answer).isManyBranching(new TreeNode("subtree")));
         } catch(Throwable exn) {
             fail(exn, "An inappropriate exception was thrown: " + exn.getClass().getName());
         } // end of try-catch
@@ -98,7 +98,7 @@ public class isManyBranchingTests extends FeedbackCase {
             TreeNode tree = new TreeNode("subtree");
             ((Question1)answer).data = tree.data;
             ((Question1)answer).branch = tree.branch;
-            assertTrue(null, "You're testing <i>this</i> tree instead of the method parameter", ((Question1)answer).isManyBranching(new TreeNode("subtree", 2)));
+            assertTrue(null, "You're testing `this` tree instead of the method parameter", ((Question1)answer).isManyBranching(new TreeNode("subtree", 2)));
         } catch(Throwable exn) {
             fail(exn, "An inappropriate exception was thrown: " + exn.getClass().getName());
         } // end of try-catch

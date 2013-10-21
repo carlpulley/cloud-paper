@@ -31,7 +31,7 @@ public class isLeafTests extends FeedbackCase {
         } catch(TreeException exn) {
             assertTrue(exn, true);
         } catch(NullPointerException exn) {
-            fail(exn, "Your code fails to throw a <I>TreeException</I> when testing <b>null</b> trees.");
+            fail(exn, "Your code fails to throw a `TreeException` when testing **null** trees.");
         } catch(Throwable exn) {
             fail(exn, "The incorrect exception (ie. " + exn.getClass().getName() + ") was thrown.");
         } // end of try-catch
@@ -52,11 +52,11 @@ public class isLeafTests extends FeedbackCase {
             TreeNode node = new TreeNode(null);
             node.setBranch(null);
             ((Question1)answer).isLeaf(node);
-            fail(null, "Failed to generate an exception with a malformed leaf node and when the label <I>null</I>!");
+            fail(null, "Failed to generate an exception with a malformed leaf node and when the label `null`!");
         } catch(TreeException exn) {
             assertTrue(exn, true);
         } catch(NullPointerException exn) {
-            fail(exn, "Your code failed to generate a <I>TreeException</I> when presented with a leaf node whose <I>branch</I> property is <b>null</b>.");
+            fail(exn, "Your code failed to generate a `TreeException` when presented with a leaf node whose `branch` property is **null**.");
         } catch(Throwable exn) {
             fail(exn, "An inappropriate exception was thrown: " + exn.getClass().getName());
         } // end of try-catch
@@ -72,7 +72,7 @@ public class isLeafTests extends FeedbackCase {
         } catch(TreeException exn) {
             assertTrue(exn, true);
         } catch(NullPointerException exn) {
-            fail(exn, "Your code failed to generate a <I>TreeException</I> when presented with a leaf node whose <I>branch</I> property is <b>null</b>.");
+            fail(exn, "Your code failed to generate a `TreeException` when presented with a leaf node whose `branch` property is **null**.");
         } catch(Throwable exn) {
             fail(exn, "An inappropriate exception was thrown: " + exn.getClass().getName());
         } // end of try-catch
@@ -93,7 +93,7 @@ public class isLeafTests extends FeedbackCase {
             TreeNode tree = new TreeNode("data", 2);
             ((Question1)answer).data = tree.data;
             ((Question1)answer).branch = tree.branch;
-            assertTrue(null, "You're testing <i>this</i> tree instead of the method parameter", ((Question1)answer).isLeaf(new TreeNode("leaf")) == true);
+            assertTrue(null, "You're testing `this` tree instead of the method parameter", ((Question1)answer).isLeaf(new TreeNode("leaf")) == true);
         } catch(Throwable exn) {
             fail(exn, "An inappropriate exception was thrown: " + exn.getClass().getName());
         } // end of try-catch
@@ -105,7 +105,7 @@ public class isLeafTests extends FeedbackCase {
             TreeNode tree = new TreeNode("data");
             ((Question1)answer).data = tree.data;
             ((Question1)answer).branch = tree.branch;
-            assertTrue(null, "You're testing <i>this</i> tree instead of the method parameter", ((Question1)answer).isLeaf(new TreeNode("leaf", 2)) == false);
+            assertTrue(null, "You're testing `this` tree instead of the method parameter", ((Question1)answer).isLeaf(new TreeNode("leaf", 2)) == false);
         } catch(Throwable exn) {
             fail(exn, "An inappropriate exception was thrown: " + exn.getClass().getName());
         } // end of try-catch

@@ -42,13 +42,13 @@ public class containsTests extends FeedbackCase {
         setTree(new TreeNode("dummy"));
         try {
             ((Question1)answer).contains(null);
-            fail(null, "No <i>TreeException</i> generated when the parameter is <b>null</b>");
+            fail(null, "No `TreeException` generated when the parameter is **null**");
         } catch(TreeException exn) {
             assertTrue(exn, true);
         } catch(NullPointerException exn) {
-            fail(exn, "Your code should throw a <i>TreeException</i> when it is passed a <b>null</b> paramter.");
+            fail(exn, "Your code should throw a `TreeException` when it is passed a **null** paramter.");
         } catch(Throwable exn) {
-            fail(exn, "Expected a <i>TreeException</i>, but we threw: " + exn.getClass().getName());
+            fail(exn, "Expected a `TreeException`, but we threw: " + exn.getClass().getName());
         } // end of try-catch
     } // end of method testNull
 
@@ -64,7 +64,7 @@ public class containsTests extends FeedbackCase {
         } catch(NotFound exn) {
             fail(exn, "You can not locate the only node of a leaf!");
         } catch(TreeException exn) {
-            fail(exn, "An unexpected <i>TreeException</i> was thrown!");
+            fail(exn, "An unexpected `TreeException` was thrown!");
         } catch(Throwable exn) {
             fail(exn, "Unexpected exception thrown: " + exn.getClass().getName());
         } // end of try-catch
@@ -80,9 +80,9 @@ public class containsTests extends FeedbackCase {
                 && result.getBranch() != null
                 && result.getBranch().length == 0);
         } catch(NotFound exn) {
-            fail(exn, "You can not locate the only node of a leaf! Possible causes: <ul><li>Maybe you have an error in your <i>recursive</i> solution:<ul><li>are <i>all</i> return statements present?</li></ul></li><li>Maybe you are using the <i>question's</i> equals method instead of simply comparing node labels?</li><li>What is the difference between <i>==</i> and the <i>equals(Object)</i> method?</li></ul>");
+            fail(exn, "You can not locate the only node of a leaf! Possible causes: \n* Maybe you have an error in your `recursive` solution:\n* are `all` return statements present?\n* Maybe you are using the `question's` equals method instead of simply comparing node labels?\n* What is the difference between `==` and the `equals(Object)` method?");
         } catch(TreeException exn) {
-            fail(exn, "An unexpected <i>TreeException</i> was thrown!");
+            fail(exn, "An unexpected `TreeException` was thrown!");
         } catch(Throwable exn) {
             fail(exn, "Unexpected exception thrown: " + exn.getClass().getName());
         } // end of try-catch
@@ -98,9 +98,9 @@ public class containsTests extends FeedbackCase {
                 && result.getBranch() != null
                 && result.getBranch().length == 0);
         } catch(NotFound exn) {
-            fail(exn, "You can not locate the only node of a leaf! Possible causes: <ul><li>Maybe you have an error in your <i>recursive</i> solution:<ul><li>are <i>all</i> return statements present?</li></ul></li><li>Maybe you are using the <i>question's</i> equals method instead of simply comparing node labels?</li><li>What is the difference between <i>==</i> and the <i>equals(Object)</i> method?</li></ul>");
+            fail(exn, "You can not locate the only node of a leaf! Possible causes: \n* Maybe you have an error in your `recursive` solution:\n* are `all` return statements present?\n* Maybe you are using the `question's` equals method instead of simply comparing node labels?\n* What is the difference between `==` and the `equals(Object)` method?");
         } catch(TreeException exn) {
-            fail(exn, "An unexpected <i>TreeException</i> was thrown!");
+            fail(exn, "An unexpected `TreeException` was thrown!");
         } catch(Throwable exn) {
             fail(exn, "Unexpected exception thrown: " + exn.getClass().getName());
         } // end of try-catch
@@ -114,38 +114,38 @@ public class containsTests extends FeedbackCase {
                 fail(null, "You can not locate the root node of a chain!");
             } // end of if-then
             if (result.getData() == null) {
-                fail(null, "In locating the root node of a chain, you returned a <i>null</i> labelled subtree!");
+                fail(null, "In locating the root node of a chain, you returned a `null` labelled subtree!");
             } // end of if-then
             if (!result.getData().equals("label1")) {
                 fail(null, "In locating the root node of a chain, you returned a subtree with the incorrect label!");
             } // end of if-then
             if (result.getBranch() == null) {
-                fail(null, "In locating the root node of a chain, you returned a subtree with a <i>null</i> branch property!");
+                fail(null, "In locating the root node of a chain, you returned a subtree with a `null` branch property!");
             } // end of if-then
             if (result.getBranch().length != 1) {
                 fail(null, "In locating the root node of a chain, you returned a subtree with the wrong number of branches!");
             } // end of if-then
             if (result.getBranch()[0] == null) {
-                fail(null, "In locating the root node of a chain, you returned a subtree with a <i>null</i> sub-subtree!");
+                fail(null, "In locating the root node of a chain, you returned a subtree with a `null` sub-subtree!");
             } // end of if-then
             if (result.getBranch()[0].getBranch() == null) {
-                fail(null, "In locating the root node of a chain, you returned a subtree, whose sub-subtree had a <i>null</i> branch property!");
+                fail(null, "In locating the root node of a chain, you returned a subtree, whose sub-subtree had a `null` branch property!");
             } // end of if-then
             if (result.getBranch()[0].getData() == null) {
-                fail(null, "In locating the root node of a chain, you returned a subtree, whose sub-subtree has a <i>null</i> label!");
+                fail(null, "In locating the root node of a chain, you returned a subtree, whose sub-subtree has a `null` label!");
             } // end of if-then
             if (!result.getBranch()[0].getData().equals("label2")) {
                 fail(null, "In locating the root node of a chain, you returned a subtree, whose sub-subtree has an invalid label!");
             } // end of if-then
             if (result.getBranch()[0].getBranch().length != 0) {
-                fail(null, "In locating the root node of a chain, you returned a subtree, whose sub-subtree <i>should</i> have been a leaf node!");
+                fail(null, "In locating the root node of a chain, you returned a subtree, whose sub-subtree `should` have been a leaf node!");
             } // end of if-then
-            assertTrue(null, "You are <b>not</b> returning a node that is located <i>within</i> the current tree! Check that:<ul><li>all <i>return</i> statements are present in your recursive solution.</li><li>you are not <i>duplicating</i> nodes/trees.</li></ul>",
+            assertTrue(null, "You are **not** returning a node that is located `within` the current tree! Check that:\n* all `return` statements are present in your recursive solution.\n* you are not `duplicating` nodes/trees.",
                 result == ((Question1)answer));
         } catch(NotFound exn) {
-            fail(exn, "You can not locate the root node of a chain! Possible causes: <ul><li>Maybe you have an error in your <i>recursive</i> solution:<ul><li>are <i>all</i> return statements present?</li></ul></li><li>Maybe you are using the <i>question's</i> equals method instead of simply comparing node labels?</li><li>What is the difference between <i>==</i> and the <i>equals(Object)</i> method?</li></ul>");
+            fail(exn, "You can not locate the root node of a chain! Possible causes: \n* Maybe you have an error in your `recursive` solution:\n* are `all` return statements present?\n* Maybe you are using the `question's` equals method instead of simply comparing node labels?\n* What is the difference between `==` and the `equals(Object)` method?");
         } catch(TreeException exn) {
-            fail(exn, "An unexpected <i>TreeException</i> was thrown!");
+            fail(exn, "An unexpected `TreeException` was thrown!");
         } catch(Throwable exn) {
             fail(exn, "Unexpected exception thrown: " + exn.getClass().getName());
         } // end of try-catch
@@ -161,9 +161,9 @@ public class containsTests extends FeedbackCase {
                 && result.getBranch() != null
                 && result.getBranch().length == 0);
         } catch(NotFound exn) {
-            fail(exn, "You can not locate the leaf node of a chain! Possible causes: <ul><li>Maybe you have an error in your <i>recursive</i> solution:<ul><li>are <i>all</i> return statements present?</li></ul></li><li>Maybe you are using the <i>question's</i> equals method instead of simply comparing node labels?</li><li>What is the difference between <i>==</i> and the <i>equals(Object)</i> method?</li></ul>");
+            fail(exn, "You can not locate the leaf node of a chain! Possible causes: \n* Maybe you have an error in your `recursive` solution:\n* are `all` return statements present?\n* Maybe you are using the `question's` equals method instead of simply comparing node labels?\n* What is the difference between `==` and the `equals(Object)` method?");
         } catch(TreeException exn) {
-            fail(exn, "An unexpected <i>TreeException</i> was thrown!");
+            fail(exn, "An unexpected `TreeException` was thrown!");
         } catch(Throwable exn) {
             fail(exn, "Unexpected exception thrown: " + exn.getClass().getName());
         } // end of try-catch
@@ -176,22 +176,22 @@ public class containsTests extends FeedbackCase {
             tree.branch[1] = mkChain(new String[]{ "label3", "label4" });
             TreeNode result = contains(tree, new TreeNode("label4"));
             if (result == null) {
-                fail(null, "Whilst working with a branching tree: your method <i>unexpectibly</i> returns <b>null</b> when searching for an existing node of a branching tree!");
+                fail(null, "Whilst working with a branching tree: your method `unexpectibly` returns **null** when searching for an existing node of a branching tree!");
             } // end of if-then
             if (result.getData() == null) {
-                fail(null, "Whilst working with a branching tree: your answer returns a <i>TreeNode</i> instance with a <b>null</b> label!");
+                fail(null, "Whilst working with a branching tree: your answer returns a `TreeNode` instance with a **null** label!");
             } // end of if-then
             if (result.getBranch() == null) {
-                fail(null, "Whilst working with a branching tree: your answer returns a <i>TreeNode</i> instance with a <b>null</b> branch!");
+                fail(null, "Whilst working with a branching tree: your answer returns a `TreeNode` instance with a **null** branch!");
             } // end of if-then
             if (result.getBranch().length != 0) {
-                fail(null, "Whilst working with a branching tree: your answer should have returned a <i>leaf</i> node!");
+                fail(null, "Whilst working with a branching tree: your answer should have returned a `leaf` node!");
             } // end of if-then
             assertTrue(null, "Failed to locate the leaf node of a branching tree!", result.getData().equals("label4"));
         } catch(NotFound exn) {
-            fail(exn, "You can not locate the <i>leaf</i> node of a branching tree! Possible causes: <ul><li>Maybe you have an error in your <i>recursive</i> solution:<ul><li>are <i>all</i> return statements present?</li></ul></li><li>Maybe you are using the <i>question's</i> equals method instead of simply comparing node labels?</li><li>What is the difference between <i>==</i> and the <i>equals(Object)</i> method?</li></ul>");
+            fail(exn, "You can not locate the `leaf` node of a branching tree! Possible causes: \n* Maybe you have an error in your `recursive` solution:\n* are `all` return statements present?\n* Maybe you are using the `question's` equals method instead of simply comparing node labels?\n* What is the difference between `==` and the `equals(Object)` method?");
         } catch(TreeException exn) {
-            fail(exn, "An unexpected <i>TreeException</i> was thrown!");
+            fail(exn, "An unexpected `TreeException` was thrown!");
         } catch(Throwable exn) {
             fail(exn, "Unexpected exception thrown: " + exn.getClass().getName());
         } // end of try-catch
@@ -204,22 +204,22 @@ public class containsTests extends FeedbackCase {
             tree.branch[1] = mkChain(new String[]{ "label3", "label4" });
             TreeNode result = contains(tree, new TreeNode("label3"));
             if (result == null) {
-                fail(null, "Your method <i>unexpectibly</i> returns <b>null</b> when searching for an existing node of a branching tree!");
+                fail(null, "Your method `unexpectibly` returns **null** when searching for an existing node of a branching tree!");
             } // end of if-then
             if (result.getData() == null) {
-                fail(null, "Your answer returns a <i>TreeNode</i> instance with a <b>null</b> label!");
+                fail(null, "Your answer returns a `TreeNode` instance with a **null** label!");
             } // end of if-then
             if (result.getBranch() == null) {
-                fail(null, "Your answer returns a <i>TreeNode</i> instance with a <b>null</b> branch!");
+                fail(null, "Your answer returns a `TreeNode` instance with a **null** branch!");
             } // end of if-then
             if (result.getBranch().length != 1) {
-                fail(null, "Your answer should have returned a <i>1-branching</i> node!");
+                fail(null, "Your answer should have returned a `1-branching` node!");
             } // end of if-then
             assertTrue(null, "Failed to locate an internal node of a branching tree!", result.getData().equals("label3"));
         } catch(NotFound exn) {
-            fail(exn, "You can not locate the <i>internal</i> node of a branching tree! Possible causes: <ul><li>Maybe you have an error in your <i>recursive</i> solution:<ul><li>are <i>all</i> return statements present?</li></ul></li><li>Maybe you are using the <i>question's</i> equals method instead of simply comparing node labels?</li><li>What is the difference between <i>==</i> and the <i>equals(Object)</i> method?</li></ul>");
+            fail(exn, "You can not locate the `internal` node of a branching tree! Possible causes: \n* Maybe you have an error in your `recursive` solution:\n* are `all` return statements present?\n* Maybe you are using the `question's` equals method instead of simply comparing node labels?\n* What is the difference between `==` and the `equals(Object)` method?");
         } catch(TreeException exn) {
-            fail(exn, "An unexpected <i>TreeException</i> was thrown!");
+            fail(exn, "An unexpected `TreeException` was thrown!");
         } catch(Throwable exn) {
             fail(exn, "Unexpected exception thrown: " + exn.getClass().getName());
         } // end of try-catch
@@ -237,7 +237,7 @@ public class containsTests extends FeedbackCase {
         } catch(NotFound exn) {
             fail(exn, "You can not locate the only node of a leaf!");
         } catch(TreeException exn) {
-            fail(exn, "An unexpected <i>TreeException</i> was thrown!");
+            fail(exn, "An unexpected `TreeException` was thrown!");
         } catch(Throwable exn) {
             fail(exn, "Unexpected exception thrown: " + exn.getClass().getName());
         } // end of try-catch
@@ -255,7 +255,7 @@ public class containsTests extends FeedbackCase {
         } catch(NotFound exn) {
             fail(exn, "You can not locate the last node of a chain!");
         } catch(TreeException exn) {
-            fail(exn, "An unexpected <i>TreeException</i> was thrown!");
+            fail(exn, "An unexpected `TreeException` was thrown!");
         } catch(Throwable exn) {
             fail(exn, "Unexpected exception thrown: " + exn.getClass().getName());
         } // end of try-catch
@@ -264,11 +264,11 @@ public class containsTests extends FeedbackCase {
     public void testNotPresent1() {
         try {
             TreeNode result = contains(mkChain(new String[]{ "label1" }), new TreeNode("data"));
-            fail(null, "Failed to throw a <i>NotFound</i> exception when searching for a non-existent node.");
+            fail(null, "Failed to throw a `NotFound` exception when searching for a non-existent node.");
         } catch(NotFound exn) {
             assertTrue(exn, true);
         } catch(TreeException exn) {
-            fail(exn, "An unexpected <i>TreeException</i> was thrown!");
+            fail(exn, "An unexpected `TreeException` was thrown!");
         } catch(Throwable exn) {
             fail(exn, "Unexpected exception thrown: " + exn.getClass().getName());
         } // end of try-catch
@@ -277,11 +277,11 @@ public class containsTests extends FeedbackCase {
     public void testNotPresent2() {
         try {
             TreeNode result = contains(mkChain(new String[]{ "label1", "label2" }), new TreeNode("data"));
-            fail(null, "Failed to throw a <i>NotFound</i> exception when searching for a non-existent node.");
+            fail(null, "Failed to throw a `NotFound` exception when searching for a non-existent node.");
         } catch(NotFound exn) {
             assertTrue(exn, true);
         } catch(TreeException exn) {
-            fail(exn, "An unexpected <i>TreeException</i> was thrown!");
+            fail(exn, "An unexpected `TreeException` was thrown!");
         } catch(Throwable exn) {
             fail(exn, "Unexpected exception thrown: " + exn.getClass().getName());
         } // end of try-catch
@@ -293,11 +293,11 @@ public class containsTests extends FeedbackCase {
             tree.branch[0] = mkChain(new String[]{ "label1", "label2" });
             tree.branch[1] = mkChain(new String[]{ "label3", "label4" });
             TreeNode result = contains(tree, new TreeNode("data"));
-            fail(null, "Failed to throw a <i>NotFound</i> exception when searching for a non-existent node.");
+            fail(null, "Failed to throw a `NotFound` exception when searching for a non-existent node.");
         } catch(NotFound exn) {
             assertTrue(exn, true);
         } catch(TreeException exn) {
-            fail(exn, "An unexpected <i>TreeException</i> was thrown!");
+            fail(exn, "An unexpected `TreeException` was thrown!");
         } catch(Throwable exn) {
             fail(exn, "Unexpected exception thrown: " + exn.getClass().getName());
         } // end of try-catch
@@ -316,9 +316,9 @@ public class containsTests extends FeedbackCase {
         } catch(NotFound exn) {
             fail(exn, "You can not locate the only node of a leaf!");
         } catch(TreeException exn) {
-            fail(exn, "An unexpected <i>TreeException</i> was thrown!");
+            fail(exn, "An unexpected `TreeException` was thrown!");
         } catch(ClassCastException exn) {
-            fail(exn, "Your code fails to deal with tree nodes that are <b>not</b> labeled with string data structures! Make sure that: <UL><LI>You have <b>not</b> written your answer assuming that <i>String</i>'s will be the only data type used</LI><LI>You have used the <i>correct</i> type of <i>equal</i>ity.</LI></UL>");            
+            fail(exn, "Your code fails to deal with tree nodes that are **not** labeled with string data structures! Make sure that: \n* You have **not** written your answer assuming that `String`'s will be the only data type used\n* You have used the `correct` type of `equal`ity.");            
         } catch(Throwable exn) {
             fail(exn, "Unexpected exception thrown: " + exn.getClass().getName());
         } // end of try-catch
@@ -337,9 +337,9 @@ public class containsTests extends FeedbackCase {
         } catch(NotFound exn) {
             fail(exn, "You can not locate the only node of a leaf!");
         } catch(TreeException exn) {
-            fail(exn, "An unexpected <i>TreeException</i> was thrown!");
+            fail(exn, "An unexpected `TreeException` was thrown!");
         } catch(ClassCastException exn) {
-            fail(exn, "Your code fails to deal with tree nodes that are <b>not</b> labeled with string data structures! Make sure that: <UL><LI>You have <b>not</b> written your answer assuming that <i>String</i>'s will be the only data type used</LI><LI>You have used the <i>correct</i> type of <i>equal</i>ity.</LI></UL>");            
+            fail(exn, "Your code fails to deal with tree nodes that are **not** labeled with string data structures! Make sure that: \n* You have **not** written your answer assuming that `String`'s will be the only data type used\n* You have used the `correct` type of `equal`ity.");            
         } catch(Throwable exn) {
             fail(exn, "Unexpected exception thrown: " + exn.getClass().getName());
         } // end of try-catch

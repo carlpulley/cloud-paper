@@ -35,7 +35,7 @@ public class referenceCountsTests extends FeedbackCase {
         setTree(new TreeNode("dummy"));
         try {
             Map result = synchronizeTree(((Question2)answer).referenceCounts(null));
-            assertTrue(null, "Your code fails to deal with a <b>null</b> parameter.", result == null);
+            assertTrue(null, "Your code fails to deal with a **null** parameter.", result == null);
         } catch(Throwable exn) {
             fail(exn, "No exception's should be generated, but your code threw: " + exn.getClass().getName());            
         } // end of try-catch
@@ -49,7 +49,7 @@ public class referenceCountsTests extends FeedbackCase {
         setTree(new TreeNode("dummy"));
         try {
             Map result = synchronizeTree(((Question2)answer).referenceCounts(refCounts));
-            assertTrue(null, "Your code fails to return a <i>null</i> value when it encounters a <i>null</i> key.", result == null);
+            assertTrue(null, "Your code fails to return a `null` value when it encounters a `null` key.", result == null);
         } catch(Throwable exn) {
             fail(exn, "No exception's should be generated, but your code threw: " + exn.getClass().getName());            
         } // end of try-catch
@@ -63,7 +63,7 @@ public class referenceCountsTests extends FeedbackCase {
         setTree(new TreeNode("dummy"));
         try {
             Map result = synchronizeTree(((Question2)answer).referenceCounts(refCounts));
-            assertTrue(null, "Your code fails to return a <b>null</b> value when it encounters a <i>null</i> value.", result == null);
+            assertTrue(null, "Your code fails to return a **null** value when it encounters a `null` value.", result == null);
         } catch(Throwable exn) {
             fail(exn, "No exception's should be generated, but your code threw: " + exn.getClass().getName());            
         } // end of try-catch
@@ -81,7 +81,7 @@ public class referenceCountsTests extends FeedbackCase {
         setTree(new TreeNode("dummy"));
         try {
             Map result = synchronizeTree(((Question2)answer).referenceCounts(refCounts));
-            assertTrue(null, "Your code fails to return a <b>null</b> value when it encounters a <i>null</i> subtree.", result == null);
+            assertTrue(null, "Your code fails to return a **null** value when it encounters a `null` subtree.", result == null);
         } catch(Throwable exn) {
             fail(exn, "No exception's should be generated, but your code threw: " + exn.getClass().getName());            
         } // end of try-catch
@@ -103,7 +103,7 @@ public class referenceCountsTests extends FeedbackCase {
               && result.get(key) instanceof Integer
               && ((Integer)(result.get(key))).intValue() == 0);
         } catch(ClassCastException exn) {
-            fail(exn, "Caught a <i>ClassCastException</i>: you should <b>only</b> need to cast to the types <i>TreeNode</i> and <i>Integer</i>. Check that:<UL><LI>your <i>Map</i> keys have type <b>TreeNode</b></LI><LI>your <i>Map</i> values have type <b>Integer</b></LI></UL>");                          
+            fail(exn, "Caught a `ClassCastException`: you should **only** need to cast to the types `TreeNode` and `Integer`. Check that:\n* your `Map` keys have type **TreeNode**\n* your `Map` values have type **Integer**");                          
         } catch(Throwable exn) {
             fail(exn, "No exception's should be generated, but your code threw: " + exn.getClass().getName());            
         } // end of try-catch        
@@ -120,7 +120,7 @@ public class referenceCountsTests extends FeedbackCase {
         setTree(new TreeNode("dummy"));
         try {
             Map result = synchronizeTree(((Question2)answer).referenceCounts(refCounts));
-            assertTrue(null, "Your code fails to deal with trees that <i>only</i> contain leaf nodes.", 
+            assertTrue(null, "Your code fails to deal with trees that `only` contain leaf nodes.", 
               result != null
               && result.size() == 2
               && result.containsKey(key1)
@@ -132,7 +132,7 @@ public class referenceCountsTests extends FeedbackCase {
               && ((Integer)(result.get(key1))).intValue() == 0
               && ((Integer)(result.get(key2))).intValue() == 0);
         } catch(ClassCastException exn) {
-            fail(exn, "Caught a <i>ClassCastException</i>: you should <b>only</b> need to cast to the types <i>TreeNode</i> and <i>Integer</i>. Check that:<UL><LI>your <i>Map</i> keys have type <b>TreeNode</b></LI><LI>your <i>Map</i> values have type <b>Integer</b></LI></UL>");                          
+            fail(exn, "Caught a `ClassCastException`: you should **only** need to cast to the types `TreeNode` and `Integer`. Check that:\n* your `Map` keys have type **TreeNode**\n* your `Map` values have type **Integer**");                          
         } catch(Throwable exn) {
             fail(exn, "No exception's should be generated, but your code threw: " + exn.getClass().getName());            
         } // end of try-catch        
@@ -198,7 +198,7 @@ public class referenceCountsTests extends FeedbackCase {
               && ((Integer)(result.get(key2))).intValue() == 1
               && ((Integer)(result.get(key3))).intValue() == 1);
         } catch(ClassCastException exn) {
-            fail(exn, "Caught a <i>ClassCastException</i>: you should <b>only</b> need to cast to the types <i>TreeNode</i> and <i>Integer</i>. Check that:<UL><LI>your <i>Map</i> keys have type <b>TreeNode</b></LI><LI>your <i>Map</i> values have type <b>Integer</b></LI></UL>");                          
+            fail(exn, "Caught a `ClassCastException`: you should **only** need to cast to the types `TreeNode` and `Integer`. Check that:\n* your `Map` keys have type **TreeNode**\n* your `Map` values have type **Integer**");                          
         } catch(Throwable exn) {
             fail(exn, "No exception's should be generated, but your code threw: " + exn.getClass().getName());            
         } // end of try-catch        
@@ -220,7 +220,7 @@ public class referenceCountsTests extends FeedbackCase {
         setTree(new TreeNode("dummy"));
         try {
             Map result = synchronizeTree(((Question2)answer).referenceCounts(refCounts));
-            assertTrue(null, "Your code fails to deal with trees that have <i>shared</i> subtrees.", 
+            assertTrue(null, "Your code fails to deal with trees that have `shared` subtrees.", 
               result != null
               && result.size() == 3
               && result.containsKey(key1)
@@ -236,7 +236,7 @@ public class referenceCountsTests extends FeedbackCase {
               && ((Integer)(result.get(key2))).intValue() == 0
               && ((Integer)(result.get(key3))).intValue() == 2);
         } catch(ClassCastException exn) {
-            fail(exn, "Caught a <i>ClassCastException</i>: you should <b>only</b> need to cast to the types <i>TreeNode</i> and <i>Integer</i>. Check that:<UL><LI>your <i>Map</i> keys have type <b>TreeNode</b></LI><LI>your <i>Map</i> values have type <b>Integer</b></LI></UL>");                          
+            fail(exn, "Caught a `ClassCastException`: you should **only** need to cast to the types `TreeNode` and `Integer`. Check that:\n* your `Map` keys have type **TreeNode**\n* your `Map` values have type **Integer**");                          
         } catch(Throwable exn) {
             fail(exn, "No exception's should be generated, but your code threw: " + exn.getClass().getName());            
         } // end of try-catch        
@@ -256,7 +256,7 @@ public class referenceCountsTests extends FeedbackCase {
         setTree(new TreeNode("dummy"));
         try {
             Map result = synchronizeTree(((Question2)answer).referenceCounts(refCounts));
-            assertTrue(null, "Your code returns a <i>null</i> map when it shouldn't!", 
+            assertTrue(null, "Your code returns a `null` map when it shouldn't!", 
               result != null);
             assertTrue(null, "Your code a map with an incorrect number of elements!", 
               result.size() == 3);
@@ -276,7 +276,7 @@ public class referenceCountsTests extends FeedbackCase {
               && ((Integer)(result.get(key2))).intValue() == 0
               && ((Integer)(result.get(key3))).intValue() == 1);
         } catch(ClassCastException exn) {
-            fail(exn, "Caught a <i>ClassCastException</i>: you should <b>only</b> need to cast to the types <i>TreeNode</i> and <i>Integer</i>. Check that:<UL><LI>your <i>Map</i> keys have type <b>TreeNode</b></LI><LI>your <i>Map</i> values have type <b>Integer</b></LI></UL>");                          
+            fail(exn, "Caught a `ClassCastException`: you should **only** need to cast to the types `TreeNode` and `Integer`. Check that:\n* your `Map` keys have type **TreeNode**\n* your `Map` values have type **Integer**");                          
         } catch(Throwable exn) {
             fail(exn, "No exception's should be generated, but your code threw: " + exn.getClass().getName());            
         } // end of try-catch        
@@ -295,7 +295,7 @@ public class referenceCountsTests extends FeedbackCase {
         setTree(new TreeNode("dummy"));
         try {
             Map result = synchronizeTree(((Question2)answer).referenceCounts(refCounts));
-            assertTrue(null, "Your code fails to deal with trees whose <i>Map</i> representation is corrupted. Check that: <ul><li>you are using the correct type of equality (eg. <i>==</i> or <i>equals</i>?)</li></ul>", result == null);
+            assertTrue(null, "Your code fails to deal with trees whose `Map` representation is corrupted. Check that: \n* you are using the correct type of equality (eg. `==` or `equals`?)", result == null);
         } catch(Throwable exn) {
             fail(exn, "No exception's should be generated, but your code threw: " + exn.getClass().getName());            
         } // end of try-catch        
@@ -312,7 +312,7 @@ public class referenceCountsTests extends FeedbackCase {
         setTree(new TreeNode("dummy"));
         try {
             Map result = synchronizeTree(((Question2)answer).referenceCounts(refCounts));
-            assertTrue(null, "Your code fails to deal with trees whose <i>Map</i> representation is corrupted.", result == null);
+            assertTrue(null, "Your code fails to deal with trees whose `Map` representation is corrupted.", result == null);
         } catch(Throwable exn) {
             fail(exn, "No exception's should be generated, but your code threw: " + exn.getClass().getName());            
         } // end of try-catch

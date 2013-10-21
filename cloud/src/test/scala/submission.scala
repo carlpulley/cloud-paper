@@ -58,7 +58,8 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
 
   val submission = "Dummy Submission"
   val submission_hash = sha256(submission)
-  val feedback = "Dummy Feedback"
+  val feedback = "<feedback><question value='1'><suite><test name='example' passed='true'><outcome name='testExample'><comment name='feedback'>Dummy Feedback</comment></outcome></test></suite></question></feedback>"
+  val feedback_failure = "Dummy Feedback"
   val feedback_hash = sha256(feedback)
 
   setLogLevel(loglevel)
@@ -67,7 +68,13 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
   ConnectionPool.singleton(sqlurl, sqluser, sqlpw)
 
   val controller = TestActorRef(Props(new ControlBus(Map.empty)))
-  val simple_feedback = { msg: Message => msg.setBody(msg.bodyAs[String].replaceAll("Submission", "Feedback")) }
+  val simple_feedback = { msg: Message => {
+    if (msg.header("xsdFailure").isEmpty) {
+      msg.setBody("<feedback><question value='1'><suite><test name='example' passed='true'><outcome name='testExample'><comment name='feedback'>" + msg.bodyAs[String].replaceAll("Submission", "Feedback") + "</comment></outcome></test></suite></question></feedback>")
+    } else {
+      msg.setBody(msg.bodyAs[String].replaceAll("Submission", "Feedback"))
+    }
+  }}
   val submission_endpoint = new Submission(controller, simple_feedback, to("mock:mail"), to("mock:web"))
   from(submission_endpoint.error_channel) {
     { msg: Message => if (msg.exception.isDefined) msg.addHeader("Exception", msg.exception.get.getMessage) else msg } >=> 
@@ -121,6 +128,27 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
     assert(getFeedbackCount == 1)
   }
 
+  test("Check submission route fails correctly with an XSD validation failure") {
+    val mock_mail = getMockEndpoint("mock:mail")
+    mock_mail.expectedMessageCount(0)
+
+    val mock_web = getMockEndpoint("mock:web")
+    mock_web.expectedMessageCount(0)
+
+    val mock_error = getMockEndpoint("mock:submission-error")
+    mock_error.expectedMessageCount(1)
+    mock_error.expectedBodiesReceived(feedback_failure)
+
+    template.sendBodyAndHeaders(submission_endpoint.uri, submission, Map("replyTo" -> mailTo, "breadcrumbId" -> "submission-testing-1-1", "xsdFailure" -> "true"))
+
+    mock_mail.assertIsSatisfied
+    mock_web.assertIsSatisfied
+    mock_error.assertIsSatisfied
+
+    assert(getSubmissionCount == 1)
+    assert(getFeedbackCount == 0)
+  }
+
   test("Check failing submission route") {
     val mock_mail = getMockEndpoint("mock:mail")
     mock_mail.expectedMessageCount(0)
@@ -140,9 +168,6 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
 
     assert(getSubmissionCount == 0)
     assert(getFeedbackCount == 0)
-    // FIXME:
-    //assert(mock_error.getExchanges.head.isFailed)
-    //assert(mock_error.getExchanges.head.getException.getMessage.contains("Invalid message received"))
   }
 
   test("Check message store inserts") {
@@ -181,9 +206,6 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
       assert(getSubmissionCount == 0)
       assert(getFeedbackCount == 0)
       mock_error.assertIsSatisfied
-      // FIXME:
-      //assert(mock_error.getExchanges.head.isFailed)
-      //assert(mock_error.getExchanges.head.getException.getMessage.contains("Invalid message received"))
     }
   }
 
@@ -210,9 +232,6 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
       assert(getSubmissionCount == 1)
       assert(getFeedbackCount == 0)
       mock_error.assertIsSatisfied
-      // FIXME:
-      //assert(mock_error.getExchanges.head.isFailed)
-      //assert(mock_error.getExchanges.head.getException.getMessage.contains(s"Failed to insert feedback into ${FeedbackTable.name.value} table - 0 changed"))
     }
   }
 }

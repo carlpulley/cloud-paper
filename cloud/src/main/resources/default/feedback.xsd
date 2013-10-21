@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:element name="feedback">
+    <xs:complexType>
+      <xs:group ref="feedback-item" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:group name="feedback-item">
+    <xs:choice>
+      <xs:element name="error" type="xs:string"/>
+      <xs:element name="ignored" type="ignored"/>
+      <xs:element name="warning" type="warning"/>
+      <xs:element name="question" type="question"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:complexType name="question">
+    <xs:sequence>
+      <xs:element name="suite" type="suite" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="value" type="xs:positiveInteger" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="suite">
+    <xs:group ref="suite-item" minOccurs="0" maxOccurs="unbounded"/>
+  </xs:complexType>
+
+  <xs:group name="suite-item">
+    <xs:choice>
+      <xs:element name="test" type="test"/>
+      <xs:element name="error" type="error"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:complexType name="test">
+    <xs:sequence>
+      <xs:element name="outcome" type="outcome"/>  
+    </xs:sequence>
+
+    <xs:attribute name="name" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:pattern value="([a-zA-Z_][a-zA-Z0-9_]*\.)*[a-zA-Z_][a-zA-Z0-9_]*"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="passed" type="xs:boolean" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="outcome">
+    <xs:sequence>
+      <xs:element name="comment" type="comment" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+
+    <xs:attribute name="name" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:pattern value="test[a-zA-Z0-9_]*"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+
+  <xs:complexType name="comment" mixed="true">
+    <xs:sequence>
+      <xs:element name="stack" type="stack" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+
+    <xs:attribute name="name" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:pattern value="([a-zA-Z_][a-zA-Z0-9_]*\.)*[a-zA-Z_][a-zA-Z0-9_]*"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+
+  <xs:complexType name="stack">
+    <xs:sequence>
+      <xs:element name="frame" type="frame" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="frame">    
+    <xs:sequence>
+      <xs:element name="class">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:pattern value="([a-zA-Z_][a-zA-Z0-9_]*\.)*[a-zA-Z_][a-zA-Z0-9_]*($[a-zA-Z0-9_]*)*"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="file">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:pattern value=".*\.java"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="line" type="xs:integer"/>
+      <xs:element name="method">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:pattern value="([a-zA-Z_][a-zA-Z0-9_]*)|(&lt;[a-zA-Z_][a-zA-Z0-9_]*&gt;)"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="error" mixed="true">
+    <xs:sequence>
+      <xs:element name="outcome" type="outcome" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+
+    <xs:attribute name="name" use="required">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:pattern value="([a-zA-Z_][a-zA-Z0-9_]*\.)*[a-zA-Z_][a-zA-Z0-9_]*($[a-zA-Z0-9_]*)*"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    <xs:attribute name="msg" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="warning">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute name="file" use="optional">
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:pattern value=".*\.java"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:attribute>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:complexType name="ignored">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute name="file" use="required">
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:pattern value=".*\.java"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="class" use="optional">
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:pattern value="([a-zA-Z_][a-zA-Z0-9_]*\.)*[a-zA-Z_][a-zA-Z0-9_]*($[a-zA-Z0-9_]*)*"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:attribute>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+</xs:schema>

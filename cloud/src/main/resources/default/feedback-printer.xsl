@@ -60,18 +60,20 @@
               </fo:table-header>
 
               <fo:table-body>
-              <xsl:for-each select="item">
-                <xsl:sort select="@id"/>
+              <xsl:for-each select="question">
+                <xsl:sort select="@value"/>
     
                 <fo:table-row>
                   <fo:table-cell border-style="solid" padding="1mm" display-align="center">
                     <fo:block text-align="center">
-                      <xsl:value-of select="@id"/>
+                      <xsl:value-of select="@value"/>
                     </fo:block>
                   </fo:table-cell>
                   <fo:table-cell border-style="solid" padding="1mm">
                     <fo:block>
-                      <xsl:value-of select="comment"/>
+                      <xsl:for-each select="suite/test[@passed='false']/outcome">
+                        <xsl:value-of select="comment"/>
+                      </xsl:for-each>
                     </fo:block>
                   </fo:table-cell>
                 </fo:table-row>

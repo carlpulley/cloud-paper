@@ -85,6 +85,7 @@ class Submission(val controller: ActorRef, workflow: Conv.MessageRoute, endpoint
           multicast(
             to(msg_store), 
             workflow >=> 
+              to(s"validator:${group}/feedback.xsd") >=>
               ((msg: Message) => msg.setHeaders(Map("sha256" -> sha256(msg.bodyAs[String]), "table" -> FeedbackTable.name.value, "breadcrumbId" -> msg.headerAs[String]("breadcrumbId").get))) >=>
               multicast((messageRoute(to(msg_store)) +: endpoints.toSeq): _*)
           )

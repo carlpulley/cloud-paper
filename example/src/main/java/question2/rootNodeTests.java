@@ -30,9 +30,9 @@ public class rootNodeTests extends FeedbackCase {
     public void testNull1() {
         setTree(new TreeNode("dummy"));
         try {
-            assertTrue(null, "Your code failed to deal with a <b>null</b> parameter.", ((Question2)answer).rootNode(null) == null);
+            assertTrue(null, "Your code failed to deal with a **null** parameter.", ((Question2)answer).rootNode(null) == null);
         } catch(NullPointerException exn) {
-            fail(exn, "Your code should return <b>null</b> when presented with a <i>null</i> parameter.");
+            fail(exn, "Your code should return **null** when presented with a `null` parameter.");
         } catch(Throwable exn) {
             fail(exn, "No exception's should be generated, but your code threw: " + exn.getClass().getName());
         } // end of try-catch
@@ -43,9 +43,9 @@ public class rootNodeTests extends FeedbackCase {
         Map refcounts = Collections.synchronizedMap(new HashMap());
         refcounts.put(null, new Integer(0));
         try {
-            assertTrue(null, "Your code failed to correctly deal with a Map containing a <b>null</b> root node.", ((Question2)answer).rootNode(refcounts) == null);
+            assertTrue(null, "Your code failed to correctly deal with a Map containing a **null** root node.", ((Question2)answer).rootNode(refcounts) == null);
         } catch(NullPointerException exn) {
-            fail(exn, "Your code should return <b>null</b> when it encounters a key that is <b>null</b>.");
+            fail(exn, "Your code should return **null** when it encounters a key that is **null**.");
         } catch(Throwable exn) {
             fail(exn, "No exception's should be generated, but your code threw: " + exn.getClass().getName());
             exn.printStackTrace();
@@ -57,9 +57,9 @@ public class rootNodeTests extends FeedbackCase {
         Map refcounts = Collections.synchronizedMap(new HashMap());
         refcounts.put(new TreeNode("leaf"), null);
         try {
-            assertTrue(null, "Your code failed to correctly deal with a Map containing a <b>null</b> root node.", ((Question2)answer).rootNode(refcounts) == null);
+            assertTrue(null, "Your code failed to correctly deal with a Map containing a **null** root node.", ((Question2)answer).rootNode(refcounts) == null);
         } catch(NullPointerException exn) {
-            fail(exn, "Your code should return <b>null</b> when it encounters a value that is <b>null</b>.");
+            fail(exn, "Your code should return **null** when it encounters a value that is **null**.");
         } catch(Throwable exn) {
             fail(exn, "No exception's should be generated, but your code threw: " + exn.getClass().getName());
         } // end of try-catch
@@ -71,14 +71,14 @@ public class rootNodeTests extends FeedbackCase {
         refcounts.put(new TreeNode("leaf"), new Integer(0));
         try {
             TreeNode result = ((Question2)answer).rootNode(refcounts);
-            assertTrue(null, "Your code failed to correctly find the <i>only</i> root node of a Map.", 
+            assertTrue(null, "Your code failed to correctly find the `only` root node of a Map.", 
               result != null 
               && result.getData() != null
               && result.getData().equals("leaf") 
               && result.getBranch() != null 
               && result.getBranch().length == 0);
         } catch(ClassCastException exn) {
-            fail(exn, "Caught a <i>ClassCastException</i>: you should <b>only</b> need to cast to the types <i>TreeNode</i> and <i>Integer</i>. Check that:<UL><LI>your <i>Map</i> keys have type <b>TreeNode</b></LI><LI>your <i>Map</i> values have type <b>Integer</b></LI></UL>");                          
+            fail(exn, "Caught a `ClassCastException`: you should **only** need to cast to the types `TreeNode` and `Integer`. Check that:\n* your `Map` keys have type **TreeNode**\n* your `Map` values have type **Integer**");                          
         } catch(Throwable exn) {
             fail(exn, "No exception's should be generated, but your code threw: " + exn.getClass().getName());            
         } // end of try-catch
@@ -91,14 +91,14 @@ public class rootNodeTests extends FeedbackCase {
         refcounts.put(new TreeNode("leaf"), new Integer(1));
         try {
             TreeNode result = ((Question2)answer).rootNode(refcounts);
-            assertTrue(null, "Your code failed to correctly find the <i>only</i> root node of a Map.", 
+            assertTrue(null, "Your code failed to correctly find the `only` root node of a Map.", 
               result != null 
               && result.getData() != null
               && result.getData().equals("root") 
               && result.getBranch() != null 
               && result.getBranch().length == 0);
         } catch(ClassCastException exn) {
-            fail(exn, "Caught a <i>ClassCastException</i>: you should <b>only</b> need to cast to the types <i>TreeNode</i> and <i>Integer</i>. Check that:<UL><LI>your <i>Map</i> keys have type <b>TreeNode</b></LI><LI>your <i>Map</i> values have type <b>Integer</b></LI></UL>");                          
+            fail(exn, "Caught a `ClassCastException`: you should **only** need to cast to the types `TreeNode` and `Integer`. Check that:\n* your `Map` keys have type **TreeNode**\n* your `Map` values have type **Integer**");                          
         } catch(Throwable exn) {
             fail(exn, "No exception's should be generated, but your code threw: " + exn.getClass().getName());            
         } // end of try-catch
@@ -113,14 +113,14 @@ public class rootNodeTests extends FeedbackCase {
         refcounts.put(new TreeNode("root2"), new Integer(0));
         try {
             TreeNode result = ((Question2)answer).rootNode(refcounts);
-            assertTrue(null, "Your code failed to correctly deal with a Map containing <i>multiple</i> root nodes correctly.", 
+            assertTrue(null, "Your code failed to correctly deal with a Map containing `multiple` root nodes correctly.", 
               result != null 
               && result.getData() != null
               && (result.getData().equals("root1") || result.getData().equals("root2"))
               && result.getBranch() != null 
               && result.getBranch().length == 0);
         } catch(ClassCastException exn) {
-            fail(exn, "Caught a <i>ClassCastException</i>: you should <b>only</b> need to cast to the types <i>TreeNode</i> and <i>Integer</i>. Check that:<UL><LI>your <i>Map</i> keys have type <b>TreeNode</b></LI><LI>your <i>Map</i> values have type <b>Integer</b></LI></UL>");                          
+            fail(exn, "Caught a `ClassCastException`: you should **only** need to cast to the types `TreeNode` and `Integer`. Check that:\n* your `Map` keys have type **TreeNode**\n* your `Map` values have type **Integer**");                          
         } catch(Throwable exn) {
             fail(exn, "No exception's should be generated, but your code threw: " + exn.getClass().getName());            
         } // end of try-catch
@@ -131,9 +131,9 @@ public class rootNodeTests extends FeedbackCase {
         Map refcounts = Collections.synchronizedMap(new HashMap());
         refcounts.put(new TreeNode("leaf"), new Integer(1));
         try {
-            assertTrue(null, "Your code failed to correctly deal with a Map containing <b>no</b> root nodes!", ((Question2)answer).rootNode(refcounts) == null);
+            assertTrue(null, "Your code failed to correctly deal with a Map containing **no** root nodes!", ((Question2)answer).rootNode(refcounts) == null);
         } catch(ClassCastException exn) {
-            fail(exn, "Caught a <i>ClassCastException</i>: you should <b>only</b> need to cast to the types <i>TreeNode</i> and <i>Integer</i>. Check that:<UL><LI>your <i>Map</i> keys have type <b>TreeNode</b></LI><LI>your <i>Map</i> values have type <b>Integer</b></LI></UL>");                          
+            fail(exn, "Caught a `ClassCastException`: you should **only** need to cast to the types `TreeNode` and `Integer`. Check that:\n* your `Map` keys have type **TreeNode**\n* your `Map` values have type **Integer**");                          
         } catch(Throwable exn) {
             fail(exn, "No exception's should be generated, but your code threw: " + exn.getClass().getName());
         } // end of try-catch

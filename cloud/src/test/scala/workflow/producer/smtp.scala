@@ -49,7 +49,7 @@ class SMTPTests extends ScalaTestSupport with Helpers {
     system.shutdown
   }
 
-  val feedback = "<feedback><item id='2'><comment>Dummy comment 2</comment></item><item id='1'><comment>Dummy comment 1</comment></item></feedback>"
+  val feedback = "<feedback><question value='2'><suite><test passed='false'><outcome><comment>Dummy comment 2</comment></outcome></test></suite></question><question value='1'><suite><test passed='false'><outcome><comment>Dummy comment 1</comment></outcome></test></suite></question></feedback>"
   val feedback_hash = sha256(feedback)
 
   test("Ensure that email has expected headers and contains correct URL") {    

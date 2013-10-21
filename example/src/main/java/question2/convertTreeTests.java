@@ -78,9 +78,9 @@ public class convertTreeTests extends FeedbackCase {
         ((Question2)answer).tree = null;
         try {
             ((Question2)answer).convertTree();
-            fail(null, "Your code failed to throw a <i>TreeException</i> when the tree property was <b>null</b>.");
+            fail(null, "Your code failed to throw a `TreeException` when the tree property was **null**.");
         } catch(NullPointerException exn) {
-            fail(exn, "Your code failed to throw a <i>TreeException</i> when the tree property was <b>null</b>.");
+            fail(exn, "Your code failed to throw a `TreeException` when the tree property was **null**.");
         } catch(TreeException exn) {
             assertTrue(exn, true);
         } catch(Throwable exn) {
@@ -94,9 +94,9 @@ public class convertTreeTests extends FeedbackCase {
         setTree(tree);
         try {
             ((Question2)answer).convertTree();
-            fail(null, "Your code failed to throw a <i>TreeException</i> when the tree has a <b>null</b> branch.");
+            fail(null, "Your code failed to throw a `TreeException` when the tree has a **null** branch.");
         } catch(NullPointerException exn) {
-            fail(exn, "Your code failed to throw a <i>TreeException</i> when the tree has a <b>null</b> branch.");
+            fail(exn, "Your code failed to throw a `TreeException` when the tree has a **null** branch.");
         } catch(TreeException exn) {
             assertTrue(exn, true);
         } catch(Throwable exn) {
@@ -112,9 +112,9 @@ public class convertTreeTests extends FeedbackCase {
         setTree(root);
         try {
             ((Question2)answer).convertTree();
-            fail(null, "Your code failed to throw a <i>TreeException</i> when the tree has a <b>null</b> branch.");
+            fail(null, "Your code failed to throw a `TreeException` when the tree has a **null** branch.");
         } catch(NullPointerException exn) {
-            fail(exn, "Your code failed to throw a <i>TreeException</i> when the tree has a <b>null</b> branch.");
+            fail(exn, "Your code failed to throw a `TreeException` when the tree has a **null** branch.");
         } catch(TreeException exn) {
             assertTrue(exn, true);
         } catch(Throwable exn) {
@@ -130,9 +130,9 @@ public class convertTreeTests extends FeedbackCase {
         setTree(root);
         try {
             ((Question2)answer).convertTree();
-            fail(null, "Your code failed to throw a <i>TreeException</i> when the tree has a <b>null</b> branch.");
+            fail(null, "Your code failed to throw a `TreeException` when the tree has a **null** branch.");
         } catch(NullPointerException exn) {
-            fail(exn, "Your code failed to throw a <i>TreeException</i> when the tree has a <b>null</b> branch.");
+            fail(exn, "Your code failed to throw a `TreeException` when the tree has a **null** branch.");
         } catch(TreeException exn) {
             assertTrue(exn, true);
         } catch(Throwable exn) {
@@ -148,29 +148,29 @@ public class convertTreeTests extends FeedbackCase {
         try {
             Map result = synchronizeTree(((Question2)answer).convertTree());
             if (result == null) {
-                fail(null, "You returned a <i>null</i> map from a leaf node!");
+                fail(null, "You returned a `null` map from a leaf node!");
             } // end of if-then
             if (result.size() != 1) {
                 fail(null, "You generated a map (" + toString(result) + ") with " + result.size() + " elements from a leaf node!");
             } // end of if-then
             if (! result.containsKey(originalTree)) {
-                fail(null, "Your map does not contain <i>this</i> tree as a key!");
+                fail(null, "Your map does not contain `this` tree as a key!");
             } // end of if-then
             if (result.get(originalTree) == null) {
-                fail(null, "You generated a map that associates a <i>null</i> value with a key!");
+                fail(null, "You generated a map that associates a `null` value with a key!");
             } // end of if-then
             if (! (result.get(originalTree) instanceof TreeNode[])) {
                 if (result.get(originalTree) instanceof TreeNode) {
-                    fail(null, "Your keys should <b>not</b> be associated with values that have type <i>TreeNode</i>!");
+                    fail(null, "Your keys should **not** be associated with values that have type `TreeNode`!");
                 } // end of if-then
-                fail(null, "Your keys are associated with values that are not of type <i>TreeNode[]</i>!");
+                fail(null, "Your keys are associated with values that are not of type `TreeNode[]`!");
             } // end of if-then
             assertTrue(null, "Your code failed to correctly convert a leaf node tree.",
               ((TreeNode[])(result.get(originalTree))).length == 0);
         } catch(TreeException exn) {
-            fail(exn, "An unexpected <i>TreeException</i> was generated!");
+            fail(exn, "An unexpected `TreeException` was generated!");
         } catch(ClassCastException exn) {
-            fail(exn, "Your <i>keys</i> should have type <b>TreeNode</b> and your <i>values</i> should have type <b>TreeNode[]</b>.");
+            fail(exn, "Your `keys` should have type **TreeNode** and your `values` should have type **TreeNode[]**.");
         } catch(Throwable exn) {
             fail(exn, "No exception's should be generated, but your code threw: " + exn.getClass().getName());
         } // end of try-catch
@@ -185,28 +185,28 @@ public class convertTreeTests extends FeedbackCase {
         try {
             Map result = synchronizeTree(((Question2)answer).convertTree());
             if (result == null) {
-                fail(null, "You returned a <i>null</i> map from a chain!");
+                fail(null, "You returned a `null` map from a chain!");
             } // end of if-then
             if (result.size() != 2) {
                 fail(null, "You generated a map (" + toString(result) + ") with an incorrect number of elements (" + result.size() + ") from a chain!");
             } // end of if-then
             if (! result.containsKey(realKey1)) {
-                fail(null, "Your map does not contain one of the nodes of <i>this</i> tree!");
+                fail(null, "Your map does not contain one of the nodes of `this` tree!");
             } // end of if-then
             if (! result.containsKey(key2)) {
-                fail(null, "Your map does not contain ones of the nodes of <i>this</i> tree!");
+                fail(null, "Your map does not contain ones of the nodes of `this` tree!");
             } // end of if-then
             if (result.get(realKey1) == null) {
-                fail(null, "You generated a map that associates a <i>null</i> value with a key!");
+                fail(null, "You generated a map that associates a `null` value with a key!");
             } // end of if-then
             if (result.get(key2) == null) {
-                fail(null, "You generated a map that associates a <i>null</i> value with a key!");
+                fail(null, "You generated a map that associates a `null` value with a key!");
             } // end of if-then
             if (! (result.get(realKey1) instanceof TreeNode[])) {
-                fail(null, "Your keys are associated with values that are not of type <i>TreeNode[]</i>!");
+                fail(null, "Your keys are associated with values that are not of type `TreeNode[]`!");
             } // end of if-then
             if (! (result.get(key2) instanceof TreeNode[])) {
-                fail(null, "Your keys are associated with values that are not of type <i>TreeNode[]</i>!");
+                fail(null, "Your keys are associated with values that are not of type `TreeNode[]`!");
             } // end of if-then
             if (((TreeNode[])(result.get(realKey1))).length != 1) {
                 fail(null, "Your code failed to correctly convert a tree that is a chain of nodes.");
@@ -220,9 +220,9 @@ public class convertTreeTests extends FeedbackCase {
             assertTrue(null, "Your code failed to correctly convert a tree that is a chain of nodes.",
               ((TreeNode[])(result.get(realKey1)))[0] == key2);
         } catch(TreeException exn) {
-            fail(exn, "An unexpected <i>TreeException</i> was generated!");
+            fail(exn, "An unexpected `TreeException` was generated!");
         } catch(ClassCastException exn) {
-            fail(exn, "Your <i>keys</i> should have type <b>TreeNode</b> and your <i>values</i> should have type <b>TreeNode[]</b>.");
+            fail(exn, "Your `keys` should have type **TreeNode** and your `values` should have type **TreeNode[]**.");
         } catch(Throwable exn) {
             fail(exn, "No exception's should be generated, but your code threw: " + exn.getClass().getName());
         } // end of try-catch
@@ -238,7 +238,7 @@ public class convertTreeTests extends FeedbackCase {
             for (Iterator iter = result.keySet().iterator(); iter.hasNext() ;) {
                 Object key = iter.next();
                 if (! (key instanceof TreeNode)) {
-                    fail(null, "Your <i>keys</i> should have type <b>TreeNode</b>.");
+                    fail(null, "Your `keys` should have type **TreeNode**.");
                 } // end of if-then
             } // end of for-loop
             assertTrue((Exception)null, true);
@@ -258,7 +258,7 @@ public class convertTreeTests extends FeedbackCase {
             for (Iterator iter = result.keySet().iterator(); iter.hasNext() ;) {
                 Object key = iter.next();
                 if (! (key instanceof TreeNode)) {
-                    fail(null, "Your <i>keys</i> should have type <b>TreeNode</b>.");
+                    fail(null, "Your `keys` should have type **TreeNode**.");
                 } // end of if-then
             } // end of for-loop
             assertTrue((Exception)null, true);
@@ -278,7 +278,7 @@ public class convertTreeTests extends FeedbackCase {
                 Object key = iter.next();
                 Object value = result.get(key);
                 if (! (value instanceof TreeNode[])) {
-                    fail(null, "Your <i>values</i> should have type <b>TreeNode[]</b>.");
+                    fail(null, "Your `values` should have type **TreeNode[]**.");
                 } // end of if-then
             } // end of for-loop
             assertTrue((Exception)null, true);
@@ -299,7 +299,7 @@ public class convertTreeTests extends FeedbackCase {
                 Object key = iter.next();
                 Object value = result.get(key);
                 if (! (value instanceof TreeNode[])) {
-                    fail(null, "Your <i>values</i> should have type <b>TreeNode[]</b>.");
+                    fail(null, "Your `values` should have type **TreeNode[]**.");
                 } // end of if-then
             } // end of for-loop
             assertTrue((Exception)null, true);
@@ -320,7 +320,7 @@ public class convertTreeTests extends FeedbackCase {
                 Object key = iter.next();
                 Object value = result.get(key);
                 if (! (value instanceof TreeNode[])) {
-                    fail(null, "Your <i>values</i> should have type <b>TreeNode[]</b>.");
+                    fail(null, "Your `values` should have type **TreeNode[]**.");
                 } // end of if-then
             } // end of for-loop
             assertTrue((Exception)null, true);
@@ -342,7 +342,7 @@ public class convertTreeTests extends FeedbackCase {
                 Object key = iter.next();
                 Object value = result.get(key);
                 if (! (value instanceof TreeNode[])) {
-                    fail(null, "Your <i>values</i> should have type <b>TreeNode[]</b>.");
+                    fail(null, "Your `values` should have type **TreeNode[]**.");
                 } // end of if-then
             } // end of for-loop
             assertTrue((Exception)null, true);

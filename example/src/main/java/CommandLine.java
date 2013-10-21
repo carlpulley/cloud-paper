@@ -81,7 +81,7 @@ public class CommandLine {
                             if (!Question.class.isAssignableFrom(clazz)) {
                                 feedback.addElement(((XML)(new XML("ignored").setPrettyPrint(true))).addXMLAttribute("file", argSources[nos]).addXMLAttribute("class", fqClass).addElement("it is not a subclass of any Question class!"));
                             } else if (fqClass.matches(".*ModelAnswer[0-9]+")) {
-                                feedback.addElement(((XML)(new XML("ignored").setPrettyPrint(true))).addXMLAttribute("file", argSources[nos]).addXMLAttribute("class", fqClass).addElement("Answer class names may <b>not</b> start with the name <i>ModelAnswer</i>!"));
+                                feedback.addElement(((XML)(new XML("ignored").setPrettyPrint(true))).addXMLAttribute("file", argSources[nos]).addXMLAttribute("class", fqClass).addElement("Answer class names may **not** start with the name `ModelAnswer`!"));
                             } else {
                                 answerClass.add(clazz);
                             } // end of if-then-else
@@ -106,27 +106,27 @@ public class CommandLine {
                                 try {
                                     answers.add((Question)(clazz.getConstructor(new Class[]{Object.class}).newInstance(new Object[]{null})));
                                 } catch(NoSuchMethodException exn) {
-                                    feedback.addElement(warning(clazz.getName(), "The required constructor function does not exist, so we could not create an instance of " + clazz.getName() + ". Check that:<ul><li>your constructor functions are public</li><li>and that they have the correct signatures (see the <i>Question1</i> class).</li></ul>"));
+                                    feedback.addElement(warning(clazz.getName(), "The required constructor function does not exist, so we could not create an instance of `" + clazz.getName() + "`. Check that:\n* your constructor functions are public\n* and that they have the correct signatures (see the `Question1` class)."));
                                 } catch(java.lang.reflect.InvocationTargetException exn) {
-                                    feedback.addElement(warning(clazz.getName(), "The required constructor function does not exist, so we could not create an instance of " + clazz.getName() + ". Check that:<ul><li>your constructor functions are public</li><li>and that they have the correct signatures (see the <i>Question1</i> class).</li></ul>"));
+                                    feedback.addElement(warning(clazz.getName(), "The required constructor function does not exist, so we could not create an instance of `" + clazz.getName() + "`. Check that:\n* your constructor functions are public\n* and that they have the correct signatures (see the `Question1` class)."));
                                 } // end of try-catch
                             } else {
                                 if (Question2.class.isAssignableFrom(clazz)) {
                                     try {
                                         answers.add((Question)(clazz.getConstructor(new Class[]{Question1.class}).newInstance(new Question1[]{null})));
                                     } catch(NoSuchMethodException exn) {
-                                        feedback.addElement(warning(clazz.getName(), "The required constructor function does not exist, so we could not create an instance of " + clazz.getName() + ". Check that:<ul><li>your constructor functions are public</li> <li>and that they have the correct signatures (see the <i>Question2</i> class).</li></ul>"));
+                                        feedback.addElement(warning(clazz.getName(), "The required constructor function does not exist, so we could not create an instance of `" + clazz.getName() + "`. Check that:\n* your constructor functions are public\n* and that they have the correct signatures (see the `Question2` class)."));
                                     } catch(java.lang.reflect.InvocationTargetException exn) {
-                                        feedback.addElement(warning(clazz.getName(), "The required constructor function does not exist, so we could not create an instance of " + clazz.getName() + ". Check that:<ul><li>your constructor functions are public</li> <li>and that they have the correct signatures (see the <i>Question2</i> class).</li></ul>"));
+                                        feedback.addElement(warning(clazz.getName(), "The required constructor function does not exist, so we could not create an instance of `" + clazz.getName() + "`. Check that:\n* your constructor functions are public\n* and that they have the correct signatures (see the `Question2` class)."));
                                     } // end of try-catch
                                 } else {
                                     if (Question3.class.isAssignableFrom(clazz)) {
                                         try {
                                             answers.add((Question)(clazz.getConstructor(new Class[]{Question2.class}).newInstance(new Question2[]{null})));
                                         } catch(NoSuchMethodException exn) {
-                                            feedback.addElement(warning(clazz.getName(), "The required constructor function does not exist, so we could not create an instance of " + clazz.getName() + ". Check that:<ul><li>your constructor functions are public</li> <li>and that they have the correct signatures (see the <i>Question3</i> class).</li></ul>"));
+                                            feedback.addElement(warning(clazz.getName(), "The required constructor function does not exist, so we could not create an instance of `" + clazz.getName() + "`. Check that:\n* your constructor functions are public\n* and that they have the correct signatures (see the `Question3` class)."));
                                         } catch(java.lang.reflect.InvocationTargetException exn) {
-                                            feedback.addElement(warning(clazz.getName(), "The required constructor function does not exist, so we could not create an instance of " + clazz.getName() + ". Check that:<ul><li>your constructor functions are public</li> <li>and that they have the correct signatures (see the <i>Question3</i> class).</li></ul>"));
+                                            feedback.addElement(warning(clazz.getName(), "The required constructor function does not exist, so we could not create an instance of `" + clazz.getName() + "`. Check that:\n* your constructor functions are public\n* and that they have the correct signatures (see the `Question3` class)."));
                                         } // end of try-catch
                                     } else {
                                         feedback.addElement(warning(clazz.getName(), clazz.getName() + " is not recognised!"));
@@ -146,7 +146,7 @@ public class CommandLine {
                 feedback = results.toXML(feedback);
             } // end of if-then-else
         } // end of if-then-else
-        outputF.write(feedback.toString().replaceAll("<\\?xml .*?\\?>", ""));
+        outputF.write(feedback.toString());
         outputF.close();
         System.out.println("... finished!");
     } // end of main method

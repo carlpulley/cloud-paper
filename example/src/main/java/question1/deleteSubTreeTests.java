@@ -27,13 +27,13 @@ public class deleteSubTreeTests extends FeedbackCase {
         setTree(new TreeNode("dummy"));
         try {
             ((Question1)answer).deleteSubTree(null, 0);
-            fail(null, "Your code should throw a <i>TreeException</i> when one of its parameters is <b>null</b>.");
+            fail(null, "Your code should throw a `TreeException` when one of its parameters is **null**.");
         } catch(TreeException exn) {
             assertTrue(exn, true);
         } catch(NullPointerException exn) {
-            fail(exn, "Your code should throw a <i>TreeException</i> when one of its parameters is <b>null</b>.");
+            fail(exn, "Your code should throw a `TreeException` when one of its parameters is **null**.");
         } catch(Throwable exn) {
-            fail(exn, "Expected a <i>TreeException</i> but your code generated: " + exn.getClass().getName());
+            fail(exn, "Expected a `TreeException` but your code generated: " + exn.getClass().getName());
         } // end of try-catch
     } // end of method testNull1
     
@@ -44,13 +44,13 @@ public class deleteSubTreeTests extends FeedbackCase {
         TreeNode realTree = ((Question1)answer);
         try {
             ((Question1)answer).deleteSubTree(realTree, 0);
-            fail(null, "Your code should throw a <i>TreeException</i> when the tree's branch property is <b>null</b>.");
+            fail(null, "Your code should throw a `TreeException` when the tree's branch property is **null**.");
         } catch(TreeException exn) {
             assertTrue(exn, true);
         } catch(NullPointerException exn) {
-            fail(exn, "Your code should throw a <i>TreeException</i> when the tree's branch property is <b>null</b>.");
+            fail(exn, "Your code should throw a `TreeException` when the tree's branch property is **null**.");
         } catch(Throwable exn) {
-            fail(exn, "Expected a <i>TreeException</i> but your code generated: " + exn.getClass().getName());
+            fail(exn, "Expected a `TreeException` but your code generated: " + exn.getClass().getName());
         } // end of try-catch
     } // end of method testNull2
        
@@ -62,15 +62,15 @@ public class deleteSubTreeTests extends FeedbackCase {
             tree2.setBranch(new TreeNode[]{ new TreeNode("subtree")});
             setTree(tree1);
             ((Question1)answer).deleteSubTree(tree2, 0);            
-            fail(null, "Your code has failed to test that the given node is <b>contained</b> within <i>this</i> tree.");
+            fail(null, "Your code has failed to test that the given node is **contained** within `this` tree.");
         } catch(TreeException exn) {
             assertTrue(exn, true);
         } catch(NullPointerException exn) {
-            fail(exn, "Your code has failed to test that the given node is <b>contained</b> within <i>this</i> tree.");
+            fail(exn, "Your code has failed to test that the given node is **contained** within `this` tree.");
         } catch(ArrayIndexOutOfBoundsException exn) {
-            fail(exn, "<i>ArrayIndexOutOfBoundsException</i>: <ul><li>Does your code (incorrectly) assume that edge numbering starts at 1?</li><li>Has your code forgotten to <i>exclude</i> the branch array's size as an index value?</li></ul>");
+            fail(exn, "`ArrayIndexOutOfBoundsException`: \n* Does your code (incorrectly) assume that edge numbering starts at 1?\n* Has your code forgotten to `exclude` the branch array's size as an index value?");
         } catch(Throwable exn) {
-            fail(exn, "Expected a <i>TreeException</i> but your code generated: " + exn.getClass().getName());
+            fail(exn, "Expected a `TreeException` but your code generated: " + exn.getClass().getName());
         } // end of try-catch
     } // end of method testContainment1a
        
@@ -86,9 +86,9 @@ public class deleteSubTreeTests extends FeedbackCase {
         } catch(NullPointerException exn) {
             fail(exn, "Your code has failed to spot that a leaf node was contained within a leaf node tree.");
         } catch(ArrayIndexOutOfBoundsException exn) {
-            fail(exn, "<i>ArrayIndexOutOfBoundsException</i>: <ul><li>Does your code (incorrectly) assume that edge numbering starts at 1?</li><li>Has your code forgotten to <i>exclude</i> the branch array's size as an index value?</li></ul>");
+            fail(exn, "`ArrayIndexOutOfBoundsException`: \n* Does your code (incorrectly) assume that edge numbering starts at 1?\n* Has your code forgotten to `exclude` the branch array's size as an index value?");
         } catch(Throwable exn) {
-            fail(exn, "Expected a <i>TreeException</i> but your code generated: " + exn.getClass().getName());
+            fail(exn, "Expected a `TreeException` but your code generated: " + exn.getClass().getName());
         } // end of try-catch
     } // end of method testContainment1b
     
@@ -100,15 +100,15 @@ public class deleteSubTreeTests extends FeedbackCase {
             tree2.setBranch(new TreeNode[]{ new TreeNode("subtree")});
             setTree(tree1);
             ((Question1)answer).deleteSubTree(tree2, 0);            
-            fail(null, "Your code has failed to test that the given node is a <b>valid reference</b> within <i>this</i> tree.");
+            fail(null, "Your code has failed to test that the given node is a **valid reference** within `this` tree.");
         } catch(TreeException exn) {
             assertTrue(exn, true);
         } catch(NullPointerException exn) {
-            fail(exn, "Your code has failed to test that the given node is a <b>valid reference</b> within <i>this</i> tree.");
+            fail(exn, "Your code has failed to test that the given node is a **valid reference** within `this` tree.");
         } catch(ArrayIndexOutOfBoundsException exn) {
-            fail(exn, "<i>ArrayIndexOutOfBoundsException</i>: <ul><li>Does your code (incorrectly) assume that edge numbering starts at 1?</li><li>Has your code forgotten to <i>exclude</i> the branch array's size as an index value?</li></ul>");
+            fail(exn, "`ArrayIndexOutOfBoundsException`: \n* Does your code (incorrectly) assume that edge numbering starts at 1?\n* Has your code forgotten to `exclude` the branch array's size as an index value?");
         } catch(Throwable exn) {
-            fail(exn, "Expected a <i>TreeException</i> but your code generated: " + exn.getClass().getName());
+            fail(exn, "Expected a `TreeException` but your code generated: " + exn.getClass().getName());
         } // end of try-catch
     } // end of method testContainment2
 
@@ -118,15 +118,15 @@ public class deleteSubTreeTests extends FeedbackCase {
             setTree(tree);
             TreeNode realTree = ((Question1)answer);
             ((Question1)answer).deleteSubTree(realTree, 0);
-            fail(null, "No <i>TreeException</i> generated when we try and delete an edge that doesn't exist. Consider the following: <UL><LI>What should happen when <i>edge = 0</i>?</LI><LI>What should happen when <i>edge = node.branch.length</i>?</LI></UL>");
+            fail(null, "No `TreeException` generated when we try and delete an edge that doesn't exist. Consider the following: \n* What should happen when `edge = 0`?\n* What should happen when `edge = node.branch.length`?");
         } catch(TreeException exn) {
             assertTrue(exn, true);
         } catch(NullPointerException exn) {
-            fail(exn, "Your code should throw a <i>TreeException</i> when we try and delete edges from a leaf. Consider the following: <UL><LI>What should happen when <i>edge = 0</i>?</LI><LI>What should happen when <i>edge = node.branch.length</i>?</LI></UL>");
+            fail(exn, "Your code should throw a `TreeException` when we try and delete edges from a leaf. Consider the following: \n* What should happen when `edge = 0`?\n* What should happen when `edge = node.branch.length`?");
         } catch(ArrayIndexOutOfBoundsException exn) {
-            fail(exn, "Your code should throw a <i>TreeException</i> when we try and delete edges from a leaf. Consider the following: <UL><LI>What should happen when <i>edge = 0</i>?</LI><LI>What should happen when <i>edge = node.branch.length</i>?</LI></UL>");
+            fail(exn, "Your code should throw a `TreeException` when we try and delete edges from a leaf. Consider the following: \n* What should happen when `edge = 0`?\n* What should happen when `edge = node.branch.length`?");
         } catch(Throwable exn) {
-            fail(exn, "Expected a <i>TreeException</i> but your code generated: " + exn.getClass().getName());
+            fail(exn, "Expected a `TreeException` but your code generated: " + exn.getClass().getName());
         } // end of try-catch
     } // end of method testInvalidEdge1
 
@@ -136,15 +136,15 @@ public class deleteSubTreeTests extends FeedbackCase {
             setTree(tree);
             TreeNode realTree = ((Question1)answer);
             ((Question1)answer).deleteSubTree(realTree, -1);
-            fail(null, "No <i>TreeException</i> generated when we try and delete an edge that doesn't exist");
+            fail(null, "No `TreeException` generated when we try and delete an edge that doesn't exist");
         } catch(TreeException exn) {
             assertTrue(exn, true);
         } catch(NullPointerException exn) {
-            fail(exn, "Your code should throw a <i>TreeException</i> when we try and delete edges from a leaf. Consider the following: <UL><LI>What should happen when <i>edge = 0</i>?</LI><LI>What should happen when <i>edge = node.branch.length</i>?</LI></UL>");
+            fail(exn, "Your code should throw a `TreeException` when we try and delete edges from a leaf. Consider the following: \n* What should happen when `edge = 0`?\n* What should happen when `edge = node.branch.length`?");
         } catch(ArrayIndexOutOfBoundsException exn) {
-            fail(exn, "Your code should throw a <i>TreeException</i> when we try and delete edges from a negative branch position.");
+            fail(exn, "Your code should throw a `TreeException` when we try and delete edges from a negative branch position.");
         } catch(Throwable exn) {
-            fail(exn, "Expected a <i>TreeException</i> but your code generated: " + exn.getClass().getName());
+            fail(exn, "Expected a `TreeException` but your code generated: " + exn.getClass().getName());
         } // end of try-catch
     } // end of method testInvalidEdge2
 
@@ -154,15 +154,15 @@ public class deleteSubTreeTests extends FeedbackCase {
             setTree(tree);
             TreeNode realTree = ((Question1)answer);
             ((Question1)answer).deleteSubTree(realTree, 1);
-            fail(null, "No <i>TreeException</i> generated when we try and delete an edge that doesn't exist. Consider the following: <UL><LI>What should happen when <i>edge = 0</i>?</LI><LI>What should happen when <i>edge = node.branch.length</i>?</LI></UL>");
+            fail(null, "No `TreeException` generated when we try and delete an edge that doesn't exist. Consider the following: \n* What should happen when `edge = 0`?\n* What should happen when `edge = node.branch.length`?");
         } catch(TreeException exn) {
             assertTrue(exn, true);
         } catch(NullPointerException exn) {
-            fail(exn, "Your code should throw a <i>TreeException</i> when we try and delete edges from a leaf. Consider the following: <UL><LI>What should happen when <i>edge = 0</i>?</LI><LI>What should happen when <i>edge = node.branch.length</i>?</LI></UL>");
+            fail(exn, "Your code should throw a `TreeException` when we try and delete edges from a leaf. Consider the following: \n* What should happen when `edge = 0`?\n* What should happen when `edge = node.branch.length`?");
         } catch(ArrayIndexOutOfBoundsException exn) {
-            fail(exn, "Your code should throw a <i>TreeException</i> when we try and delete edges from a non-existent branch position. Consider the following: <UL><LI>What should happen when <i>edge = 0</i>?</LI><LI>What should happen when <i>edge = node.branch.length</i>?</LI></UL>");
+            fail(exn, "Your code should throw a `TreeException` when we try and delete edges from a non-existent branch position. Consider the following: \n* What should happen when `edge = 0`?\n* What should happen when `edge = node.branch.length`?");
         } catch(Throwable exn) {
-            fail(exn, "Expected a <i>TreeException</i> but your code generated: " + exn.getClass().getName());
+            fail(exn, "Expected a `TreeException` but your code generated: " + exn.getClass().getName());
         } // end of try-catch
     } // end of method testInvalidEdge3
      
@@ -181,11 +181,11 @@ public class deleteSubTreeTests extends FeedbackCase {
                 ((String)(realTree.getData())).equals("tree") 
                 && realTree.getBranch()[0] == null);
         } catch(TreeException exn) {
-            fail(exn, "Your code threw a <i>TreeException</i>. Possible causes: <ul><li>Remember that the <i>root</i> node has a <i>label</i>.</li><li>Maybe you are using your parameters incorrectly?</li><li>Maybe you are using <i>==</i> instead of the <i>equals</i> method when testing labels?</li></ul>");
+            fail(exn, "Your code threw a `TreeException`. Possible causes: \n* Remember that the `root` node has a `label`.\n* Maybe you are using your parameters incorrectly?\n* Maybe you are using `==` instead of the `equals` method when testing labels?");
         } catch(NullPointerException exn) {
-            fail(exn, "Your code threw an <i>NullPointerException</i>. Possible causes: <ul><li>Remember that the <i>root</i> node has a <i>label</i>.</li><li>Maybe you are using your node parameter incorrectly?</li><li>Maybe you have assumed that edge numbering starts at 1?</li><li>Has your code forgotten to <i>exclude</i> the branch array's size as an index value?</li></ul>");
+            fail(exn, "Your code threw an `NullPointerException`. Possible causes: \n* Remember that the `root` node has a `label`.\n* Maybe you are using your node parameter incorrectly?\n* Maybe you have assumed that edge numbering starts at 1?\n* Has your code forgotten to `exclude` the branch array's size as an index value?");
         } catch(ArrayIndexOutOfBoundsException exn) {
-            fail(exn, "Your code threw an <i>ArrayIndexOutOfBoundsException</i>. Possible causes: <ul><li>Remember that the <i>root</i> node has a <i>label</i>.</li><li>Maybe you are using your node parameter incorrectly?</li><li>Maybe you have assumed that edge numbering starts at 1?</li><li>Has your code forgotten to <i>exclude</i> the branch array's size as an index value?</li></ul>");
+            fail(exn, "Your code threw an `ArrayIndexOutOfBoundsException`. Possible causes: \n* Remember that the `root` node has a `label`.\n* Maybe you are using your node parameter incorrectly?\n* Maybe you have assumed that edge numbering starts at 1?\n* Has your code forgotten to `exclude` the branch array's size as an index value?");
         } catch(Throwable exn) {
             fail(exn, "No exception's should be generated, but your code threw: " + exn.getClass().getName());
         } // end of try-catch
@@ -205,11 +205,11 @@ public class deleteSubTreeTests extends FeedbackCase {
                 && realTree.getBranch()[0] == null
                 && realTree.getBranch()[1] == subtree);
         } catch(TreeException exn) {
-            fail(exn, "Your code threw a <i>TreeException</i>. Possible causes: <ul><li>Remember that the <i>root</i> node has a <i>label</i>.</li><li>Maybe you are using your parameters incorrectly?</li><li>Maybe you are using <i>==</i> instead of the <i>equals</i> method when testing labels?</li></ul>");
+            fail(exn, "Your code threw a `TreeException`. Possible causes: \n* Remember that the `root` node has a `label`.\n* Maybe you are using your parameters incorrectly?\n* Maybe you are using `==` instead of the `equals` method when testing labels?");
         } catch(NullPointerException exn) {
-            fail(exn, "Your code threw an <i>NullPointerException</i>. Possible causes: <ul><li>Remember that the <i>root</i> node has a <i>label</i>.</li><li>Maybe you are using your node parameter incorrectly?</li><li>Maybe you have assumed that edge numbering starts at 1?</li><li>Has your code forgotten to <i>exclude</i> the branch array's size as an index value?</li></ul>");
+            fail(exn, "Your code threw an `NullPointerException`. Possible causes: \n* Remember that the `root` node has a `label`.\n* Maybe you are using your node parameter incorrectly?\n* Maybe you have assumed that edge numbering starts at 1?\n* Has your code forgotten to `exclude` the branch array's size as an index value?");
         } catch(ArrayIndexOutOfBoundsException exn) {
-            fail(exn, "Your code threw an <i>ArrayIndexOutOfBoundsException</i>. Possible causes: <ul><li>Remember that the <i>root</i> node has a <i>label</i>.</li><li>Maybe you are using your node parameter incorrectly?</li><li>Maybe you have assumed that edge numbering starts at 1?</li><li>Has your code forgotten to <i>exclude</i> the branch array's size as an index value?</li></ul>");
+            fail(exn, "Your code threw an `ArrayIndexOutOfBoundsException`. Possible causes: \n* Remember that the `root` node has a `label`.\n* Maybe you are using your node parameter incorrectly?\n* Maybe you have assumed that edge numbering starts at 1?\n* Has your code forgotten to `exclude` the branch array's size as an index value?");
         } catch(Throwable exn) {
             fail(exn, "No exception's should be generated, but your code threw: " + exn.getClass().getName());
         } // end of try-catch
@@ -229,11 +229,11 @@ public class deleteSubTreeTests extends FeedbackCase {
                 && realTree.getBranch()[0] == subtree
                 && realTree.getBranch()[1] == null);
         } catch(TreeException exn) {
-            fail(exn, "Your code threw a <i>TreeException</i>. Possible causes: <ul><li>Remember that the <i>root</i> node has a <i>label</i>.</li><li>Maybe you are using your parameters incorrectly?</li><li>Maybe you are using <i>==</i> instead of the <i>equals</i> method when testing labels?</li></ul>");
+            fail(exn, "Your code threw a `TreeException`. Possible causes: \n* Remember that the `root` node has a `label`.\n* Maybe you are using your parameters incorrectly?\n* Maybe you are using `==` instead of the `equals` method when testing labels?");
         } catch(NullPointerException exn) {
-            fail(exn, "Your code threw an <i>NullPointerException</i>. Possible causes: <ul><li>Remember that the <i>root</i> node has a <i>label</i>.</li><li>Maybe you are using your node parameter incorrectly?</li><li>Maybe you have assumed that edge numbering starts at 1?</li><li>Has your code forgotten to <i>exclude</i> the branch array's size as an index value?</li></ul>");
+            fail(exn, "Your code threw an `NullPointerException`. Possible causes: \n* Remember that the `root` node has a `label`.\n* Maybe you are using your node parameter incorrectly?\n* Maybe you have assumed that edge numbering starts at 1?\n* Has your code forgotten to `exclude` the branch array's size as an index value?");
         } catch(ArrayIndexOutOfBoundsException exn) {
-            fail(exn, "Your code threw an <i>ArrayIndexOutOfBoundsException</i>. Possible causes: <ul><li>Remember that the <i>root</i> node has a <i>label</i>.</li><li>Maybe you are using your node parameter incorrectly?</li><li>Maybe you have assumed that edge numbering starts at 1?</li><li>Has your code forgotten to <i>exclude</i> the branch array's size as an index value?</li></ul>");
+            fail(exn, "Your code threw an `ArrayIndexOutOfBoundsException`. Possible causes: \n* Remember that the `root` node has a `label`.\n* Maybe you are using your node parameter incorrectly?\n* Maybe you have assumed that edge numbering starts at 1?\n* Has your code forgotten to `exclude` the branch array's size as an index value?");
         } catch(Throwable exn) {
             fail(exn, "No exception's should be generated, but your code threw: " + exn.getClass().getName());
         } // end of try-catch
@@ -255,11 +255,11 @@ public class deleteSubTreeTests extends FeedbackCase {
                 && realTree.getBranch()[1] == subtree1
                 && realTree.getBranch()[2] == subtree2);
         } catch(TreeException exn) {
-            fail(exn, "Your code threw a <i>TreeException</i>. Possible causes: <ul><li>Remember that the <i>root</i> node has a <i>label</i>.</li><li>Maybe you are using your parameters incorrectly?</li><li>Maybe you are using <i>==</i> instead of the <i>equals</i> method when testing labels?</li></ul>");
+            fail(exn, "Your code threw a `TreeException`. Possible causes: \n* Remember that the `root` node has a `label`.\n* Maybe you are using your parameters incorrectly?\n* Maybe you are using `==` instead of the `equals` method when testing labels?");
         } catch(NullPointerException exn) {
-            fail(exn, "Your code threw an <i>NullPointerException</i>. Possible causes: <ul><li>Remember that the <i>root</i> node has a <i>label</i>.</li><li>Maybe you are using your node parameter incorrectly?</li><li>Maybe you have assumed that edge numbering starts at 1?</li><li>Has your code forgotten to <i>exclude</i> the branch array's size as an index value?</li></ul>");
+            fail(exn, "Your code threw an `NullPointerException`. Possible causes: \n* Remember that the `root` node has a `label`.\n* Maybe you are using your node parameter incorrectly?\n* Maybe you have assumed that edge numbering starts at 1?\n* Has your code forgotten to `exclude` the branch array's size as an index value?");
         } catch(ArrayIndexOutOfBoundsException exn) {
-            fail(exn, "Your code threw an <i>ArrayIndexOutOfBoundsException</i>. Possible causes: <ul><li>Remember that the <i>root</i> node has a <i>label</i>.</li><li>Maybe you are using your node parameter incorrectly?</li><li>Maybe you have assumed that edge numbering starts at 1?</li><li>Has your code forgotten to <i>exclude</i> the branch array's size as an index value?</li></ul>");
+            fail(exn, "Your code threw an `ArrayIndexOutOfBoundsException`. Possible causes: \n* Remember that the `root` node has a `label`.\n* Maybe you are using your node parameter incorrectly?\n* Maybe you have assumed that edge numbering starts at 1?\n* Has your code forgotten to `exclude` the branch array's size as an index value?");
         } catch(Throwable exn) {
             fail(exn, "No exception's should be generated, but your code threw: " + exn.getClass().getName());
         } // end of try-catch
@@ -281,11 +281,11 @@ public class deleteSubTreeTests extends FeedbackCase {
                 && realTree.getBranch()[1] == null
                 && realTree.getBranch()[2] == subtree2);
         } catch(TreeException exn) {
-            fail(exn, "Your code threw a <i>TreeException</i>. Possible causes: <ul><li>Remember that the <i>root</i> node has a <i>label</i>.</li><li>Maybe you are using your parameters incorrectly?</li><li>Maybe you are using <i>==</i> instead of the <i>equals</i> method when testing labels?</li></ul>");
+            fail(exn, "Your code threw a `TreeException`. Possible causes: \n* Remember that the `root` node has a `label`.\n* Maybe you are using your parameters incorrectly?\n* Maybe you are using `==` instead of the `equals` method when testing labels?");
         } catch(NullPointerException exn) {
-            fail(exn, "Your code threw an <i>NullPointerException</i>. Possible causes: <ul><li>Remember that the <i>root</i> node has a <i>label</i>.</li><li>Maybe you are using your node parameter incorrectly?</li><li>Maybe you have assumed that edge numbering starts at 1?</li><li>Has your code forgotten to <i>exclude</i> the branch array's size as an index value?</li></ul>");
+            fail(exn, "Your code threw an `NullPointerException`. Possible causes: \n* Remember that the `root` node has a `label`.\n* Maybe you are using your node parameter incorrectly?\n* Maybe you have assumed that edge numbering starts at 1?\n* Has your code forgotten to `exclude` the branch array's size as an index value?");
         } catch(ArrayIndexOutOfBoundsException exn) {
-            fail(exn, "Your code threw an <i>ArrayIndexOutOfBoundsException</i>. Possible causes: <ul><li>Remember that the <i>root</i> node has a <i>label</i>.</li><li>Maybe you are using your node parameter incorrectly?</li><li>Maybe you have assumed that edge numbering starts at 1?</li><li>Has your code forgotten to <i>exclude</i> the branch array's size as an index value?</li></ul>");
+            fail(exn, "Your code threw an `ArrayIndexOutOfBoundsException`. Possible causes: \n* Remember that the `root` node has a `label`.\n* Maybe you are using your node parameter incorrectly?\n* Maybe you have assumed that edge numbering starts at 1?\n* Has your code forgotten to `exclude` the branch array's size as an index value?");
         } catch(Throwable exn) {
             fail(exn, "No exception's should be generated, but your code threw: " + exn.getClass().getName());
         } // end of try-catch
@@ -307,11 +307,11 @@ public class deleteSubTreeTests extends FeedbackCase {
                 && realTree.getBranch()[1] == subtree2
                 && realTree.getBranch()[2] == null);
         } catch(TreeException exn) {
-            fail(exn, "Your code threw a <i>TreeException</i>. Possible causes: <ul><li>Remember that the <i>root</i> node has a <i>label</i>.</li><li>Maybe you are using your parameters incorrectly?</li><li>Maybe you are using <i>==</i> instead of the <i>equals</i> method when testing labels?</li></ul>");
+            fail(exn, "Your code threw a `TreeException`. Possible causes: \n* Remember that the `root` node has a `label`.\n* Maybe you are using your parameters incorrectly?\n* Maybe you are using `==` instead of the `equals` method when testing labels?");
         } catch(NullPointerException exn) {
-            fail(exn, "Your code threw an <i>NullPointerException</i>. Possible causes: <ul><li>Remember that the <i>root</i> node has a <i>label</i>.</li><li>Maybe you are using your node parameter incorrectly?</li><li>Maybe you have assumed that edge numbering starts at 1?</li><li>Has your code forgotten to <i>exclude</i> the branch array's size as an index value?</li></ul>");
+            fail(exn, "Your code threw an `NullPointerException`. Possible causes: \n* Remember that the `root` node has a `label`.\n* Maybe you are using your node parameter incorrectly?\n* Maybe you have assumed that edge numbering starts at 1?\n* Has your code forgotten to `exclude` the branch array's size as an index value?");
         } catch(ArrayIndexOutOfBoundsException exn) {
-            fail(exn, "Your code threw an <i>ArrayIndexOutOfBoundsException</i>. Possible causes: <ul><li>Remember that the <i>root</i> node has a <i>label</i>.</li><li>Maybe you are using your node parameter incorrectly?</li><li>Maybe you have assumed that edge numbering starts at 1?</li><li>Has your code forgotten to <i>exclude</i> the branch array's size as an index value?</li></ul>");
+            fail(exn, "Your code threw an `ArrayIndexOutOfBoundsException`. Possible causes: \n* Remember that the `root` node has a `label`.\n* Maybe you are using your node parameter incorrectly?\n* Maybe you have assumed that edge numbering starts at 1?\n* Has your code forgotten to `exclude` the branch array's size as an index value?");
         } catch(Throwable exn) {
             fail(exn, "No exception's should be generated, but your code threw: " + exn.getClass().getName());
         } // end of try-catch
@@ -325,17 +325,17 @@ public class deleteSubTreeTests extends FeedbackCase {
             setTree(tree);
             TreeNode realTree = ((Question1)answer);
             ((Question1)answer).deleteSubTree(realTree, 1);
-            assertTrue(null, "Your code has incorrectly deleted a <i>null</i> node from a 2-branching tree", 
+            assertTrue(null, "Your code has incorrectly deleted a `null` node from a 2-branching tree", 
                 ((String)(realTree.getData())).equals("tree") 
                 && realTree.getBranch().length == 2
                 && realTree.getBranch()[0] == subtree
                 && realTree.getBranch()[1] == null);
         } catch(TreeException exn) {
-            fail(exn, "Your code threw a <i>TreeException</i>. Maybe you have disallowed the deletions of <b>null</b> subtrees");
+            fail(exn, "Your code threw a `TreeException`. Maybe you have disallowed the deletions of **null** subtrees");
         } catch(NullPointerException exn) {
-            fail(exn, "Your code threw an <i>NullPointerException</i>. Possible causes: <ul><li>Maybe you are using your node parameter incorrectly?</li><li>Maybe you have assumed that edge numbering starts at 1?</li><li>Has your code forgotten to <i>exclude</i> the branch array's size as an index value?</li></ul>");
+            fail(exn, "Your code threw an `NullPointerException`. Possible causes: \n* Maybe you are using your node parameter incorrectly?\n* Maybe you have assumed that edge numbering starts at 1?\n* Has your code forgotten to `exclude` the branch array's size as an index value?");
         } catch(ArrayIndexOutOfBoundsException exn) {
-            fail(exn, "Your code threw an <i>ArrayIndexOutOfBoundsException</i>. Possible causes: <ul><li>Maybe you are using your node parameter incorrectly?</li><li>Maybe you have assumed that edge numbering starts at 1?</li><li>Has your code forgotten to <i>exclude</i> the branch array's size as an index value?</li></ul>");
+            fail(exn, "Your code threw an `ArrayIndexOutOfBoundsException`. Possible causes: \n* Maybe you are using your node parameter incorrectly?\n* Maybe you have assumed that edge numbering starts at 1?\n* Has your code forgotten to `exclude` the branch array's size as an index value?");
         } catch(Throwable exn) {
             fail(exn, "No exception's should be generated, but your code threw: " + exn.getClass().getName());
         } // end of try-catch
