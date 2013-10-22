@@ -21,6 +21,8 @@ It should cause a browser to display a two frame window. To do this, the frames 
 
 To solve this problem, we need first to build an appropriate tree data structures for storing the HTML dependency structure. Having done that, we may perform a _topological sorting_ of the tree data structure to determine the linear order in which the HTML elements should be drawn and rendered. Elements occurring latter in the linear order must be rendered and drawn before elements listed earlier.
 
+The Java interfaces are annotated with [JML](http://en.wikipedia.org/wiki/Java_Modeling_Language) assertion specifications. Use these to help work out the code's functional requirements.
+
 Tree Data Structures
 --------------------
 
@@ -41,8 +43,8 @@ Topological Sorts
 
 You are advised to look at your lecture notes and the relevant chapter of the course recommended text:
 
--> _Data Structures and Algorithms in Java_ <-
--> by M.T.Goodrich and R.Tamassia. Wiley, 1997 <-
+-> _Introduction to Algorithms_ <-
+-> by T.H.Cormen, C.E.Leiserson, R.L.Rivest and C.Stein. MIT Press, 2009 <-
 
 to learn more about topological sorts.
 
