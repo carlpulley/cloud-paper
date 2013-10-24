@@ -14,6 +14,7 @@
       <xs:element name="ignored" type="ignored"/>
       <xs:element name="warning" type="warning"/>
       <xs:element name="question" type="question"/>
+      <xs:element name="javac" type="xs:string"/>
     </xs:choice>
   </xs:group>
 

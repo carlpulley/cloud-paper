@@ -29,6 +29,7 @@ import japa.parser.ast.PackageDeclaration;
 import japa.parser.ast.type.ClassOrInterfaceType;
 import japa.parser.ast.visitor.VoidVisitorAdapter;
 import japa.parser.JavaParser;
+import japa.parser.ParseException;
 
 public class CommandLine {
 
@@ -66,6 +67,9 @@ public class CommandLine {
                 try {
                     // Parse the Java source file
                     cu = JavaParser.parse(in);
+                } catch(japa.parser.ParseException exn) {
+                    feedback.addElement(error("Failed to parse " + argSources[nos] + ":\n" + exn.getMessage()));
+                    continue;
                 } finally {
                     in.close();
                 } // end of try-catch
@@ -149,6 +153,7 @@ public class CommandLine {
         outputF.write(feedback.toString());
         outputF.close();
         System.out.println("... finished!");
+        System.exit(0);
     } // end of main method
 
     private static XML error(String msg) {

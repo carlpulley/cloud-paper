@@ -18,6 +18,7 @@ package cloud.workflow.consumer
 import cloud.lib.Config
 import cloud.lib.Workflow
 import cloud.workflow.Submission
+import org.apache.camel.scala.dsl.builder.RouteBuilder
 import scalaz._
 import scalaz.camel.core._
 
@@ -34,24 +35,29 @@ trait Dropbox extends Workflow { this: Submission =>
   }
 
   for(folder <- folders) {
-    from(s"file:$folder?moveFailed=.error&move=.done") {
-      // Only process tar ball files (we rely on file naming conventions here)
-      attempt {
-        choose {
-          case Message(_, hdrs) if (hdrs.lift("CamelFileNameOnly").isDefined) => {
-            { msg: Message => 
-              val student = parse_filename(msg.headerAs[String]("CamelFileNameOnly").get)
+    // Need this to be an actual Camel exchange for move etc. to work as expected, hence use of Java fluent DSL
+    router.context.addRoutes(new RouteBuilder {
+      s"file:$folder?moveFailed=.error&move=.done" ==> to("direct:dropbox")
+    })
+  }
+
+  from("direct:dropbox") {
+    // Only process tar ball files (we rely on file naming conventions here)
+    attempt {
+      choose {
+        case Message(_, hdrs) if (hdrs.lift("CamelFileNameOnly").isDefined) => {
+          { msg: Message => 
+            val student = parse_filename(msg.headerAs[String]("CamelFileNameOnly").get)
   
-              msg.addHeaders(Map("replyTo" -> "%s@hud.ac.uk".format(student), "ContentType" -> "application/x-tgz", "breadcrumbId" -> getUniqueName(student)))   
-            } >=> 
-            to(uri)
-          }
-          case _ =>
-            { msg: Message => throw new Exception("Invalid message received") }
+            msg.addHeaders(Map("replyTo" -> "%s@hud.ac.uk".format(student), "ContentType" -> "application/x-tgz", "breadcrumbId" -> getUniqueName(student)))   
+          } >=> 
+          to(uri)
         }
-      } fallback {
-          case ex: Exception => to(error_channel) >=> failWith(ex)
+        case _ =>
+          { msg: Message => throw new Exception("Invalid message received") }
       }
+    } fallback {
+        case ex: Exception => to(error_channel) >=> failWith(ex)
     }
   }
 }
