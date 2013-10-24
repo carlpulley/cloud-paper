@@ -20,6 +20,7 @@ import cloud.lib.Config
 import cloud.lib.Workflow
 import cloud.workflow.controller.FeedbackTable
 import cloud.workflow.controller.SubmissionTable
+import java.sql.SQLException
 import scalikejdbc.DB
 import scalikejdbc.SQLInterpolation._
 import scalaz._
@@ -94,12 +95,13 @@ class Submission(val controller: ActorRef, workflow: Conv.MessageRoute, endpoint
           { msg: Message => throw new Exception("Invalid message received") }
       }
     } fallback {
-        case ex: Exception => to(error_channel) >=> failWith(ex)
+        case exn: Exception => to(error_channel) >=> failWith(exn)
     }
   }
 
   from(msg_store) {
-    attempt {
+    // SQLite DB insertion can fail (due to locking), so allow a number of attempts at inserting before we permanently fail
+    attempt(5) {
       oneway >=>
       choose {
         case Message(_, hdrs) if (hdrs("table") == SubmissionTable.name.value) => 
@@ -110,7 +112,7 @@ class Submission(val controller: ActorRef, workflow: Conv.MessageRoute, endpoint
           { msg: Message => throw new Exception("Invalid message received") }
       }
     } fallback {
-        case ex: Exception => to(error_channel) >=> failWith(ex)
+        case exn: Exception => to(error_channel) >=> failWith(exn)
     }
   }
 }

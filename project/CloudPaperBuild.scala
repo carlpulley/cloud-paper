@@ -65,9 +65,7 @@ trait Dependencies {
     // Scala Serializer
     "org.scala-lang" %% "scala-pickling" % "0.8.0-SNAPSHOT",
     // Java source parser
-    "com.google.code.javaparser" % "javaparser" % "1.0.10",
-    // Apache Commons IO
-    "org.apache.commons" % "commons-io" % "1.3.2"
+    "com.google.code.javaparser" % "javaparser" % "1.0.10"
   )
 
   val Testing = Seq(
