@@ -19,29 +19,29 @@ import java.io.File
 import org.streum.configrity._
 
 object Config {
-  // FIXME: improve this hack!
-  private val prefix = "cloud/src/test/resources"
+  private var group: Option[String] = None
+  private var config: Configuration = Configuration()
 
-  private var config = if (new File(s"$prefix/application.conf").exists) Configuration.load(s"$prefix/application.conf") else Configuration()
+  def apply(module: String = "default") = {
+    group = Some(module)
+    config = config include load("application.conf").config
 
-  def apply() = config
-
-  def apply(group: String) = {
-    val group_config = s"$prefix/$group/application.conf"
-    if (new File(group_config).exists) {
-      config ++ Configuration.load(group_config)
-    } else {
-      config
-    }
+    this
   }
 
   def load(filename: String) = {
-    val file_config = s"$prefix/$filename"
-    if (new File(file_config).exists) {
-      config ++ Configuration.load(file_config)
+    if (filename.startsWith("/")) {
+      config = Configuration.load(filename)
     } else {
-      config
+      val loader = Thread.currentThread.getContextClassLoader
+      val group_file = if (loader.getResource(s"${group}/${filename}") == null) Configuration() else Configuration.load(loader.getResource(s"${group}/${filename}").getFile)
+      val default_file = if (loader.getResource(s"default/${filename}") == null) Configuration() else Configuration.load(loader.getResource(s"default/${filename}").getFile)
+      val orig_file = if (loader.getResource(filename) == null) Configuration() else Configuration.load(loader.getResource(filename).getFile)
+
+      config = config include group_file include default_file include orig_file
     }
+
+    this
   }
 
   def setValue[T](key: String, value: T) {
@@ -50,5 +50,9 @@ object Config {
 
   def setValue[T](key: String, value: List[T]) {
     config = config.set(key, value)
+  }
+
+  def get = {
+    config
   }
 }

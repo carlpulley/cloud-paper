@@ -25,9 +25,9 @@ import org.jclouds.sshj.config.SshjSshClientModule
 import org.streum.configrity.Configuration
 
 trait Config { self: ClientContextConfig => 
-  private[this] lazy val id = config[String]("aws-ec2.id")
-  private[this] lazy val apikey = config[String]("aws-ec2.apikey")
-  protected[this] lazy val ec2_private_key = scala.io.Source.fromFile(config[String]("ssl.certs") + "/aws-ec2.pem").mkString
+  private[this] lazy val id = config.get[String]("aws-ec2.id")
+  private[this] lazy val apikey = config.get[String]("aws-ec2.apikey")
+  protected[this] lazy val ec2_private_key = scala.io.Source.fromFile(config.get[String]("ssl.certs") + "/aws-ec2.pem").mkString
 
   override lazy val client_context = ContextBuilder.newBuilder("aws-ec2")
       .credentials(id, apikey)

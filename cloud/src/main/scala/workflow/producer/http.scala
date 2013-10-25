@@ -26,8 +26,8 @@ object HTTP extends Workflow {
   def apply()(implicit group: String, router: Router): MessageRoute = {
     val config = Config(group)
   
-    val webhost = config[String]("web.host")
-    val webuser = config[String]("web.user")
+    val webhost = config.get[String]("web.host")
+    val webuser = config.get[String]("web.user")
 
     // NOTES:
     //   1. we assume that SSH certificates have been setup to allow passwordless login to $webuser@$webhost

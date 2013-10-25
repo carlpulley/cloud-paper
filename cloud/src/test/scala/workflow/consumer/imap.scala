@@ -47,14 +47,14 @@ class ImapTests extends ScalaTestSupport with Helpers {
 
   val config = Config.load("application.conf")
   
-  val sqldriver = config[String]("sql.driver")
-  val sqlurl    = config[String]("sql.url")
-  val sqluser   = config[String]("sql.user")
-  val sqlpw     = config[String]("sql.password")
-  val mailhost  = config[String]("mail.host")
-  val mailuser  = config[String]("mail.user")
-  val mailpw    = config[String]("mail.password")
-  val loglevel  = config[String]("log.level")
+  val sqldriver = config.get[String]("sql.driver")
+  val sqlurl    = config.get[String]("sql.url")
+  val sqluser   = config.get[String]("sql.user")
+  val sqlpw     = config.get[String]("sql.password")
+  val mailhost  = config.get[String]("mail.host")
+  val mailuser  = config.get[String]("mail.user")
+  val mailpw    = config.get[String]("mail.password")
+  val loglevel  = config.get[String]("log.level")
   val mailFrom  = "student@hud.ac.uk"
   val mailTo    = s"$mailuser@hud.ac.uk"
   val subject   = s"Submission for ${group.toUpperCase}"

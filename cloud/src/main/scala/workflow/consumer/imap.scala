@@ -27,13 +27,13 @@ import scala.concurrent.duration._
 // NOTE: as we need to access a CamelMessage's attachments, we prefer the use of the Java fluent builder DSL over the scalaz-camel DSL
 
 trait Imap extends Preamble { this: Submission =>
-  private[this] val mailhost = config[String]("mail.host")
-  private[this] val mailuser = config[String]("mail.user")
-  private[this] val mailpw   = config[String]("mail.password")
+  private[this] val mailhost = config.get[String]("mail.host")
+  private[this] val mailuser = config.get[String]("mail.user")
+  private[this] val mailpw   = config.get[String]("mail.password")
 
-  private[this] val folders  = config[List[String]]("imap.folders")
-  private[this] val poll     = new DurationInt(config[Int]("imap.poll", 1)).minutes
-  private[this] val proto    = if (config[Boolean]("imap.ssl", true)) "imaps" else "imap"
+  private[this] val folders  = config.get[List[String]]("imap.folders")
+  private[this] val poll     = new DurationInt(config.get[Int]("imap.poll", 1)).minutes
+  private[this] val proto    = if (config.get[Boolean]("imap.ssl", true)) "imaps" else "imap"
 
   val extractAttachment = { (exchange: Exchange) =>
     val replyTo = if (exchange.getIn.getHeader("ReplyTo") == null) exchange.getIn.getHeader("From") else exchange.getIn.getHeader("ReplyTo")

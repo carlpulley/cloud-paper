@@ -45,16 +45,16 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
   val mailFrom  = "tutor@hud.ac.uk"
   val mailTo    = "student@hud.ac.uk"
   val subject   = s"Assessment feedback for ${group.toUpperCase}"
-  val sqldriver = config[String]("sql.driver")
-  val sqlurl    = config[String]("sql.url")
-  val sqluser   = config[String]("sql.user")
-  val sqlpw     = config[String]("sql.password")
-  val mailhost  = config[String]("mail.host")
-  val mailuser  = config[String]("mail.user")
-  val mailpw    = config[String]("mail.password")
-  val webhost   = config[String]("web.host")
-  val webuser   = config[String]("web.user")
-  val loglevel  = config[String]("log.level")
+  val sqldriver = config.get[String]("sql.driver")
+  val sqlurl    = config.get[String]("sql.url")
+  val sqluser   = config.get[String]("sql.user")
+  val sqlpw     = config.get[String]("sql.password")
+  val mailhost  = config.get[String]("mail.host")
+  val mailuser  = config.get[String]("mail.user")
+  val mailpw    = config.get[String]("mail.password")
+  val webhost   = config.get[String]("web.host")
+  val webuser   = config.get[String]("web.user")
+  val loglevel  = config.get[String]("log.level")
 
   val submission = "Dummy Submission"
   val submission_hash = sha256(submission)

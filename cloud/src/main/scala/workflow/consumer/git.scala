@@ -25,8 +25,8 @@ import scalaz.camel.core._
 trait Git extends Workflow { this: Submission =>
   import Scalaz._
 
-  private[this] val folders = config[String]("git.folders")
-  private[this] val cron    = config[String]("git.cron")
+  private[this] val folders = config.get[String]("git.folders")
+  private[this] val cron    = config.get[String]("git.cron")
 
   for(folder <- folders) {
     // Run a 'git pull' using cron (defaults to once per day)

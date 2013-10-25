@@ -26,9 +26,9 @@ object Printer extends Workflow {
   def apply()(implicit group: String, router: Router): MessageRoute = {
     val config = Config(group)
   
-    val lpraddr    = config[String]("lpr.address", "localhost")
-    val lprpath    = config[String]("lpr.path", "default")
-    val lproptions = config[String]("lpr.options", "sides=two-sided")
+    val lpraddr    = config.get[String]("lpr.address", "localhost")
+    val lprpath    = config.get[String]("lpr.path", "default")
+    val lproptions = config.get[String]("lpr.options", "sides=two-sided")
 
     { msg: Message => msg.addHeaders(Map("student" -> msg.headerAs[String]("replyTo").get, "module" -> group)) } >=>
     to(s"xslt:$group/feedback-printer.xsl") >=>

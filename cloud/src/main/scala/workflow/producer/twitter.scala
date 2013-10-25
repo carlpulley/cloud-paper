@@ -26,10 +26,10 @@ object Twitter extends Workflow {
   def apply()(implicit group: String, router: Router): MessageRoute = {
     val config = Config(group)
   
-    val consumerKey       = config[String]("twitter.consumer.key")
-    val consumerSecret    = config[String]("twitter.consumer.secret")
-    val accessToken       = config[String]("twitter.access.token")
-    val accessTokenSecret = config[String]("twitter.access.secret")
+    val consumerKey       = config.get[String]("twitter.consumer.key")
+    val consumerSecret    = config.get[String]("twitter.consumer.secret")
+    val accessToken       = config.get[String]("twitter.access.token")
+    val accessTokenSecret = config.get[String]("twitter.access.secret")
 
     { msg: Message => msg.addHeaders(Map("student" -> msg.headerAs[String]("replyTo").get, "module" -> group)) } >=>
     to(s"velocity:$group/feedback-twitter.vm") >=>

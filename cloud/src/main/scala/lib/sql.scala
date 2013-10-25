@@ -41,4 +41,10 @@ trait SQLTable {
       SQL(s"DROP TABLE ${name.value}").execute.apply()
     }
   }
+
+  def exists: Boolean = {
+    DB autoCommit { implicit session =>
+      SQL(s"SELECT name FROM sqlite_master WHERE type='table' AND name='${name.value}'").map(_.string(1)).single.apply().nonEmpty
+    }
+  }
 }

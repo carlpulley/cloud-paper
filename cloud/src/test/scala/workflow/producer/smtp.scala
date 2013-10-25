@@ -34,9 +34,9 @@ class SMTPTests extends ScalaTestSupport with Helpers {
   val mailFrom  = "tutor@hud.ac.uk"
   val mailTo    = "student@hud.ac.uk"
   val subject   = s"Assessment feedback for ${group.toUpperCase}"
-  val webhost   = config[String]("web.host")
-  val webuser   = config[String]("web.user")
-  val loglevel  = config[String]("log.level")
+  val webhost   = config.get[String]("web.host")
+  val webuser   = config.get[String]("web.user")
+  val loglevel  = config.get[String]("log.level")
 
   setLogLevel(loglevel)
 

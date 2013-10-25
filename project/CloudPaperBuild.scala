@@ -17,6 +17,7 @@ import sbt._
 import Keys._
 import akka.sbt.AkkaKernelPlugin
 import akka.sbt.AkkaKernelPlugin.{ Dist, outputDirectory, distJvmOptions}
+import com.typesafe.sbt.SbtAtmos.{ Atmos, atmosSettings }
 
 trait Resolvers {
   val HuddersfieldResolvers = Seq(
@@ -151,7 +152,7 @@ object CloudPaperBuild extends Build with Resolvers with Dependencies {
     id = "cloud-paper",
     base = file("."),
     settings = CloudPaperSettings
-  ) aggregate(cloud, example)
+  ).aggregate(cloud, example)
 
   lazy val cloud = Project(
     id = "cloud",
@@ -163,5 +164,7 @@ object CloudPaperBuild extends Build with Resolvers with Dependencies {
     id = "example",
     base = file("example"),
     settings = CloudPaperSettings
-  ) dependsOn(cloud)
+  ).dependsOn(cloud)
+  .configs(Atmos)
+  .settings(atmosSettings: _*)
 }

@@ -15,30 +15,52 @@
 
 package example
 
+import akka.actor.ActorRef
+import akka.actor.ActorSystem
+import cloud.lib.Config
 import cloud.lib.Kernel
+import cloud.lib.Workflow
 import cloud.workflow.controller.ControlBus
-import cloud.workflow.controller.plugin.Marking
-import cloud.workflow.consumer.Imap
 import cloud.workflow.consumer.Dropbox
-import cloud.workflow.producer.HTTP
-import cloud.workflow.producer.SMTP
+import cloud.workflow.controller.SubmissionTable
+import cloud.workflow.controller.FeedbackTable
 import cloud.workflow.Submission
 import scala.concurrent.duration._
+import scalikejdbc.ConnectionPool
+import scalaz._
+import scalaz.camel.core.Conv.MessageRoute
+import scalaz.camel.core.Router
 
-class AssessmentKernel extends Kernel {
+trait Creator {
+    def apply()(implicit group: String, router: Router, controller: ActorRef, system: ActorSystem, timeout: Duration = 10.minutes): MessageRoute
+}
+
+abstract class AssessmentKernel(assessment: Creator) extends Kernel {
   override def startup = {
     super.startup
 
-    val HOME = sys.env("HOME")
-    // Only allow email submissions every 24 hours..
-    implicit val poll = 24.hours
-    Imap(s"INBOX.$group.Submissions")
-    // .. and on-demand dropbox submissions
-    Dropbox(s"$HOME/$group/Submissions")
+    import Scalaz._
+    
+    val config = Config.load("application.conf")
+    
+    val sqldriver = config.get[String]("sql.driver")
+    val sqlurl    = config.get[String]("sql.url")
+    val sqluser   = config.get[String]("sql.user")
+    val sqlpw     = config.get[String]("sql.password")
+    val dropbox   = config.get[String]("workflow.dropbox")
 
-    implicit val controller = ControlBus(Marking())
+    Class.forName(sqldriver)
+    ConnectionPool.singleton(sqlurl, sqluser, sqlpw)
 
-    // Feedback to be delivered via a (SHA256) web link emailed to student
-    new Submission(controller, AssessmentWorkflow(), SMTP(), HTTP()) with Imap with Dropbox
+    if (! SubmissionTable.exists) SubmissionTable.create
+    if (! FeedbackTable.exists) FeedbackTable.create
+
+    // On-demand dropbox submissions
+    Dropbox(dropbox)
+
+    implicit val controller = ControlBus()
+
+    // Mock feedback delivery by (default) delivering to error channel
+    new Submission(controller, assessment.apply()) with Dropbox
   }
 }

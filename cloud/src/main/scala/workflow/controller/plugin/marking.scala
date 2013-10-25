@@ -39,9 +39,9 @@ object Marking extends Workflow {
   def apply()(implicit group: String, router: Router): PartialFunction[ControlEvent, MessageRoute] = {
     val config = Config(group)
   
-    val mailhost = config[String]("mail.host")
-    val mailuser = config[String]("mail.user")
-    val mailpw   = config[String]("mail.password")
+    val mailhost = config.get[String]("mail.host")
+    val mailuser = config.get[String]("mail.user")
+    val mailpw   = config.get[String]("mail.password")
 
     val generateFeedback = { msg: Message =>
       val feedback = DB autoCommit { implicit session =>

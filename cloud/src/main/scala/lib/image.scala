@@ -48,7 +48,7 @@ import scala.language.implicitConversions
 
 trait ClientContextConfig {
   // N.B. cloud providers are *not* organised by group
-  protected[this] val config: Configuration = Config.load("cloud.conf")
+  protected[this] val config = Config.load("cloud.conf")
 
   protected[this] val client_context: ComputeServiceContext // 'override lazy val' in children
 }
@@ -56,11 +56,11 @@ trait ClientContextConfig {
 abstract class Image(val group: String) extends ClientContextConfig {
   assert(new WrappedString(group).filter("abcdefghijklmnopqrstuvwxyz0123456789-".contains(_)).toString == group, "group names need to contain lower case alphanumerics or hypens")
 
-  private[this] val chef_server     = config[String]("chef.url")
-  private[this] val chef_user       = config[String]("chef.user.name")
-  private[this] val chef_pem        = config[String]("chef.user.pem")
-  private[this] val validation_name = config[String]("chef.validation.client_name")
-  private[this] val validation_pem  = config[String]("chef.validation.pem")
+  private[this] val chef_server     = config.get[String]("chef.url")
+  private[this] val chef_user       = config.get[String]("chef.user.name")
+  private[this] val chef_pem        = config.get[String]("chef.user.pem")
+  private[this] val validation_name = config.get[String]("chef.validation.client_name")
+  private[this] val validation_pem  = config.get[String]("chef.validation.pem")
 
   private[this] val chef_config = new Properties()
   chef_config
@@ -79,7 +79,7 @@ abstract class Image(val group: String) extends ClientContextConfig {
 
   protected[this] val client_properties = new Properties()
   client_properties
-    .put(ComputeServiceProperties.TIMEOUT_SCRIPT_COMPLETE, (config[Int]("jclouds.script-complete") * 1000).asInstanceOf[java.lang.Integer]) // Convert seconds to milliseconds
+    .put(ComputeServiceProperties.TIMEOUT_SCRIPT_COMPLETE, (config.get[Int]("jclouds.script-complete") * 1000).asInstanceOf[java.lang.Integer]) // Convert seconds to milliseconds
 
   private[this] val client: ComputeService = client_context.getComputeService()
 

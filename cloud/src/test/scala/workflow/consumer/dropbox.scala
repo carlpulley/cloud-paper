@@ -38,12 +38,12 @@ class DropboxTests extends ScalaTestSupport with Helpers {
 
   val config = Config.load("application.conf")
   
-  val sqldriver = config[String]("sql.driver")
-  val sqlurl    = config[String]("sql.url")
-  val sqluser   = config[String]("sql.user")
-  val sqlpw     = config[String]("sql.password")
+  val sqldriver = config.get[String]("sql.driver")
+  val sqlurl    = config.get[String]("sql.url")
+  val sqluser   = config.get[String]("sql.user")
+  val sqlpw     = config.get[String]("sql.password")
   val folder    = Directory.makeTemp().toString
-  val loglevel  = config[String]("log.level")
+  val loglevel  = config.get[String]("log.level")
 
   setLogLevel(loglevel)
 

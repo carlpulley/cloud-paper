@@ -25,7 +25,7 @@ import scalaz.camel.core._
 trait Dropbox extends Workflow { this: Submission =>
   import Scalaz._
 
-  private[this] val folders = config[List[String]]("dropbox.folders")
+  private[this] val folders = config.get[List[String]]("dropbox.folders")
   
   def parse_filename(header: String) = {
     val filename = """([uU][0-9]{7})\.(tar\.gz|tgz)""".r

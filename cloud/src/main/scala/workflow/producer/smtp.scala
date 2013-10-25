@@ -28,11 +28,11 @@ object SMTP extends Workflow {
   
     val mailFrom = "tutor@hud.ac.uk"
     val subject  = s"Assessment feedback for ${group.toUpperCase}"
-    val mailhost = config[String]("mail.host")
-    val mailuser = config[String]("mail.user")
-    val mailpw   = config[String]("mail.password")
-    val webhost  = config[String]("web.host")
-    val webuser  = config[String]("web.user")
+    val mailhost = config.get[String]("mail.host")
+    val mailuser = config.get[String]("mail.user")
+    val mailpw   = config.get[String]("mail.password")
+    val webhost  = config.get[String]("web.host")
+    val webuser  = config.get[String]("web.user")
 
     // Here we send a template email containing a URL link to the actual assessment feedback
     { msg: Message => msg.addHeaders(Map("webuser" -> webuser, "webhost" -> webhost, "module" -> group)) } >=>

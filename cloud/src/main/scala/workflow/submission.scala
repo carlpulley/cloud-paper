@@ -34,11 +34,11 @@ class Submission(val controller: ActorRef, workflow: Conv.MessageRoute, endpoint
 
   private[this] val mailFrom = "tutor@hud.ac.uk"
   private[this] val subject  = s"Assessment feedback for ${group.toUpperCase}"
-  private[this] val mailhost = config[String]("mail.host")
-  private[this] val mailuser = config[String]("mail.user")
-  private[this] val mailpw   = config[String]("mail.password")
-  private[this] val webhost  = config[String]("web.host")
-  private[this] val webuser  = config[String]("web.user")
+  private[this] val mailhost = config.get[String]("mail.host")
+  private[this] val mailuser = config.get[String]("mail.user")
+  private[this] val mailpw   = config.get[String]("mail.password")
+  private[this] val webhost  = config.get[String]("web.host")
+  private[this] val webuser  = config.get[String]("web.user")
 
   val uri = s"jms:queue:$group-submission-entry"
   val msg_store = s"direct:$group-msg-store"
