@@ -15,6 +15,7 @@
       <xs:element name="warning" type="warning"/>
       <xs:element name="question" type="question"/>
       <xs:element name="javac" type="xs:string"/>
+      <xs:element name="jml" type="xs:string"/>
     </xs:choice>
   </xs:group>
 
