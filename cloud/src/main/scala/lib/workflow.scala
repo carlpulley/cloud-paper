@@ -15,7 +15,12 @@
 
 package cloud.lib
 
+import scala.concurrent.duration.Duration
 import scalaz.camel.akka.Akka
-import scalaz.camel.core.Camel
+import scalaz.camel.core._
 
-trait Workflow extends Camel with Akka with Helpers
+case class VerificationFailed(msg: Message) extends Exception
+
+trait Workflow extends Camel with Akka with Helpers {
+  def delay(delay: Duration) = id // TODO:
+}

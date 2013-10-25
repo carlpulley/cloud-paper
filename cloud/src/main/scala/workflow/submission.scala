@@ -21,6 +21,7 @@ import cloud.lib.Workflow
 import cloud.workflow.controller.FeedbackTable
 import cloud.workflow.controller.SubmissionTable
 import java.sql.SQLException
+import scala.concurrent.duration._
 import scalikejdbc.DB
 import scalikejdbc.SQLInterpolation._
 import scalaz._
@@ -99,9 +100,11 @@ class Submission(val controller: ActorRef, workflow: Conv.MessageRoute, endpoint
     }
   }
 
+  val retries = 5
+
   from(msg_store) {
     // SQLite DB insertion can fail (due to locking), so allow a number of attempts at inserting before we permanently fail
-    attempt(5) {
+    attempt(retries) {
       oneway >=>
       choose {
         case Message(_, hdrs) if (hdrs("table") == SubmissionTable.name.value) => 
@@ -112,7 +115,11 @@ class Submission(val controller: ActorRef, workflow: Conv.MessageRoute, endpoint
           { msg: Message => throw new Exception("Invalid message received") }
       }
     } fallback {
-        case exn: Exception => to(error_channel) >=> failWith(exn)
+        // After 2 failures, delay original message and retry
+        case (exn: Exception, s: RetryState) if (retries >= s.count && s.count > retries - 2) => retry(s)
+        case (exn: Exception, s: RetryState) if (retries - 2 >= s.count && s.count > 0) => orig(s) >=> delay(10.seconds) >=> retry(s)
+        // If all else fails, send original message to the error channel
+        case (exn: Exception, s: RetryState) if (s.count == 0) => orig(s) >=> to(error_channel) >=> failWith(exn)
     }
   }
 }
