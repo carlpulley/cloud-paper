@@ -13,17 +13,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-package cloud.workflow.consumer
+package cloud.transport.consumer
 
 package test
 
 import cloud.lib.Config
 import cloud.lib.Helpers
-import cloud.workflow.controller.ControlBus
-import cloud.workflow.controller.SubmissionTable
-import cloud.workflow.controller.FeedbackTable
-import cloud.workflow.Submission
-import cloud.workflow.test.ScalaTestSupport
+import cloud.transport.controller.ControlBus
+import cloud.transport.controller.SubmissionTable
+import cloud.transport.controller.FeedbackTable
+import cloud.transport.Submission
+import cloud.transport.test.ScalaTestSupport
 import java.io.File
 import java.util.Date
 import javax.mail.internet.InternetAddress
@@ -89,11 +89,14 @@ class ImapTests extends ScalaTestSupport with Helpers {
   implicit val ssl = false
   Imap(folder)
   val workflow_hook = to("mock:imap-workflow") >=> to("log:STOPPED?showAll=true") >=> failWith(new Exception("stopped"))
-  val submission_endpoint = new Submission(ControlBus(), workflow_hook) with Imap
-  from(submission_endpoint.error_channel) {
-    { msg: Message => if (msg.exception.isDefined) msg.addHeader("Exception", msg.exception.get.getMessage) else msg } >=> 
-    to("log:ERROR?showAll=true") >=> 
-    to("mock:imap-error")
+  val submission_endpoint = new Submission(ControlBus(), workflow_hook) with Imap{
+    override def error_handler {
+      from(error_channel) {
+        { msg: Message => if (msg.exception.isDefined) msg.addHeader("Exception", msg.exception.get.getMessage) else msg } >=> 
+        to("log:ERROR?showAll=true") >=> 
+        to("mock:imap-error")
+      }
+    }
   }
 
   val options = System.getProperties()

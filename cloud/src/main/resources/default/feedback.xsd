@@ -10,12 +10,24 @@
 
   <xs:group name="feedback-item">
     <xs:choice>
-      <xs:element name="error" type="xs:string"/>
-      <xs:element name="ignored" type="ignored"/>
       <xs:element name="warning" type="warning"/>
-      <xs:element name="question" type="question"/>
+      <xs:element name="error" type="xs:string"/>
+      <xs:element name="unittest" type="unittest"/>
       <xs:element name="javac" type="xs:string"/>
       <xs:element name="jml" type="xs:string"/>
+    </xs:choice>
+  </xs:group>
+
+  <xs:complexType name="unittest">
+    <xs:group ref="unittest-item" minOccurs="0" maxOccurs="unbounded"/>
+  </xs:complexType>
+
+  <xs:group name="unittest-item">
+    <xs:choice>
+      <xs:element name="question" type="question"/>
+      <xs:element name="ignored" type="ignored"/>
+      <xs:element name="warning" type="warning"/>
+      <xs:element name="error" type="xs:string"/>
     </xs:choice>
   </xs:group>
 

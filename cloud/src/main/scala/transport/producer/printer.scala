@@ -13,16 +13,26 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-package cloud.lib
+package cloud.transport.producer
 
-import scala.concurrent.duration.Duration
-import scalaz.camel.akka.Akka
+import cloud.lib.Config
+import cloud.lib.Workflow
+import scalaz._
 import scalaz.camel.core._
 
-case class VerificationFailed(msg: Message) extends Exception
+object Printer extends Workflow {
+  import Scalaz._
 
-trait Workflow extends Camel with Akka with Helpers {
-  val id = (msg: Message) => msg
+  def apply()(implicit group: String, router: Router): MessageRoute = {
+    val config = Config(group)
+  
+    val lpraddr    = config.get[String]("lpr.address", "localhost")
+    val lprpath    = config.get[String]("lpr.path", "default")
+    val lproptions = config.get[String]("lpr.options", "sides=two-sided")
 
-  def delay(delay: Duration) = id // TODO:
+    { msg: Message => msg.addHeaders(Map("student" -> msg.headerAs[String]("replyTo").get, "module" -> group)) } >=>
+    to(s"xslt:$group/feedback-printer.xsl") >=>
+    to("fop:application/pdf") >=>
+    to(s"lpr:$lpraddr/$lprpath?$lproptions")
+  }
 }

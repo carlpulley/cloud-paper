@@ -13,13 +13,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-package cloud.workflow.producer
+package cloud.transport.producer
 
 package test
 
 import cloud.lib.Config
 import cloud.lib.Helpers
-import cloud.workflow.test.ScalaTestSupport
+import cloud.transport.test.ScalaTestSupport
 import javax.mail.internet.InternetAddress
 import org.jvnet.mock_javamail.Mailbox
 import scala.collection.JavaConversions._

@@ -14,16 +14,18 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import sbt._
+import Process._
 import Keys._
 import akka.sbt.AkkaKernelPlugin
-import akka.sbt.AkkaKernelPlugin.{ Dist, outputDirectory, distJvmOptions}
-import com.typesafe.sbt.SbtAtmos.{ Atmos, atmosSettings }
+import akka.sbt.AkkaKernelPlugin.{ Dist, outputDirectory, distJvmOptions }
 
 trait Resolvers {
   val HuddersfieldResolvers = Seq(
     "Java.net" at "http://download.java.net/maven/2/",
     "Maven Central" at "http://repo1.maven.org/",
     "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/",
+    "Typesafe Snapshots" at "http://repo.typesafe.com/typesafe/snapshots/",
+    "Sonatype Releases" at "http://oss.sonatype.org/content/repositories/releases",
     "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
   )
 }
@@ -38,8 +40,9 @@ object V {
   val JUNIT = "4.11"
   val LIFT = "2.5.1"
   val LOG4J = "1.2.17"
+  val RXSCALA = "0.15.0"
   val SCALA = "2.10.2"
-  val SCALACHECK = "1.10.1"
+  val SCALACHECK = "1.11.0"
   val SCALATEST = "2.0.M6"
   val SCALAZ = "7.1.0-M1"
   val SCALAZCAMEL = "0.4-SNAPSHOT"
@@ -66,12 +69,16 @@ trait Dependencies {
     // Scala Serializer
     "org.scala-lang" %% "scala-pickling" % "0.8.0-SNAPSHOT",
     // Java source parser
-    "com.google.code.javaparser" % "javaparser" % "1.0.10"
+    "com.google.code.javaparser" % "javaparser" % "1.0.10",
+    // Apache commons lang (string escaping)
+    "org.apache.commons" % "commons-lang3" % "3.1",
+    // Rx Scala
+    "com.netflix.rxjava" % "rxjava-scala" % V.RXSCALA
   )
 
   val Testing = Seq(
     "org.scalatest" % "scalatest_2.10" % V.SCALATEST % "test",
-    "org.scalacheck" % "scalacheck_2.10" % V.SCALACHECK % "test",
+    "org.scalacheck" %% "scalacheck" % V.SCALACHECK % "test",
     // Mocking mail servers and clients
     "org.jvnet.mock-javamail" % "mock-javamail" % "1.9" % "test",
     "junit" % "junit" % V.JUNIT
@@ -126,9 +133,28 @@ trait Dependencies {
   val DefaultDependencies = Miscellaneous ++ Testing ++ Logging
 }
 
-object CloudPaperBuild extends Build with Resolvers with Dependencies {
-  
-  val CloudPaperSettings = Defaults.defaultSettings ++ AkkaKernelPlugin.distSettings ++ Seq(
+trait TaskHelpers {
+  lazy val feedback = InputKey[Unit]("feedback", "Run example.CommandLine and generate feedback for given Java sources")
+
+  lazy val jconsole = TaskKey[Unit]("jconsole", "Run example.AkkaAssessment and monitor with JConsole")
+
+  val exampleTasks = Seq(
+  //  feedback := { 
+  //    mainClass := Some("example.CommandLine")
+  //    run.evaluate
+  //  },
+  //  jconsole := { 
+  //    mainClass := Some("example.AkkaAssessment")
+  //    run.evaluate
+  //    "jconsole" ! 
+  //  }
+  )
+}
+
+object CloudPaperBuild extends Build with Resolvers with Dependencies with TaskHelpers {
+  val jvmOptions = Seq("-Xms256M", "-Xmx1024M", "-XX:+UseParallelGC")
+
+  lazy val CloudPaperSettings = Defaults.defaultSettings ++ AkkaKernelPlugin.distSettings ++ Seq(
     organization := "University of Huddersfield",
     version := "1.0",
     scalaVersion := V.SCALA,
@@ -139,12 +165,13 @@ object CloudPaperBuild extends Build with Resolvers with Dependencies {
     checksums := Seq("sha1", "md5"),
     scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature"),
     javacOptions ++= Seq("-Xlint:unchecked", "-Xlint:deprecation"),
+    javaOptions ++= jvmOptions,
     parallelExecution in Test := false,
     scalacOptions += "-language:experimental.macros",
-    libraryDependencies <+= scalaVersion { v => compilerPlugin("org.scala-lang.plugins" % "continuations" % V.SCALA) },
+    libraryDependencies <+= scalaVersion { v => compilerPlugin("org.scala-lang.plugins" % "continuations" % v) },
     scalacOptions += "-P:continuations:enable",
     libraryDependencies ++= Akka ++ ApacheCamel ++ JClouds,
-    distJvmOptions in Dist := "-Xms256M -Xmx1024M",
+    distJvmOptions in Dist := jvmOptions.mkString(" "),
     outputDirectory in Dist := file("cookbook/cloud/files/default/cloud-deploy")
   )
   
@@ -163,8 +190,8 @@ object CloudPaperBuild extends Build with Resolvers with Dependencies {
   lazy val example = Project(
     id = "example",
     base = file("example"),
-    settings = CloudPaperSettings
+    settings = CloudPaperSettings ++ exampleTasks ++ Seq(
+      libraryDependencies ++= Seq("org.scalacheck" %% "scalacheck" % V.SCALACHECK)
+    )
   ).dependsOn(cloud)
-  .configs(Atmos)
-  .settings(atmosSettings: _*)
 }

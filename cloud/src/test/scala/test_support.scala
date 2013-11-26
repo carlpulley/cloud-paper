@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-package cloud.workflow.test
+package cloud.transport.test
 
 import akka.actor.ActorSystem
 import akka.camel.CamelExtension

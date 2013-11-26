@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-package cloud.workflow
+package cloud.transport
 
 package test
 
@@ -21,12 +21,12 @@ import akka.actor.Props
 import akka.testkit.TestActorRef
 import cloud.lib.Config
 import cloud.lib.Helpers
-import cloud.workflow.controller.ControlBus
-import cloud.workflow.controller.SubmissionTable
-import cloud.workflow.controller.FeedbackTable
-import cloud.workflow.producer.HTTP
-import cloud.workflow.producer.SMTP
-import cloud.workflow.Submission
+import cloud.transport.controller.ControlBus
+import cloud.transport.controller.SubmissionTable
+import cloud.transport.controller.FeedbackTable
+import cloud.transport.producer.HTTP
+import cloud.transport.producer.SMTP
+import cloud.transport.Submission
 import java.io.File
 import org.apache.camel.component.mock.MockEndpoint
 import org.streum.configrity._
@@ -58,7 +58,7 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
 
   val submission = "Dummy Submission"
   val submission_hash = sha256(submission)
-  val feedback = "<feedback><question value='1'><suite><test name='example' passed='true'><outcome name='testExample'><comment name='feedback'>Dummy Feedback</comment></outcome></test></suite></question></feedback>"
+  val feedback = "<feedback><unittest><question value='1'><suite><test name='example' passed='true'><outcome name='testExample'><comment name='feedback'>Dummy Feedback</comment></outcome></test></suite></question></unittest></feedback>"
   val feedback_failure = "Dummy Feedback"
   val feedback_hash = sha256(feedback)
 
@@ -70,16 +70,19 @@ class SubmissionTests extends ScalaTestSupport with Helpers {
   val controller = TestActorRef(Props(new ControlBus(Map.empty)))
   val simple_feedback = { msg: Message => {
     if (msg.header("xsdFailure").isEmpty) {
-      msg.setBody("<feedback><question value='1'><suite><test name='example' passed='true'><outcome name='testExample'><comment name='feedback'>" + msg.bodyAs[String].replaceAll("Submission", "Feedback") + "</comment></outcome></test></suite></question></feedback>")
+      msg.setBody("<feedback><unittest><question value='1'><suite><test name='example' passed='true'><outcome name='testExample'><comment name='feedback'>" + msg.bodyAs[String].replaceAll("Submission", "Feedback") + "</comment></outcome></test></suite></question></unittest></feedback>")
     } else {
       msg.setBody(msg.bodyAs[String].replaceAll("Submission", "Feedback"))
     }
   }}
-  val submission_endpoint = new Submission(controller, simple_feedback, to("mock:mail"), to("mock:web"))
-  from(submission_endpoint.error_channel) {
-    { msg: Message => if (msg.exception.isDefined) msg.addHeader("Exception", msg.exception.get.getMessage) else msg } >=> 
-    to("log:ERROR?showAll=true") >=> 
-    to("mock:submission-error")
+  val submission_endpoint = new Submission(controller, simple_feedback, to("mock:mail"), to("mock:web")) {
+    override def error_handler {
+      from(error_channel) {
+        { msg: Message => if (msg.exception.isDefined) msg.addHeader("Exception", msg.exception.get.getMessage) else msg } >=> 
+        to("log:ERROR?showAll=true") >=> 
+        to("mock:submission-error")
+      }
+    }
   }
 
   before {

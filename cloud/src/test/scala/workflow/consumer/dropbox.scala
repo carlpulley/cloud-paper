@@ -13,17 +13,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-package cloud.workflow.consumer
+package cloud.transport.consumer
 
 package test
 
 import cloud.lib.Config
 import cloud.lib.Helpers
-import cloud.workflow.controller.ControlBus
-import cloud.workflow.controller.SubmissionTable
-import cloud.workflow.controller.FeedbackTable
-import cloud.workflow.Submission
-import cloud.workflow.test.ScalaTestSupport
+import cloud.transport.controller.ControlBus
+import cloud.transport.controller.SubmissionTable
+import cloud.transport.controller.FeedbackTable
+import cloud.transport.Submission
+import cloud.transport.test.ScalaTestSupport
 import java.io.File
 import org.apache.camel.component.mock.MockEndpoint
 import scala.collection.JavaConversions._
@@ -70,11 +70,14 @@ class DropboxTests extends ScalaTestSupport with Helpers {
 
   Dropbox(folder)
   val workflow_hook = to("mock:dropbox-workflow") >=> to("log:STOPPED?showAll=true") >=> failWith(new Exception("stopped"))
-  val submission_endpoint = new Submission(ControlBus(), workflow_hook) with Dropbox
-  from(submission_endpoint.error_channel) {
-    { msg: Message => if (msg.exception.isDefined) msg.addHeader("Exception", msg.exception.get.getMessage) else msg } >=> 
-    to("log:ERROR?showAll=true") >=> 
-    to("mock:dropbox-error")
+  val submission_endpoint = new Submission(ControlBus(), workflow_hook) with Dropbox {
+    override def error_handler {
+      from(error_channel) {
+        { msg: Message => if (msg.exception.isDefined) msg.addHeader("Exception", msg.exception.get.getMessage) else msg } >=> 
+        to("log:ERROR?showAll=true") >=> 
+        to("mock:dropbox-error")
+      }
+    }
   }
 
   val submission = "Dummy submission file"
@@ -88,7 +91,8 @@ class DropboxTests extends ScalaTestSupport with Helpers {
     mock_workflow.message(0).header("breadcrumbId").isNotNull
     mock_workflow.expectedBodiesReceived(submission+"-1")
 
-    Path(s"$folder/u1234567.tgz").toFile.writeAll(submission+"-1")
+    Path(s"$folder/u1234567").createDirectory(true, false)
+    Path(s"$folder/u1234567/sample.tgz").toFile.writeAll(submission+"-1")
 
     mock_workflow.assertIsSatisfied
   }
@@ -102,7 +106,8 @@ class DropboxTests extends ScalaTestSupport with Helpers {
     mock_workflow.message(0).header("breadcrumbId").isNotNull
     mock_workflow.expectedBodiesReceived(submission+"-2")
 
-    Path(s"$folder/u1234567.tar.gz").toFile.writeAll(submission+"-2")
+    Path(s"$folder/u1234567").createDirectory(true, false)
+    Path(s"$folder/u1234567/sample.tar.gz").toFile.writeAll(submission+"-2")
 
     mock_workflow.assertIsSatisfied
   }
@@ -116,13 +121,14 @@ class DropboxTests extends ScalaTestSupport with Helpers {
     mock_error.expectedMessageCount(1)
     mock_error.expectedBodiesReceived(submission+"-3")
 
-    Path(s"$folder/u1234567.txt").toFile.writeAll(submission+"-3")
+    Path(s"$folder/u1234567").createDirectory(true, false)
+    Path(s"$folder/u1234567/sample.txt").toFile.writeAll(submission+"-3")
 
     mock_workflow.assertIsSatisfied
     mock_error.assertIsSatisfied
   }
 
-  test("Ensure that incorrectly named dropbox files are rejected") {
+  test("Ensure that incorrectly named dropbox folders are rejected") {
     val mock_workflow = getMockEndpoint("mock:dropbox-workflow")
     val mock_error = getMockEndpoint("mock:dropbox-error")
     mock_error.reset
@@ -131,7 +137,23 @@ class DropboxTests extends ScalaTestSupport with Helpers {
     mock_error.expectedMessageCount(1)
     mock_error.expectedBodiesReceived(submission+"-4")
 
-    Path(s"$folder/abcdefg.tgz").toFile.writeAll(submission+"-4")
+    Path(s"$folder/abcdefg").createDirectory(true, false)
+    Path(s"$folder/abcdefg/sample.tgz").toFile.writeAll(submission+"-4")
+
+    mock_workflow.assertIsSatisfied
+    mock_error.assertIsSatisfied
+  }
+
+  test("Ensure that files without enclosing folders are rejected") {
+    val mock_workflow = getMockEndpoint("mock:dropbox-workflow")
+    val mock_error = getMockEndpoint("mock:dropbox-error")
+    mock_error.reset
+
+    mock_workflow.expectedMessageCount(0)
+    mock_error.expectedMessageCount(1)
+    mock_error.expectedBodiesReceived(submission+"-5")
+
+    Path(s"$folder/u1234567.tgz").toFile.writeAll(submission+"-5")
 
     mock_workflow.assertIsSatisfied
     mock_error.assertIsSatisfied

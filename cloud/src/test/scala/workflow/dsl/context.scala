@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-package cloud.workflow.dsl.test
+package cloud.transport.dsl.test
 
 import akka.actor.Props
 import akka.testkit.TestActorRef
@@ -21,10 +21,10 @@ import akka.util.Timeout
 import cloud.lib.Config
 import cloud.lib.Helpers
 import cloud.lib.Image
-import cloud.workflow.controller.ControlBus
-import cloud.workflow.dsl.Context
-import cloud.workflow.test.MockImage
-import cloud.workflow.test.ScalaTestSupport
+import cloud.transport.controller.ControlBus
+import cloud.transport.dsl.Context
+import cloud.transport.test.MockImage
+import cloud.transport.test.ScalaTestSupport
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.TimeUnit
 import org.streum.configrity._
@@ -38,7 +38,7 @@ import scalaz.camel.core._
 //  import Scalaz._
 //
 //  val config = Config.load("application.conf")
-//  val loglevel  = config[String]("log.level")
+//  val loglevel  = config.get[String]("log.level")
 //
 //  setLogLevel(loglevel)
 //

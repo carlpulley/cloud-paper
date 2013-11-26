@@ -13,13 +13,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-package cloud.workflow.producer
+package cloud.transport.producer
 
 package test
 
 import cloud.lib.Config
 import cloud.lib.Helpers
-import cloud.workflow.test.ScalaTestSupport
+import cloud.transport.test.ScalaTestSupport
 import org.apache.camel.component.mock.MockComponent
 import org.apache.camel.component.mock.MockEndpoint
 import scala.collection.JavaConversions._
