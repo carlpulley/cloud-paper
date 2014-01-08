@@ -2,8 +2,10 @@ Use Case: Intermediate Level Coursework
 =======================================
 
 **Notes:** 
-* student handout code may be found in the src/main directory [java/handout](https://github.com/carlpulley/cloud-paper/tree/master/example/src/main/java/handout)
-* a model solution, along with unit tests and a testing harness, may be found in the [src/main/java](https://github.com/carlpulley/cloud-paper/tree/master/example/src/main/java/) directory.
+* student handout code may be found in the src/main/java directory [handout](https://github.com/carlpulley/cloud-paper/tree/master/example/src/main/java/handout)
+* a model solution, along with unit tests and a testing harness, may be found in the src/main/java directory [assessment](https://github.com/carlpulley/cloud-paper/tree/master/example/src/main/java/assessment)
+* property based tests may be found in the src/main/scala directory [assessment](https://github.com/carlpulley/cloud-paper/tree/master/example/src/main/scala/assessment)
+* feedback workflows may be found in the src/main/scala directory [workflow](https://github.com/carlpulley/cloud-paper/tree/master/example/src/main/scala/workflow).
 
 Introduction
 ------------
@@ -41,10 +43,13 @@ For example, here is the tree data structure that results from the above _frames
 Topological Sorts
 -----------------
 
-You are advised to look at your lecture notes and the relevant chapter of the course recommended text:
+You are advised to look at your lecture notes and the relevant chapters of the following texts:
 
 -> _Introduction to Algorithms_ <-
 -> by T.H.Cormen, C.E.Leiserson, R.L.Rivest and C.Stein. MIT Press, 2009 <-
+
+-> _Algorithms (4th edition)_ <-
+-> by R.Sedgewick and K.Wayne. Addison-Wesley Professional, 2011 <-
 
 to learn more about topological sorts.
 
